@@ -1,0 +1,4550 @@
+{
+  "success": [
+    {
+      "row": 4,
+      "studentName": "Vanshika Shrivastav",
+      "mobile": "8958602843",
+      "userid": "DCT-2026-0114"
+    },
+    {
+      "row": 5,
+      "studentName": "BIRJU MADDHESIYA",
+      "mobile": "7991571570",
+      "userid": "DCT-2026-0115"
+    },
+    {
+      "row": 6,
+      "studentName": "Ayushi Srivastava",
+      "mobile": "7457921112",
+      "userid": "DCT-2026-0116"
+    },
+    {
+      "row": 7,
+      "studentName": "Priyal Yadav",
+      "mobile": "9235886431",
+      "userid": "DCT-2026-0117"
+    },
+    {
+      "row": 8,
+      "studentName": "Sandeep Pal",
+      "mobile": "9616111895",
+      "userid": "DCT-2026-0118"
+    },
+    {
+      "row": 9,
+      "studentName": "Arun yadav",
+      "mobile": "7232914314",
+      "userid": "DCT-2026-0119"
+    },
+    {
+      "row": 10,
+      "studentName": "ayan siddiqui",
+      "mobile": "6387303469",
+      "userid": "DCT-2026-0120"
+    },
+    {
+      "row": 11,
+      "studentName": "Ankit Mishra",
+      "mobile": "9580029187",
+      "userid": "DCT-2026-0121"
+    },
+    {
+      "row": 12,
+      "studentName": "Rajnish Kumar Yadav",
+      "mobile": "8874920108",
+      "userid": "DCT-2026-0122"
+    },
+    {
+      "row": 13,
+      "studentName": "Akash Kumar Verma",
+      "mobile": "8948382133",
+      "userid": "DCT-2026-0123"
+    },
+    {
+      "row": 14,
+      "studentName": "Akash Kumar Verma",
+      "mobile": "7052741801",
+      "userid": "DCT-2026-0124"
+    },
+    {
+      "row": 15,
+      "studentName": "Vikash Kumar",
+      "mobile": "7267956956",
+      "userid": "DCT-2026-0125"
+    },
+    {
+      "row": 16,
+      "studentName": "Manzar Ali",
+      "mobile": "9792266794",
+      "userid": "DCT-2026-0126"
+    },
+    {
+      "row": 17,
+      "studentName": "Ravi Prakash Verma",
+      "mobile": "8896805991",
+      "userid": "DCT-2026-0127"
+    },
+    {
+      "row": 18,
+      "studentName": "Meenakshi Singh",
+      "mobile": "9235050625",
+      "userid": "DCT-2026-0128"
+    },
+    {
+      "row": 19,
+      "studentName": "Himanshu kasaudhan",
+      "mobile": "9559348514",
+      "userid": "DCT-2026-0129"
+    },
+    {
+      "row": 20,
+      "studentName": "Shreya Srivastava",
+      "mobile": "9455605311",
+      "userid": "DCT-2026-0130"
+    },
+    {
+      "row": 21,
+      "studentName": "Alka Gupta",
+      "mobile": "7267086760",
+      "userid": "DCT-2026-0131"
+    },
+    {
+      "row": 22,
+      "studentName": "pallavi sharma",
+      "mobile": "9140363585",
+      "userid": "DCT-2026-0132"
+    },
+    {
+      "row": 23,
+      "studentName": "Sonam Singh",
+      "mobile": "7905155162",
+      "userid": "DCT-2026-0133"
+    },
+    {
+      "row": 24,
+      "studentName": "Srishti Singh",
+      "mobile": "7526009395",
+      "userid": "DCT-2026-0134"
+    },
+    {
+      "row": 25,
+      "studentName": "Anoop Tiwari",
+      "mobile": "7880548275",
+      "userid": "DCT-2026-0135"
+    },
+    {
+      "row": 26,
+      "studentName": "Shubham",
+      "mobile": "8953177453",
+      "userid": "DCT-2026-0136"
+    },
+    {
+      "row": 27,
+      "studentName": "Simran Jaisawar",
+      "mobile": "9250085133",
+      "userid": "DCT-2026-0137"
+    },
+    {
+      "row": 28,
+      "studentName": "Mithalesh Gupta",
+      "mobile": "7985766152",
+      "userid": "DCT-2026-0138"
+    },
+    {
+      "row": 29,
+      "studentName": "Raj Prabhakar Singh",
+      "mobile": "7080910823",
+      "userid": "DCT-2026-0139"
+    },
+    {
+      "row": 30,
+      "studentName": "Shubham Kumar tiwari",
+      "mobile": "8188871518",
+      "userid": "DCT-2026-0140"
+    },
+    {
+      "row": 31,
+      "studentName": "Vansh Kumar",
+      "mobile": "6399713049",
+      "userid": "DCT-2026-0141"
+    },
+    {
+      "row": 32,
+      "studentName": "Kirti Kumari",
+      "mobile": "9761068644",
+      "userid": "DCT-2026-0142"
+    },
+    {
+      "row": 33,
+      "studentName": "Alpana yadav",
+      "mobile": "8006081216",
+      "userid": "DCT-2026-0143"
+    },
+    {
+      "row": 34,
+      "studentName": "Manvi Chauhan",
+      "mobile": "9411821180",
+      "userid": "DCT-2026-0144"
+    },
+    {
+      "row": 35,
+      "studentName": "Sumit Kumar",
+      "mobile": "9682785286",
+      "userid": "DCT-2026-0145"
+    },
+    {
+      "row": 36,
+      "studentName": "Himanshu Yadav",
+      "mobile": "8081237714",
+      "userid": "DCT-2026-0146"
+    },
+    {
+      "row": 37,
+      "studentName": "SHUBHANSHU SINGH",
+      "mobile": "6388739651",
+      "userid": "DCT-2026-0147"
+    },
+    {
+      "row": 38,
+      "studentName": "Khushi Tejwani",
+      "mobile": "7905789352",
+      "userid": "DCT-2026-0148"
+    },
+    {
+      "row": 39,
+      "studentName": "Kartikey Shukla",
+      "mobile": "8953454791",
+      "userid": "DCT-2026-0149"
+    },
+    {
+      "row": 40,
+      "studentName": "Vinay Kumar Maurya",
+      "mobile": "8960404413",
+      "userid": "DCT-2026-0150"
+    },
+    {
+      "row": 41,
+      "studentName": "Akash Paswan",
+      "mobile": "9076694033",
+      "userid": "DCT-2026-0151"
+    },
+    {
+      "row": 42,
+      "studentName": "Vineet Kumar Maurya",
+      "mobile": "8953529198",
+      "userid": "DCT-2026-0152"
+    },
+    {
+      "row": 43,
+      "studentName": "Purnima Singh",
+      "mobile": "9559032289",
+      "userid": "DCT-2026-0153"
+    },
+    {
+      "row": 44,
+      "studentName": "Ajay Rao",
+      "mobile": "9598349720",
+      "userid": "DCT-2026-0154"
+    },
+    {
+      "row": 45,
+      "studentName": "Mohit Kumar",
+      "mobile": "8171493071",
+      "userid": "DCT-2026-0155"
+    },
+    {
+      "row": 46,
+      "studentName": "ARNIM RAJ",
+      "mobile": "9942581655",
+      "userid": "DCT-2026-0156"
+    },
+    {
+      "row": 47,
+      "studentName": "Uday saroj",
+      "mobile": "8546071779",
+      "userid": "DCT-2026-0157"
+    },
+    {
+      "row": 48,
+      "studentName": "Abhinav tiwari",
+      "mobile": "8765566623",
+      "userid": "DCT-2026-0158"
+    },
+    {
+      "row": 49,
+      "studentName": "Shubhrajyot Ranjan",
+      "mobile": "9044701388",
+      "userid": "DCT-2026-0159"
+    },
+    {
+      "row": 50,
+      "studentName": "Kaushal Soni",
+      "mobile": "9580074332",
+      "userid": "DCT-2026-0160"
+    },
+    {
+      "row": 51,
+      "studentName": "Pooja Tiwari",
+      "mobile": "9170224900",
+      "userid": "DCT-2026-0161"
+    },
+    {
+      "row": 52,
+      "studentName": "Suraj Gupta",
+      "mobile": "8176944823",
+      "userid": "DCT-2026-0162"
+    },
+    {
+      "row": 53,
+      "studentName": "Abhay kumar",
+      "mobile": "6391083945",
+      "userid": "DCT-2026-0163"
+    },
+    {
+      "row": 54,
+      "studentName": "Aryan Mishra",
+      "mobile": "7880407178",
+      "userid": "DCT-2026-0164"
+    },
+    {
+      "row": 55,
+      "studentName": "DIVYANSHU MAURYA",
+      "mobile": "9648698235",
+      "userid": "DCT-2026-0165"
+    },
+    {
+      "row": 56,
+      "studentName": "Pankaj Kumar",
+      "mobile": "8175001672",
+      "userid": "DCT-2026-0166"
+    },
+    {
+      "row": 57,
+      "studentName": "Sanjana",
+      "mobile": "7275923939",
+      "userid": "DCT-2026-0167"
+    },
+    {
+      "row": 58,
+      "studentName": "Ankul Gupta",
+      "mobile": "7054852203",
+      "userid": "DCT-2026-0168"
+    },
+    {
+      "row": 59,
+      "studentName": "Sapana",
+      "mobile": "7991616472",
+      "userid": "DCT-2026-0169"
+    },
+    {
+      "row": 60,
+      "studentName": "Shivam Kumar",
+      "mobile": "9648625877",
+      "userid": "DCT-2026-0170"
+    },
+    {
+      "row": 61,
+      "studentName": "Rajat Kumar",
+      "mobile": "8810837256",
+      "userid": "DCT-2026-0171"
+    },
+    {
+      "row": 62,
+      "studentName": "Chanchal",
+      "mobile": "8958360922",
+      "userid": "DCT-2026-0172"
+    },
+    {
+      "row": 63,
+      "studentName": "Kajal verma",
+      "mobile": "8808637010",
+      "userid": "DCT-2026-0173"
+    },
+    {
+      "row": 64,
+      "studentName": "Anubhav Gautam",
+      "mobile": "9519762948",
+      "userid": "DCT-2026-0174"
+    },
+    {
+      "row": 65,
+      "studentName": "Lavakush",
+      "mobile": "9151958935",
+      "userid": "DCT-2026-0175"
+    },
+    {
+      "row": 66,
+      "studentName": "Anurag",
+      "mobile": "9208025542",
+      "userid": "DCT-2026-0176"
+    },
+    {
+      "row": 67,
+      "studentName": "Ananya Verma",
+      "mobile": "9140047207",
+      "userid": "DCT-2026-0177"
+    },
+    {
+      "row": 68,
+      "studentName": "Abhishek Yadav",
+      "mobile": "7388053941",
+      "userid": "DCT-2026-0178"
+    },
+    {
+      "row": 69,
+      "studentName": "Shubham Yadav",
+      "mobile": "6394368021",
+      "userid": "DCT-2026-0179"
+    },
+    {
+      "row": 70,
+      "studentName": "MOHD AYAN",
+      "mobile": "9839249018",
+      "userid": "DCT-2026-0180"
+    },
+    {
+      "row": 71,
+      "studentName": "Ashish gautam",
+      "mobile": "8726388649",
+      "userid": "DCT-2026-0181"
+    },
+    {
+      "row": 72,
+      "studentName": "Jatin Singh",
+      "mobile": "8433312845",
+      "userid": "DCT-2026-0182"
+    },
+    {
+      "row": 73,
+      "studentName": "Abhinay Singh",
+      "mobile": "9559516161",
+      "userid": "DCT-2026-0183"
+    },
+    {
+      "row": 74,
+      "studentName": "Aditi singh",
+      "mobile": "6306828165",
+      "userid": "DCT-2026-0184"
+    },
+    {
+      "row": 75,
+      "studentName": "Ankush Kumar",
+      "mobile": "9151771748",
+      "userid": "DCT-2026-0185"
+    },
+    {
+      "row": 76,
+      "studentName": "Abhitosh Dubey",
+      "mobile": "9559186478",
+      "userid": "DCT-2026-0186"
+    },
+    {
+      "row": 77,
+      "studentName": "Sakshi",
+      "mobile": "7522016601",
+      "userid": "DCT-2026-0187"
+    },
+    {
+      "row": 78,
+      "studentName": "Mohd Yasir Iqbal Siddiqui",
+      "mobile": "6386710148",
+      "userid": "DCT-2026-0188"
+    },
+    {
+      "row": 79,
+      "studentName": "Shubham",
+      "mobile": "9580599144",
+      "userid": "DCT-2026-0189"
+    },
+    {
+      "row": 80,
+      "studentName": "Shyamal Soni",
+      "mobile": "6387277707",
+      "userid": "DCT-2026-0190"
+    },
+    {
+      "row": 81,
+      "studentName": "Vivek kushwaha",
+      "mobile": "9792083510",
+      "userid": "DCT-2026-0191"
+    },
+    {
+      "row": 82,
+      "studentName": "Aman Yadav",
+      "mobile": "8948692812",
+      "userid": "DCT-2026-0192"
+    },
+    {
+      "row": 83,
+      "studentName": "Aditya Kumar",
+      "mobile": "8354916942",
+      "userid": "DCT-2026-0193"
+    },
+    {
+      "row": 84,
+      "studentName": "Sumit Singh",
+      "mobile": "8299041071",
+      "userid": "DCT-2026-0194"
+    },
+    {
+      "row": 85,
+      "studentName": "Saurabh Prasad",
+      "mobile": "8957663235",
+      "userid": "DCT-2026-0195"
+    },
+    {
+      "row": 86,
+      "studentName": "Badal",
+      "mobile": "7248807497",
+      "userid": "DCT-2026-0196"
+    },
+    {
+      "row": 87,
+      "studentName": "SANSKAR",
+      "mobile": "7275707820",
+      "userid": "DCT-2026-0197"
+    },
+    {
+      "row": 88,
+      "studentName": "Krishna Pratap Singh",
+      "mobile": "8175994966",
+      "userid": "DCT-2026-0198"
+    },
+    {
+      "row": 89,
+      "studentName": "Kartik Sengar",
+      "mobile": "9458252519",
+      "userid": "DCT-2026-0199"
+    },
+    {
+      "row": 90,
+      "studentName": "Shubham Nishad",
+      "mobile": "9625017473",
+      "userid": "DCT-2026-0200"
+    },
+    {
+      "row": 91,
+      "studentName": "Anchal Bind",
+      "mobile": "9520121371",
+      "userid": "DCT-2026-0201"
+    },
+    {
+      "row": 92,
+      "studentName": "Shivam Shukla",
+      "mobile": "8810846100",
+      "userid": "DCT-2026-0202"
+    },
+    {
+      "row": 93,
+      "studentName": "Nisha sahani",
+      "mobile": "8009458108",
+      "userid": "DCT-2026-0203"
+    },
+    {
+      "row": 95,
+      "studentName": "Nasreen khatoon",
+      "mobile": "8400594702",
+      "userid": "DCT-2026-0204"
+    },
+    {
+      "row": 96,
+      "studentName": "Nandani yadav",
+      "mobile": "9214735837",
+      "userid": "DCT-2026-0205"
+    },
+    {
+      "row": 97,
+      "studentName": "Amrita Singh",
+      "mobile": "8299004505",
+      "userid": "DCT-2026-0206"
+    },
+    {
+      "row": 98,
+      "studentName": "Divya kumari",
+      "mobile": "9955166781",
+      "userid": "DCT-2026-0207"
+    },
+    {
+      "row": 99,
+      "studentName": "Mohammad Gulam",
+      "mobile": "9341779445",
+      "userid": "DCT-2026-0208"
+    },
+    {
+      "row": 100,
+      "studentName": "Modassir Anwar",
+      "mobile": "9102732900",
+      "userid": "DCT-2026-0209"
+    },
+    {
+      "row": 101,
+      "studentName": "Abdulla",
+      "mobile": "7068812939",
+      "userid": "DCT-2026-0210"
+    },
+    {
+      "row": 102,
+      "studentName": "Gaurav Gupta",
+      "mobile": "7395071234",
+      "userid": "DCT-2026-0211"
+    },
+    {
+      "row": 103,
+      "studentName": "Rudra Pratap Singh",
+      "mobile": "9278213121",
+      "userid": "DCT-2026-0212"
+    },
+    {
+      "row": 104,
+      "studentName": "Riddhman Bharti",
+      "mobile": "9918941119",
+      "userid": "DCT-2026-0213"
+    },
+    {
+      "row": 105,
+      "studentName": "Sachin Prasad",
+      "mobile": "8795046568",
+      "userid": "DCT-2026-0214"
+    },
+    {
+      "row": 106,
+      "studentName": "Raunak Kumar",
+      "mobile": "9793987987",
+      "userid": "DCT-2026-0215"
+    },
+    {
+      "row": 107,
+      "studentName": "Ayush kumar",
+      "mobile": "9235365974",
+      "userid": "DCT-2026-0216"
+    },
+    {
+      "row": 108,
+      "studentName": "Maurya Rahul Shambhuparsad",
+      "mobile": "8127851808",
+      "userid": "DCT-2026-0217"
+    },
+    {
+      "row": 109,
+      "studentName": "Aryan Gupta",
+      "mobile": "9648827186",
+      "userid": "DCT-2026-0218"
+    },
+    {
+      "row": 110,
+      "studentName": "Rishabh pandey",
+      "mobile": "7307577212",
+      "userid": "DCT-2026-0219"
+    },
+    {
+      "row": 111,
+      "studentName": "AMIT YADAV",
+      "mobile": "8303213845",
+      "userid": "DCT-2026-0220"
+    },
+    {
+      "row": 112,
+      "studentName": "Gargi Srivastava",
+      "mobile": "9236652088",
+      "userid": "DCT-2026-0221"
+    },
+    {
+      "row": 113,
+      "studentName": "Suruchi Patel",
+      "mobile": "9628394152",
+      "userid": "DCT-2026-0222"
+    },
+    {
+      "row": 114,
+      "studentName": "AVINASH KUSHWAHA",
+      "mobile": "7398573954",
+      "userid": "DCT-2026-0223"
+    },
+    {
+      "row": 115,
+      "studentName": "Amrita Kushwaha",
+      "mobile": "8423157416",
+      "userid": "DCT-2026-0224"
+    },
+    {
+      "row": 116,
+      "studentName": "Palak singh",
+      "mobile": "8052464936",
+      "userid": "DCT-2026-0225"
+    },
+    {
+      "row": 117,
+      "studentName": "Pawan",
+      "mobile": "9151216753",
+      "userid": "DCT-2026-0226"
+    },
+    {
+      "row": 118,
+      "studentName": "Gaurav Arya",
+      "mobile": "9026813590",
+      "userid": "DCT-2026-0227"
+    },
+    {
+      "row": 119,
+      "studentName": "Harsh Kumar Kharwar",
+      "mobile": "9125902747",
+      "userid": "DCT-2026-0228"
+    },
+    {
+      "row": 120,
+      "studentName": "Divyanshu pandey",
+      "mobile": "7307206744",
+      "userid": "DCT-2026-0229"
+    },
+    {
+      "row": 121,
+      "studentName": "Tanmay Singh",
+      "mobile": "9696308801",
+      "userid": "DCT-2026-0230"
+    },
+    {
+      "row": 122,
+      "studentName": "Kajal Yadav",
+      "mobile": "8112313371",
+      "userid": "DCT-2026-0231"
+    },
+    {
+      "row": 123,
+      "studentName": "Sneha Yadav",
+      "mobile": "6394932739",
+      "userid": "DCT-2026-0232"
+    },
+    {
+      "row": 124,
+      "studentName": "Mahi kesarwani",
+      "mobile": "9236974207",
+      "userid": "DCT-2026-0233"
+    },
+    {
+      "row": 125,
+      "studentName": "Shagun kesarwani",
+      "mobile": "9236962776",
+      "userid": "DCT-2026-0234"
+    },
+    {
+      "row": 126,
+      "studentName": "Shweta Chauhan",
+      "mobile": "9250273084",
+      "userid": "DCT-2026-0235"
+    },
+    {
+      "row": 127,
+      "studentName": "Divya",
+      "mobile": "9027223691",
+      "userid": "DCT-2026-0236"
+    },
+    {
+      "row": 128,
+      "studentName": "Nidhi singh",
+      "mobile": "8188034679",
+      "userid": "DCT-2026-0237"
+    },
+    {
+      "row": 129,
+      "studentName": "Anushka yadav",
+      "mobile": "9628852733",
+      "userid": "DCT-2026-0238"
+    },
+    {
+      "row": 130,
+      "studentName": "Tanishk",
+      "mobile": "9793317137",
+      "userid": "DCT-2026-0239"
+    },
+    {
+      "row": 131,
+      "studentName": "Prem Rajput",
+      "mobile": "6398171692",
+      "userid": "DCT-2026-0240"
+    },
+    {
+      "row": 132,
+      "studentName": "Shubham Srivastav",
+      "mobile": "9412123288",
+      "userid": "DCT-2026-0241"
+    },
+    {
+      "row": 133,
+      "studentName": "Deva Sain",
+      "mobile": "7398244599",
+      "userid": "DCT-2026-0242"
+    },
+    {
+      "row": 134,
+      "studentName": "Veer Singh",
+      "mobile": "9118666110",
+      "userid": "DCT-2026-0243"
+    },
+    {
+      "row": 135,
+      "studentName": "Reetesh",
+      "mobile": "9412158560",
+      "userid": "DCT-2026-0244"
+    },
+    {
+      "row": 136,
+      "studentName": "Devanshu Kumar",
+      "mobile": "8630604296",
+      "userid": "DCT-2026-0245"
+    },
+    {
+      "row": 137,
+      "studentName": "Bhartendra singh",
+      "mobile": "7897603862",
+      "userid": "DCT-2026-0246"
+    },
+    {
+      "row": 138,
+      "studentName": "Divya kishor Singh",
+      "mobile": "9559827896",
+      "userid": "DCT-2026-0247"
+    },
+    {
+      "row": 139,
+      "studentName": "ARUN KUMAR MAURYA",
+      "mobile": "6306275571",
+      "userid": "DCT-2026-0248"
+    },
+    {
+      "row": 140,
+      "studentName": "Shivam Nishad",
+      "mobile": "9369638148",
+      "userid": "DCT-2026-0249"
+    },
+    {
+      "row": 141,
+      "studentName": "Smita Singh",
+      "mobile": "8737969826",
+      "userid": "DCT-2026-0250"
+    },
+    {
+      "row": 142,
+      "studentName": "Garima",
+      "mobile": "9389124594",
+      "userid": "DCT-2026-0251"
+    },
+    {
+      "row": 143,
+      "studentName": "Rohit Singh",
+      "mobile": "7990660533",
+      "userid": "DCT-2026-0252"
+    },
+    {
+      "row": 144,
+      "studentName": "Minakshi Yadav",
+      "mobile": "7991235502",
+      "userid": "DCT-2026-0253"
+    },
+    {
+      "row": 145,
+      "studentName": "Sundaram Kumar",
+      "mobile": "8467078890",
+      "userid": "DCT-2026-0254"
+    },
+    {
+      "row": 146,
+      "studentName": "Saurav kumar",
+      "mobile": "9835210074",
+      "userid": "DCT-2026-0255"
+    },
+    {
+      "row": 147,
+      "studentName": "SOMYA SONWAL",
+      "mobile": "7817903072",
+      "userid": "DCT-2026-0256"
+    },
+    {
+      "row": 148,
+      "studentName": "Ravi Yadav",
+      "mobile": "9795675804",
+      "userid": "DCT-2026-0257"
+    },
+    {
+      "row": 149,
+      "studentName": "Ujjawal Dubey",
+      "mobile": "9250671757",
+      "userid": "DCT-2026-0258"
+    },
+    {
+      "row": 150,
+      "studentName": "ARPIT PANDEY",
+      "mobile": "9455101394",
+      "userid": "DCT-2026-0259"
+    },
+    {
+      "row": 151,
+      "studentName": "Karuna yadav",
+      "mobile": "9125469783",
+      "userid": "DCT-2026-0260"
+    },
+    {
+      "row": 152,
+      "studentName": "Ashish Kumar",
+      "mobile": "8171046934",
+      "userid": "DCT-2026-0261"
+    },
+    {
+      "row": 153,
+      "studentName": "Rahul Kumar",
+      "mobile": "8474982521",
+      "userid": "DCT-2026-0262"
+    },
+    {
+      "row": 154,
+      "studentName": "Nitin Raj",
+      "mobile": "9341092884",
+      "userid": "DCT-2026-0263"
+    },
+    {
+      "row": 155,
+      "studentName": "Shivam Yadav",
+      "mobile": "9236158581",
+      "userid": "DCT-2026-0264"
+    },
+    {
+      "row": 156,
+      "studentName": "Shreya Rav",
+      "mobile": "9236961601",
+      "userid": "DCT-2026-0265"
+    },
+    {
+      "row": 157,
+      "studentName": "Suraj prajapati",
+      "mobile": "7897910461",
+      "userid": "DCT-2026-0266"
+    },
+    {
+      "row": 158,
+      "studentName": "Abhay Tiwari",
+      "mobile": "9580139088",
+      "userid": "DCT-2026-0267"
+    },
+    {
+      "row": 159,
+      "studentName": "Abhishek Pal",
+      "mobile": "9336196327",
+      "userid": "DCT-2026-0268"
+    },
+    {
+      "row": 160,
+      "studentName": "Aman kumar",
+      "mobile": "7705836198",
+      "userid": "DCT-2026-0269"
+    },
+    {
+      "row": 161,
+      "studentName": "Vishal kumar",
+      "mobile": "7042376145",
+      "userid": "DCT-2026-0270"
+    },
+    {
+      "row": 162,
+      "studentName": "Pratyush",
+      "mobile": "7654278101",
+      "userid": "DCT-2026-0271"
+    },
+    {
+      "row": 163,
+      "studentName": "Suneel Kumar",
+      "mobile": "9569019390",
+      "userid": "DCT-2026-0272"
+    },
+    {
+      "row": 164,
+      "studentName": "Vivek Pandey",
+      "mobile": "9219034508",
+      "userid": "DCT-2026-0273"
+    },
+    {
+      "row": 165,
+      "studentName": "kajal kashyap",
+      "mobile": "8630478720",
+      "userid": "DCT-2026-0274"
+    },
+    {
+      "row": 166,
+      "studentName": "Sujeet vishwakarma",
+      "mobile": "8090799564",
+      "userid": "DCT-2026-0275"
+    },
+    {
+      "row": 167,
+      "studentName": "Premchandra",
+      "mobile": "8081288728",
+      "userid": "DCT-2026-0276"
+    },
+    {
+      "row": 168,
+      "studentName": "Dhirendra gupta",
+      "mobile": "9569923321",
+      "userid": "DCT-2026-0277"
+    },
+    {
+      "row": 169,
+      "studentName": "Ankit dangi",
+      "mobile": "8303744906",
+      "userid": "DCT-2026-0278"
+    },
+    {
+      "row": 170,
+      "studentName": "Nitish kumar",
+      "mobile": "9795234580",
+      "userid": "DCT-2026-0279"
+    },
+    {
+      "row": 171,
+      "studentName": "Ashutosh pandey",
+      "mobile": "9236525291",
+      "userid": "DCT-2026-0280"
+    },
+    {
+      "row": 172,
+      "studentName": "Kunal pratap rao",
+      "mobile": "9236918695",
+      "userid": "DCT-2026-0281"
+    },
+    {
+      "row": 173,
+      "studentName": "Mangal Singh",
+      "mobile": "8303127324",
+      "userid": "DCT-2026-0282"
+    },
+    {
+      "row": 174,
+      "studentName": "ashwani gupta",
+      "mobile": "9214859438",
+      "userid": "DCT-2026-0283"
+    },
+    {
+      "row": 175,
+      "studentName": "krishna kumar vishwakarma",
+      "mobile": "9236848541",
+      "userid": "DCT-2026-0284"
+    },
+    {
+      "row": 176,
+      "studentName": "Ankit",
+      "mobile": "7548950931",
+      "userid": "DCT-2026-0285"
+    },
+    {
+      "row": 177,
+      "studentName": "Richa",
+      "mobile": "8604264373",
+      "userid": "DCT-2026-0286"
+    },
+    {
+      "row": 178,
+      "studentName": "Kishan Kumar",
+      "mobile": "9628060421",
+      "userid": "DCT-2026-0287"
+    },
+    {
+      "row": 179,
+      "studentName": "Dipanshu Singh",
+      "mobile": "6394607806",
+      "userid": "DCT-2026-0288"
+    },
+    {
+      "row": 180,
+      "studentName": "Parinita Chauhan",
+      "mobile": "9760650246",
+      "userid": "DCT-2026-0289"
+    },
+    {
+      "row": 181,
+      "studentName": "Kajal kushwaha",
+      "mobile": "7267994980",
+      "userid": "DCT-2026-0290"
+    },
+    {
+      "row": 182,
+      "studentName": "Shaely pal",
+      "mobile": "7505794670",
+      "userid": "DCT-2026-0291"
+    },
+    {
+      "row": 184,
+      "studentName": "Bushra Kosar",
+      "mobile": "8630751181",
+      "userid": "DCT-2026-0292"
+    },
+    {
+      "row": 185,
+      "studentName": "Supriya Yadav",
+      "mobile": "9369176453",
+      "userid": "DCT-2026-0293"
+    },
+    {
+      "row": 186,
+      "studentName": "Rishu Maurya",
+      "mobile": "7607583852",
+      "userid": "DCT-2026-0294"
+    },
+    {
+      "row": 187,
+      "studentName": "Kumari Anamika Rai",
+      "mobile": "8467868415",
+      "userid": "DCT-2026-0295"
+    },
+    {
+      "row": 188,
+      "studentName": "Shivangi Yadav",
+      "mobile": "7355026798",
+      "userid": "DCT-2026-0296"
+    },
+    {
+      "row": 189,
+      "studentName": "Isha",
+      "mobile": "7906635097",
+      "userid": "DCT-2026-0297"
+    },
+    {
+      "row": 190,
+      "studentName": "Prerna Upadhyay",
+      "mobile": "9235666373",
+      "userid": "DCT-2026-0298"
+    },
+    {
+      "row": 191,
+      "studentName": "sambhavi rai",
+      "mobile": "9555110176",
+      "userid": "DCT-2026-0299"
+    },
+    {
+      "row": 192,
+      "studentName": "Kashish singh",
+      "mobile": "9305170346",
+      "userid": "DCT-2026-0300"
+    },
+    {
+      "row": 193,
+      "studentName": "Shaurya Rav",
+      "mobile": "9415981602",
+      "userid": "DCT-2026-0301"
+    },
+    {
+      "row": 194,
+      "studentName": "Sudhanshu",
+      "mobile": "7084351568",
+      "userid": "DCT-2026-0302"
+    },
+    {
+      "row": 196,
+      "studentName": "YOGESH SINGH",
+      "mobile": "9324480438",
+      "userid": "DCT-2026-0303"
+    },
+    {
+      "row": 197,
+      "studentName": "suraj Tiwari",
+      "mobile": "6393832138",
+      "userid": "DCT-2026-0304"
+    },
+    {
+      "row": 198,
+      "studentName": "Ujjawal",
+      "mobile": "9084108987",
+      "userid": "DCT-2026-0305"
+    },
+    {
+      "row": 199,
+      "studentName": "Shivam Verma",
+      "mobile": "7888348952",
+      "userid": "DCT-2026-0306"
+    },
+    {
+      "row": 201,
+      "studentName": "Abhigyan tiwari",
+      "mobile": "9214559341",
+      "userid": "DCT-2026-0307"
+    },
+    {
+      "row": 202,
+      "studentName": "Srajit Nigam",
+      "mobile": "8303326802",
+      "userid": "DCT-2026-0308"
+    },
+    {
+      "row": 203,
+      "studentName": "RAJ VERMA",
+      "mobile": "6306616391",
+      "userid": "DCT-2026-0309"
+    },
+    {
+      "row": 204,
+      "studentName": "SACHIN KUMAR",
+      "mobile": "7739148264",
+      "userid": "DCT-2026-0310"
+    },
+    {
+      "row": 205,
+      "studentName": "Saksham sahay",
+      "mobile": "9301257563",
+      "userid": "DCT-2026-0311"
+    },
+    {
+      "row": 206,
+      "studentName": "Vishal Kumar",
+      "mobile": "7068715523",
+      "userid": "DCT-2026-0312"
+    },
+    {
+      "row": 207,
+      "studentName": "AKSHAT GUPTA",
+      "mobile": "9648744853",
+      "userid": "DCT-2026-0313"
+    },
+    {
+      "row": 208,
+      "studentName": "Rashi Kushwaha",
+      "mobile": "9721690308",
+      "userid": "DCT-2026-0314"
+    },
+    {
+      "row": 209,
+      "studentName": "Raj mishra",
+      "mobile": "8953596104",
+      "userid": "DCT-2026-0315"
+    },
+    {
+      "row": 210,
+      "studentName": "Sandhya Gupta",
+      "mobile": "9793461046",
+      "userid": "DCT-2026-0316"
+    },
+    {
+      "row": 211,
+      "studentName": "Mangesh Kumar",
+      "mobile": "6387621087",
+      "userid": "DCT-2026-0317"
+    },
+    {
+      "row": 212,
+      "studentName": "Reyansh Rao",
+      "mobile": "7388052311",
+      "userid": "DCT-2026-0318"
+    },
+    {
+      "row": 213,
+      "studentName": "Ankur Yadav",
+      "mobile": "7905547828",
+      "userid": "DCT-2026-0319"
+    },
+    {
+      "row": 214,
+      "studentName": "Deepankar Budhha",
+      "mobile": "7887040420",
+      "userid": "DCT-2026-0320"
+    },
+    {
+      "row": 215,
+      "studentName": "Nisha Vishwakarma",
+      "mobile": "9651827796",
+      "userid": "DCT-2026-0321"
+    },
+    {
+      "row": 216,
+      "studentName": "Satyam Kumar Gautam",
+      "mobile": "8840031883",
+      "userid": "DCT-2026-0322"
+    },
+    {
+      "row": 217,
+      "studentName": "Shubham Sharma",
+      "mobile": "8127206280",
+      "userid": "DCT-2026-0323"
+    },
+    {
+      "row": 218,
+      "studentName": "Shashank shukal",
+      "mobile": "9236467945",
+      "userid": "DCT-2026-0324"
+    },
+    {
+      "row": 219,
+      "studentName": "Priyanshu Yadav",
+      "mobile": "7800191675",
+      "userid": "DCT-2026-0325"
+    },
+    {
+      "row": 220,
+      "studentName": "Richa bharti",
+      "mobile": "8471019036",
+      "userid": "DCT-2026-0326"
+    },
+    {
+      "row": 221,
+      "studentName": "Nidhi Kushwaha",
+      "mobile": "9555246776",
+      "userid": "DCT-2026-0327"
+    },
+    {
+      "row": 222,
+      "studentName": "Vidhya Ahirwar",
+      "mobile": "9250292203",
+      "userid": "DCT-2026-0328"
+    },
+    {
+      "row": 223,
+      "studentName": "Harshita Pandey",
+      "mobile": "8090080437",
+      "userid": "DCT-2026-0329"
+    },
+    {
+      "row": 224,
+      "studentName": "Shubham Kannaujiya",
+      "mobile": "8853247699",
+      "userid": "DCT-2026-0330"
+    },
+    {
+      "row": 225,
+      "studentName": "Shekhar Singh",
+      "mobile": "6391959240",
+      "userid": "DCT-2026-0331"
+    },
+    {
+      "row": 226,
+      "studentName": "Vinay Yadav",
+      "mobile": "8650448526",
+      "userid": "DCT-2026-0332"
+    },
+    {
+      "row": 227,
+      "studentName": "Chandni Prajapati",
+      "mobile": "8127086586",
+      "userid": "DCT-2026-0333"
+    },
+    {
+      "row": 228,
+      "studentName": "Priyanshu",
+      "mobile": "6396454470",
+      "userid": "DCT-2026-0334"
+    },
+    {
+      "row": 229,
+      "studentName": "Kundan",
+      "mobile": "8233848816",
+      "userid": "DCT-2026-0335"
+    },
+    {
+      "row": 230,
+      "studentName": "Rani rawat",
+      "mobile": "9305859067",
+      "userid": "DCT-2026-0336"
+    },
+    {
+      "row": 231,
+      "studentName": "Alok Sahani",
+      "mobile": "8303354359",
+      "userid": "DCT-2026-0337"
+    },
+    {
+      "row": 232,
+      "studentName": "Kartavya Srivastava",
+      "mobile": "7052604518",
+      "userid": "DCT-2026-0338"
+    },
+    {
+      "row": 233,
+      "studentName": "Ratan Patel",
+      "mobile": "7233023183",
+      "userid": "DCT-2026-0339"
+    },
+    {
+      "row": 234,
+      "studentName": "Abdul Faisal",
+      "mobile": "9838123627",
+      "userid": "DCT-2026-0340"
+    },
+    {
+      "row": 235,
+      "studentName": "VIKRANT KUSHWAHA",
+      "mobile": "9795443185",
+      "userid": "DCT-2026-0341"
+    },
+    {
+      "row": 236,
+      "studentName": "Rajit Saini",
+      "mobile": "9118845893",
+      "userid": "DCT-2026-0342"
+    },
+    {
+      "row": 237,
+      "studentName": "Sudeep Gautam",
+      "mobile": "6393935775",
+      "userid": "DCT-2026-0343"
+    },
+    {
+      "row": 238,
+      "studentName": "ANCHAL BIND",
+      "mobile": "9889102882",
+      "userid": "DCT-2026-0344"
+    },
+    {
+      "row": 239,
+      "studentName": "Aviral Mishra",
+      "mobile": "9140405819",
+      "userid": "DCT-2026-0345"
+    },
+    {
+      "row": 240,
+      "studentName": "Shivam Shukla",
+      "mobile": "9305460514",
+      "userid": "DCT-2026-0346"
+    },
+    {
+      "row": 241,
+      "studentName": "Aditya Raj",
+      "mobile": "9263063153",
+      "userid": "DCT-2026-0347"
+    },
+    {
+      "row": 242,
+      "studentName": "Krishna shaky",
+      "mobile": "7900983548",
+      "userid": "DCT-2026-0348"
+    },
+    {
+      "row": 243,
+      "studentName": "Saurabh Kumar",
+      "mobile": "6397353819",
+      "userid": "DCT-2026-0349"
+    },
+    {
+      "row": 244,
+      "studentName": "Nikhil Mishra",
+      "mobile": "7007969059",
+      "userid": "DCT-2026-0350"
+    },
+    {
+      "row": 245,
+      "studentName": "Saurabh Yadav",
+      "mobile": "8115880569",
+      "userid": "DCT-2026-0351"
+    },
+    {
+      "row": 246,
+      "studentName": "Shanee Gupta",
+      "mobile": "9628524208",
+      "userid": "DCT-2026-0352"
+    },
+    {
+      "row": 247,
+      "studentName": "Krishna Kumar Yadav",
+      "mobile": "7080700604",
+      "userid": "DCT-2026-0353"
+    },
+    {
+      "row": 248,
+      "studentName": "Kaushal Chand Yadav",
+      "mobile": "8528681654",
+      "userid": "DCT-2026-0354"
+    },
+    {
+      "row": 249,
+      "studentName": "Mahi Pathak",
+      "mobile": "8960648450",
+      "userid": "DCT-2026-0355"
+    },
+    {
+      "row": 250,
+      "studentName": "Upma pal",
+      "mobile": "9565186330",
+      "userid": "DCT-2026-0356"
+    },
+    {
+      "row": 251,
+      "studentName": "Antima",
+      "mobile": "9555326558",
+      "userid": "DCT-2026-0357"
+    },
+    {
+      "row": 252,
+      "studentName": "Saumya Pandey",
+      "mobile": "7985713917",
+      "userid": "DCT-2026-0358"
+    },
+    {
+      "row": 253,
+      "studentName": "Mangala Gupta",
+      "mobile": "7985936308",
+      "userid": "DCT-2026-0359"
+    },
+    {
+      "row": 254,
+      "studentName": "Divyanshi",
+      "mobile": "7275314950",
+      "userid": "DCT-2026-0360"
+    },
+    {
+      "row": 255,
+      "studentName": "Satyam Vishwakarma",
+      "mobile": "8188996369",
+      "userid": "DCT-2026-0361"
+    },
+    {
+      "row": 256,
+      "studentName": "Pooja Patel",
+      "mobile": "6392764921",
+      "userid": "DCT-2026-0362"
+    },
+    {
+      "row": 257,
+      "studentName": "Ruchi Yadav",
+      "mobile": "7388336856",
+      "userid": "DCT-2026-0363"
+    },
+    {
+      "row": 258,
+      "studentName": "Shivanker Sonker",
+      "mobile": "7084976788",
+      "userid": "DCT-2026-0364"
+    },
+    {
+      "row": 259,
+      "studentName": "Jikesh Kumar",
+      "mobile": "9942932809",
+      "userid": "DCT-2026-0365"
+    },
+    {
+      "row": 260,
+      "studentName": "Vicky Kumar",
+      "mobile": "9304705142",
+      "userid": "DCT-2026-0366"
+    },
+    {
+      "row": 261,
+      "studentName": "Mohd Zaid Khan",
+      "mobile": "8858331895",
+      "userid": "DCT-2026-0367"
+    },
+    {
+      "row": 262,
+      "studentName": "Ashish Prajapati",
+      "mobile": "7068051252",
+      "userid": "DCT-2026-0368"
+    },
+    {
+      "row": 263,
+      "studentName": "Hreshav Gangwar",
+      "mobile": "8279660421",
+      "userid": "DCT-2026-0369"
+    },
+    {
+      "row": 264,
+      "studentName": "Manish Kumar",
+      "mobile": "7395059453",
+      "userid": "DCT-2026-0370"
+    },
+    {
+      "row": 265,
+      "studentName": "Sahil Malik",
+      "mobile": "8115612416",
+      "userid": "DCT-2026-0371"
+    },
+    {
+      "row": 266,
+      "studentName": "Sushant Mishra",
+      "mobile": "8840915172",
+      "userid": "DCT-2026-0372"
+    },
+    {
+      "row": 267,
+      "studentName": "Shashi Kumari",
+      "mobile": "7819951674",
+      "userid": "DCT-2026-0373"
+    },
+    {
+      "row": 268,
+      "studentName": "Arpit Kumar Maurya",
+      "mobile": "9235712515",
+      "userid": "DCT-2026-0374"
+    },
+    {
+      "row": 269,
+      "studentName": "Rahul Yadav",
+      "mobile": "9838518686",
+      "userid": "DCT-2026-0375"
+    },
+    {
+      "row": 270,
+      "studentName": "Sudhanshu Srivastav",
+      "mobile": "9598885717",
+      "userid": "DCT-2026-0376"
+    },
+    {
+      "row": 271,
+      "studentName": "Himanshu kannaugiya",
+      "mobile": "9250847419",
+      "userid": "DCT-2026-0377"
+    },
+    {
+      "row": 272,
+      "studentName": "Ankit Kumar Mishra",
+      "mobile": "7905264087",
+      "userid": "DCT-2026-0378"
+    },
+    {
+      "row": 273,
+      "studentName": "Sameer Ahmad",
+      "mobile": "9721748826",
+      "userid": "DCT-2026-0379"
+    },
+    {
+      "row": 274,
+      "studentName": "Ankita Pal",
+      "mobile": "9984575355",
+      "userid": "DCT-2026-0380"
+    },
+    {
+      "row": 275,
+      "studentName": "shivani Prajapati",
+      "mobile": "9682922672",
+      "userid": "DCT-2026-0381"
+    },
+    {
+      "row": 276,
+      "studentName": "Shobhit soni",
+      "mobile": "6393774183",
+      "userid": "DCT-2026-0382"
+    },
+    {
+      "row": 277,
+      "studentName": "Aditya Srivastav",
+      "mobile": "8112977304",
+      "userid": "DCT-2026-0383"
+    },
+    {
+      "row": 278,
+      "studentName": "Pujari Vishwakarma",
+      "mobile": "9198019278",
+      "userid": "DCT-2026-0384"
+    },
+    {
+      "row": 279,
+      "studentName": "Harikishan",
+      "mobile": "9236847310",
+      "userid": "DCT-2026-0385"
+    },
+    {
+      "row": 280,
+      "studentName": "Shriyantra Dubey",
+      "mobile": "9198837470",
+      "userid": "DCT-2026-0386"
+    },
+    {
+      "row": 281,
+      "studentName": "Priyanshu Vishwakarma",
+      "mobile": "7007619538",
+      "userid": "DCT-2026-0387"
+    },
+    {
+      "row": 282,
+      "studentName": "Vaibhav Gupta",
+      "mobile": "9559313529",
+      "userid": "DCT-2026-0388"
+    },
+    {
+      "row": 283,
+      "studentName": "Rupesh Kumar",
+      "mobile": "6200228404",
+      "userid": "DCT-2026-0389"
+    },
+    {
+      "row": 284,
+      "studentName": "Aditya Gupta",
+      "mobile": "8840845506",
+      "userid": "DCT-2026-0390"
+    },
+    {
+      "row": 285,
+      "studentName": "Om Sharma",
+      "mobile": "9720571762",
+      "userid": "DCT-2026-0391"
+    },
+    {
+      "row": 286,
+      "studentName": "Shreya Maurya",
+      "mobile": "9792184778",
+      "userid": "DCT-2026-0392"
+    },
+    {
+      "row": 287,
+      "studentName": "Amit Tiwari",
+      "mobile": "7348383524",
+      "userid": "DCT-2026-0393"
+    },
+    {
+      "row": 288,
+      "studentName": "Arman Ansari",
+      "mobile": "9693750163",
+      "userid": "DCT-2026-0394"
+    },
+    {
+      "row": 289,
+      "studentName": "Aditya singh",
+      "mobile": "8400443367",
+      "userid": "DCT-2026-0395"
+    },
+    {
+      "row": 290,
+      "studentName": "Rajan Vishwakarma",
+      "mobile": "9795970903",
+      "userid": "DCT-2026-0396"
+    },
+    {
+      "row": 291,
+      "studentName": "Gulfam Ahmad",
+      "mobile": "6394024250",
+      "userid": "DCT-2026-0397"
+    },
+    {
+      "row": 292,
+      "studentName": "Rajnish Yadav",
+      "mobile": "7080901376",
+      "userid": "DCT-2026-0398"
+    },
+    {
+      "row": 293,
+      "studentName": "Khushi Saini",
+      "mobile": "6388063058",
+      "userid": "DCT-2026-0399"
+    },
+    {
+      "row": 294,
+      "studentName": "Vinisha Pal",
+      "mobile": "9454038910",
+      "userid": "DCT-2026-0400"
+    },
+    {
+      "row": 295,
+      "studentName": "Khushi",
+      "mobile": "8218490588",
+      "userid": "DCT-2026-0401"
+    },
+    {
+      "row": 296,
+      "studentName": "Sanjana Vishwakarma",
+      "mobile": "9219622451",
+      "userid": "DCT-2026-0402"
+    },
+    {
+      "row": 304,
+      "studentName": "Shruti Mishra",
+      "mobile": "6393141530",
+      "userid": "DCT-2026-0403"
+    },
+    {
+      "row": 305,
+      "studentName": "Shreya saxena",
+      "mobile": "7860085334",
+      "userid": "DCT-2026-0404"
+    },
+    {
+      "row": 306,
+      "studentName": "Khushi pal",
+      "mobile": "9369236643",
+      "userid": "DCT-2026-0405"
+    },
+    {
+      "row": 307,
+      "studentName": "Avni singh kushwaha",
+      "mobile": "7388662249",
+      "userid": "DCT-2026-0406"
+    },
+    {
+      "row": 308,
+      "studentName": "Afifa Rahman",
+      "mobile": "6386045225",
+      "userid": "DCT-2026-0407"
+    },
+    {
+      "row": 309,
+      "studentName": "Upendra Kumar",
+      "mobile": "9696710683",
+      "userid": "DCT-2026-0408"
+    },
+    {
+      "row": 310,
+      "studentName": "Gaurav Awasthi",
+      "mobile": "9305736528",
+      "userid": "DCT-2026-0409"
+    },
+    {
+      "row": 311,
+      "studentName": "Kajal modanwal",
+      "mobile": "8545889373",
+      "userid": "DCT-2026-0410"
+    },
+    {
+      "row": 312,
+      "studentName": "Astha Dixit",
+      "mobile": "7398909007",
+      "userid": "DCT-2026-0411"
+    },
+    {
+      "row": 313,
+      "studentName": "Anjali",
+      "mobile": "9559453576",
+      "userid": "DCT-2026-0412"
+    },
+    {
+      "row": 314,
+      "studentName": "Kumkum Yadav",
+      "mobile": "8174845800",
+      "userid": "DCT-2026-0413"
+    },
+    {
+      "row": 315,
+      "studentName": "Jaya",
+      "mobile": "8112552448",
+      "userid": "DCT-2026-0414"
+    },
+    {
+      "row": 316,
+      "studentName": "Navya",
+      "mobile": "6394876320",
+      "userid": "DCT-2026-0415"
+    },
+    {
+      "row": 317,
+      "studentName": "Annoo singh",
+      "mobile": "9259085332",
+      "userid": "DCT-2026-0416"
+    },
+    {
+      "row": 318,
+      "studentName": "Gauri Madhoriya",
+      "mobile": "6398684923",
+      "userid": "DCT-2026-0417"
+    },
+    {
+      "row": 319,
+      "studentName": "Varsha katiyar",
+      "mobile": "9792652920",
+      "userid": "DCT-2026-0418"
+    },
+    {
+      "row": 321,
+      "studentName": "Shraddha",
+      "mobile": "8115911975",
+      "userid": "DCT-2026-0419"
+    },
+    {
+      "row": 322,
+      "studentName": "Khushboo Verma",
+      "mobile": "7007897368",
+      "userid": "DCT-2026-0420"
+    },
+    {
+      "row": 323,
+      "studentName": "Shreya",
+      "mobile": "9161805694",
+      "userid": "DCT-2026-0421"
+    },
+    {
+      "row": 326,
+      "studentName": "Dev kumar katariya",
+      "mobile": "8756444673",
+      "userid": "DCT-2026-0422"
+    },
+    {
+      "row": 327,
+      "studentName": "NITIN KUMAR",
+      "mobile": "7253953806",
+      "userid": "DCT-2026-0423"
+    },
+    {
+      "row": 328,
+      "studentName": "Shreya Jaiswal",
+      "mobile": "8577876565",
+      "userid": "DCT-2026-0424"
+    },
+    {
+      "row": 329,
+      "studentName": "Shashank Kumar Srivastava",
+      "mobile": "7518530020",
+      "userid": "DCT-2026-0425"
+    },
+    {
+      "row": 330,
+      "studentName": "Saty Parkash",
+      "mobile": "9214087145",
+      "userid": "DCT-2026-0426"
+    },
+    {
+      "row": 331,
+      "studentName": "OM mishra",
+      "mobile": "9580114034",
+      "userid": "DCT-2026-0427"
+    },
+    {
+      "row": 332,
+      "studentName": "Utkarsh pandey",
+      "mobile": "9935020155",
+      "userid": "DCT-2026-0428"
+    },
+    {
+      "row": 333,
+      "studentName": "Adarsh Chaurasiya",
+      "mobile": "8542911641",
+      "userid": "DCT-2026-0429"
+    },
+    {
+      "row": 334,
+      "studentName": "Akash Chaurasiya",
+      "mobile": "9305870160",
+      "userid": "DCT-2026-0430"
+    },
+    {
+      "row": 335,
+      "studentName": "Ashutosh Gupta",
+      "mobile": "7388087273",
+      "userid": "DCT-2026-0431"
+    },
+    {
+      "row": 336,
+      "studentName": "Nikhil kumar",
+      "mobile": "8173888044",
+      "userid": "DCT-2026-0432"
+    },
+    {
+      "row": 337,
+      "studentName": "Komal Yadav",
+      "mobile": "7042247315",
+      "userid": "DCT-2026-0433"
+    },
+    {
+      "row": 338,
+      "studentName": "Ali Abbas",
+      "mobile": "6307807767",
+      "userid": "DCT-2026-0434"
+    },
+    {
+      "row": 339,
+      "studentName": "Pintu Kumar Rajbhar",
+      "mobile": "9453423894",
+      "userid": "DCT-2026-0435"
+    },
+    {
+      "row": 340,
+      "studentName": "Akash Maurya",
+      "mobile": "8601114627",
+      "userid": "DCT-2026-0436"
+    },
+    {
+      "row": 341,
+      "studentName": "Rajveer",
+      "mobile": "6386522562",
+      "userid": "DCT-2026-0437"
+    },
+    {
+      "row": 342,
+      "studentName": "Devika Singh",
+      "mobile": "6307772335",
+      "userid": "DCT-2026-0438"
+    },
+    {
+      "row": 343,
+      "studentName": "Akhil Singh",
+      "mobile": "7800431853",
+      "userid": "DCT-2026-0439"
+    },
+    {
+      "row": 344,
+      "studentName": "Janhvi Singh",
+      "mobile": "9278194304",
+      "userid": "DCT-2026-0440"
+    },
+    {
+      "row": 345,
+      "studentName": "Komal",
+      "mobile": "8303180548",
+      "userid": "DCT-2026-0441"
+    },
+    {
+      "row": 346,
+      "studentName": "Kanchan Devi",
+      "mobile": "7524847556",
+      "userid": "DCT-2026-0442"
+    },
+    {
+      "row": 347,
+      "studentName": "Rishita Maurya",
+      "mobile": "8081089506",
+      "userid": "DCT-2026-0443"
+    },
+    {
+      "row": 348,
+      "studentName": "Navanit Rai",
+      "mobile": "9129509112",
+      "userid": "DCT-2026-0444"
+    },
+    {
+      "row": 349,
+      "studentName": "Ankit",
+      "mobile": "9259020602",
+      "userid": "DCT-2026-0445"
+    },
+    {
+      "row": 350,
+      "studentName": "Rajneesh Prajapati",
+      "mobile": "9236990280",
+      "userid": "DCT-2026-0446"
+    },
+    {
+      "row": 351,
+      "studentName": "Garima singh",
+      "mobile": "6386906295",
+      "userid": "DCT-2026-0447"
+    },
+    {
+      "row": 352,
+      "studentName": "Om Upadhyay",
+      "mobile": "9554523165",
+      "userid": "DCT-2026-0448"
+    },
+    {
+      "row": 353,
+      "studentName": "Siddharth Raj",
+      "mobile": "9026565994",
+      "userid": "DCT-2026-0449"
+    },
+    {
+      "row": 354,
+      "studentName": "Aradhya Ranjan",
+      "mobile": "8081579605",
+      "userid": "DCT-2026-0450"
+    },
+    {
+      "row": 355,
+      "studentName": "Mahima Gupta",
+      "mobile": "9369985912",
+      "userid": "DCT-2026-0451"
+    },
+    {
+      "row": 356,
+      "studentName": "khushboo dubey",
+      "mobile": "9250067219",
+      "userid": "DCT-2026-0452"
+    },
+    {
+      "row": 357,
+      "studentName": "Aayushi",
+      "mobile": "7983094289",
+      "userid": "DCT-2026-0453"
+    },
+    {
+      "row": 358,
+      "studentName": "Swati",
+      "mobile": "9628698241",
+      "userid": "DCT-2026-0454"
+    },
+    {
+      "row": 359,
+      "studentName": "Pratiksha Maurya",
+      "mobile": "7233894651",
+      "userid": "DCT-2026-0455"
+    },
+    {
+      "row": 360,
+      "studentName": "Aditya Singh",
+      "mobile": "7307686966",
+      "userid": "DCT-2026-0456"
+    },
+    {
+      "row": 362,
+      "studentName": "Shubham Maurya",
+      "mobile": "7905660665",
+      "userid": "DCT-2026-0457"
+    },
+    {
+      "row": 363,
+      "studentName": "Saloni Sharma",
+      "mobile": "9193883101",
+      "userid": "DCT-2026-0458"
+    },
+    {
+      "row": 364,
+      "studentName": "Anchal yadav",
+      "mobile": "9236752411",
+      "userid": "DCT-2026-0459"
+    },
+    {
+      "row": 365,
+      "studentName": "Pranjali Mishra",
+      "mobile": "7068034639",
+      "userid": "DCT-2026-0460"
+    },
+    {
+      "row": 366,
+      "studentName": "Anchal Nishad",
+      "mobile": "9236777075",
+      "userid": "DCT-2026-0461"
+    },
+    {
+      "row": 367,
+      "studentName": "Shivangi Rai",
+      "mobile": "7380544540",
+      "userid": "DCT-2026-0462"
+    },
+    {
+      "row": 368,
+      "studentName": "Harsh kumar",
+      "mobile": "9125372423",
+      "userid": "DCT-2026-0463"
+    },
+    {
+      "row": 369,
+      "studentName": "Rohit Kumar Dubey",
+      "mobile": "9334362907",
+      "userid": "DCT-2026-0464"
+    },
+    {
+      "row": 370,
+      "studentName": "Anshika Mishra",
+      "mobile": "9140948188",
+      "userid": "DCT-2026-0465"
+    },
+    {
+      "row": 371,
+      "studentName": "Shraddha Dubey",
+      "mobile": "9889001900",
+      "userid": "DCT-2026-0466"
+    },
+    {
+      "row": 372,
+      "studentName": "Preeti Singh",
+      "mobile": "8081059936",
+      "userid": "DCT-2026-0467"
+    },
+    {
+      "row": 373,
+      "studentName": "Anjali Kushwaha",
+      "mobile": "9936164230",
+      "userid": "DCT-2026-0468"
+    },
+    {
+      "row": 374,
+      "studentName": "Milan Sharma",
+      "mobile": "7820021361",
+      "userid": "DCT-2026-0469"
+    },
+    {
+      "row": 375,
+      "studentName": "Sanjana Yadav",
+      "mobile": "9621121018",
+      "userid": "DCT-2026-0470"
+    },
+    {
+      "row": 376,
+      "studentName": "Shiva Gautam",
+      "mobile": "7599409975",
+      "userid": "DCT-2026-0471"
+    },
+    {
+      "row": 377,
+      "studentName": "satyam singh",
+      "mobile": "9569631430",
+      "userid": "DCT-2026-0472"
+    },
+    {
+      "row": 378,
+      "studentName": "Sundram Srivastav",
+      "mobile": "9696624891",
+      "userid": "DCT-2026-0473"
+    },
+    {
+      "row": 379,
+      "studentName": "Beauty",
+      "mobile": "9236919307",
+      "userid": "DCT-2026-0474"
+    },
+    {
+      "row": 380,
+      "studentName": "Sachin Singh",
+      "mobile": "8853142990",
+      "userid": "DCT-2026-0475"
+    },
+    {
+      "row": 381,
+      "studentName": "Shayra Bano",
+      "mobile": "7307228430",
+      "userid": "DCT-2026-0476"
+    },
+    {
+      "row": 382,
+      "studentName": "Layba Fatima",
+      "mobile": "8176003730",
+      "userid": "DCT-2026-0477"
+    },
+    {
+      "row": 383,
+      "studentName": "Anshika Yadav",
+      "mobile": "9555212750",
+      "userid": "DCT-2026-0478"
+    },
+    {
+      "row": 384,
+      "studentName": "Aarohi Singh Karanwal",
+      "mobile": "7895562566",
+      "userid": "DCT-2026-0479"
+    },
+    {
+      "row": 385,
+      "studentName": "Manisha Yadav",
+      "mobile": "8957515766",
+      "userid": "DCT-2026-0480"
+    },
+    {
+      "row": 386,
+      "studentName": "Kiran Maurya",
+      "mobile": "7619909725",
+      "userid": "DCT-2026-0481"
+    },
+    {
+      "row": 387,
+      "studentName": "Vishal",
+      "mobile": "9760545429",
+      "userid": "DCT-2026-0482"
+    },
+    {
+      "row": 388,
+      "studentName": "Aditi maurya",
+      "mobile": "8115728493",
+      "userid": "DCT-2026-0483"
+    },
+    {
+      "row": 389,
+      "studentName": "Kunwar Raj Yadav",
+      "mobile": "9235665061",
+      "userid": "DCT-2026-0484"
+    },
+    {
+      "row": 390,
+      "studentName": "Rakesh yadav",
+      "mobile": "6307963498",
+      "userid": "DCT-2026-0485"
+    },
+    {
+      "row": 391,
+      "studentName": "Ram Prakash Yadav",
+      "mobile": "8853038629",
+      "userid": "DCT-2026-0486"
+    },
+    {
+      "row": 392,
+      "studentName": "Yash Gupta",
+      "mobile": "7318592346",
+      "userid": "DCT-2026-0487"
+    },
+    {
+      "row": 393,
+      "studentName": "Anant Tripathi",
+      "mobile": "7905201582",
+      "userid": "DCT-2026-0488"
+    },
+    {
+      "row": 394,
+      "studentName": "Anurag Mishra",
+      "mobile": "7985342033",
+      "userid": "DCT-2026-0489"
+    },
+    {
+      "row": 395,
+      "studentName": "Disha",
+      "mobile": "8433352250",
+      "userid": "DCT-2026-0490"
+    },
+    {
+      "row": 396,
+      "studentName": "Taniya",
+      "mobile": "6307593981",
+      "userid": "DCT-2026-0491"
+    },
+    {
+      "row": 397,
+      "studentName": "Soni singh",
+      "mobile": "9336481247",
+      "userid": "DCT-2026-0492"
+    },
+    {
+      "row": 398,
+      "studentName": "Supriya Maurya",
+      "mobile": "9235108348",
+      "userid": "DCT-2026-0493"
+    },
+    {
+      "row": 399,
+      "studentName": "Atharv Keshari",
+      "mobile": "8922070811",
+      "userid": "DCT-2026-0494"
+    },
+    {
+      "row": 400,
+      "studentName": "Sumitha",
+      "mobile": "9353548595",
+      "userid": "DCT-2026-0495"
+    },
+    {
+      "row": 401,
+      "studentName": "Himanshu Singh",
+      "mobile": "9310094498",
+      "userid": "DCT-2026-0496"
+    },
+    {
+      "row": 402,
+      "studentName": "Jai Kumar Rai",
+      "mobile": "9984605726",
+      "userid": "DCT-2026-0497"
+    },
+    {
+      "row": 403,
+      "studentName": "Ananya Singh",
+      "mobile": "9569332685",
+      "userid": "DCT-2026-0498"
+    },
+    {
+      "row": 404,
+      "studentName": "Aastha Shukla",
+      "mobile": "9354860490",
+      "userid": "DCT-2026-0499"
+    },
+    {
+      "row": 405,
+      "studentName": "Vivek Kumar",
+      "mobile": "7651905853",
+      "userid": "DCT-2026-0500"
+    },
+    {
+      "row": 406,
+      "studentName": "Purnendu",
+      "mobile": "7398007486",
+      "userid": "DCT-2026-0501"
+    },
+    {
+      "row": 407,
+      "studentName": "Ambuj Singh Patel",
+      "mobile": "9580524051",
+      "userid": "DCT-2026-0502"
+    },
+    {
+      "row": 408,
+      "studentName": "Nitin",
+      "mobile": "9149129403",
+      "userid": "DCT-2026-0503"
+    },
+    {
+      "row": 409,
+      "studentName": "Sameer Ansari",
+      "mobile": "9026122745",
+      "userid": "DCT-2026-0504"
+    },
+    {
+      "row": 410,
+      "studentName": "Anand Kumar Maurya",
+      "mobile": "9519285873",
+      "userid": "DCT-2026-0505"
+    },
+    {
+      "row": 411,
+      "studentName": "Prince Kumar Sharma",
+      "mobile": "9559520306",
+      "userid": "DCT-2026-0506"
+    },
+    {
+      "row": 412,
+      "studentName": "Ayush Srivastava",
+      "mobile": "7668021047",
+      "userid": "DCT-2026-0507"
+    },
+    {
+      "row": 413,
+      "studentName": "Nikhil",
+      "mobile": "8394049535",
+      "userid": "DCT-2026-0508"
+    },
+    {
+      "row": 414,
+      "studentName": "Shahliya",
+      "mobile": "9927662802",
+      "userid": "DCT-2026-0509"
+    },
+    {
+      "row": 415,
+      "studentName": "Mahi Yadav",
+      "mobile": "7355565716",
+      "userid": "DCT-2026-0510"
+    },
+    {
+      "row": 416,
+      "studentName": "Vikas Patel",
+      "mobile": "6388642537",
+      "userid": "DCT-2026-0511"
+    },
+    {
+      "row": 417,
+      "studentName": "Niharika Rani",
+      "mobile": "7084702708",
+      "userid": "DCT-2026-0512"
+    },
+    {
+      "row": 418,
+      "studentName": "Pragati",
+      "mobile": "7007585025",
+      "userid": "DCT-2026-0513"
+    },
+    {
+      "row": 419,
+      "studentName": "Suraj Yadav",
+      "mobile": "8417931682",
+      "userid": "DCT-2026-0514"
+    },
+    {
+      "row": 420,
+      "studentName": "Anushka kumari",
+      "mobile": "8303272765",
+      "userid": "DCT-2026-0515"
+    },
+    {
+      "row": 421,
+      "studentName": "Sarthak Arya",
+      "mobile": "9068552839",
+      "userid": "DCT-2026-0516"
+    },
+    {
+      "row": 422,
+      "studentName": "Arpit Maurya",
+      "mobile": "7054133570",
+      "userid": "DCT-2026-0517"
+    },
+    {
+      "row": 423,
+      "studentName": "Pallavi Gupta",
+      "mobile": "8009837964",
+      "userid": "DCT-2026-0518"
+    },
+    {
+      "row": 424,
+      "studentName": "Pallavi Verma",
+      "mobile": "9336712730",
+      "userid": "DCT-2026-0519"
+    },
+    {
+      "row": 425,
+      "studentName": "DEVESH VERMA",
+      "mobile": "8743879438",
+      "userid": "DCT-2026-0520"
+    },
+    {
+      "row": 426,
+      "studentName": "Rishabh Rai",
+      "mobile": "9219251485",
+      "userid": "DCT-2026-0521"
+    },
+    {
+      "row": 427,
+      "studentName": "Aryan Jha",
+      "mobile": "9304485279",
+      "userid": "DCT-2026-0522"
+    },
+    {
+      "row": 428,
+      "studentName": "pranjal Mishra",
+      "mobile": "7388663365",
+      "userid": "DCT-2026-0523"
+    },
+    {
+      "row": 429,
+      "studentName": "Anurag Mishra",
+      "mobile": "6307711510",
+      "userid": "DCT-2026-0524"
+    },
+    {
+      "row": 430,
+      "studentName": "Abhijeet Tiwari",
+      "mobile": "9336753324",
+      "userid": "DCT-2026-0525"
+    },
+    {
+      "row": 431,
+      "studentName": "Mahatab Juber",
+      "mobile": "9936500690",
+      "userid": "DCT-2026-0526"
+    },
+    {
+      "row": 432,
+      "studentName": "Shiva tiwari",
+      "mobile": "6393548099",
+      "userid": "DCT-2026-0527"
+    },
+    {
+      "row": 433,
+      "studentName": "Manjeet Gupta",
+      "mobile": "7704866299",
+      "userid": "DCT-2026-0528"
+    },
+    {
+      "row": 434,
+      "studentName": "Yogesh Vishwakarma",
+      "mobile": "7754894200",
+      "userid": "DCT-2026-0529"
+    },
+    {
+      "row": 435,
+      "studentName": "Shreshtha Johari",
+      "mobile": "9756725845",
+      "userid": "DCT-2026-0530"
+    },
+    {
+      "row": 436,
+      "studentName": "Aman prajapati",
+      "mobile": "6393231467",
+      "userid": "DCT-2026-0531"
+    },
+    {
+      "row": 437,
+      "studentName": "Supriya",
+      "mobile": "7525971991",
+      "userid": "DCT-2026-0532"
+    },
+    {
+      "row": 438,
+      "studentName": "Kshma",
+      "mobile": "8853411277",
+      "userid": "DCT-2026-0533"
+    },
+    {
+      "row": 439,
+      "studentName": "Sandhya Kushwaha",
+      "mobile": "7307870037",
+      "userid": "DCT-2026-0534"
+    },
+    {
+      "row": 440,
+      "studentName": "Shalini yadav",
+      "mobile": "9598613255",
+      "userid": "DCT-2026-0535"
+    },
+    {
+      "row": 441,
+      "studentName": "Yash Yadav",
+      "mobile": "8419030185",
+      "userid": "DCT-2026-0536"
+    },
+    {
+      "row": 442,
+      "studentName": "Vilayat Abbas Hasan Raza Sayed",
+      "mobile": "7380439896",
+      "userid": "DCT-2026-0537"
+    },
+    {
+      "row": 443,
+      "studentName": "Namrata Yadav",
+      "mobile": "8840478929",
+      "userid": "DCT-2026-0538"
+    },
+    {
+      "row": 444,
+      "studentName": "Shreya Gupta",
+      "mobile": "8542815096",
+      "userid": "DCT-2026-0539"
+    },
+    {
+      "row": 445,
+      "studentName": "Khushboo",
+      "mobile": "7081392325",
+      "userid": "DCT-2026-0540"
+    },
+    {
+      "row": 446,
+      "studentName": "Tanu Gupta",
+      "mobile": "9517563963",
+      "userid": "DCT-2026-0541"
+    },
+    {
+      "row": 447,
+      "studentName": "Vijaylaxmi Singh",
+      "mobile": "9532040855",
+      "userid": "DCT-2026-0542"
+    },
+    {
+      "row": 448,
+      "studentName": "Pallavi Gupta",
+      "mobile": "9236916810",
+      "userid": "DCT-2026-0543"
+    },
+    {
+      "row": 449,
+      "studentName": "Rimjhim Vishwakarma",
+      "mobile": "9169683397",
+      "userid": "DCT-2026-0544"
+    },
+    {
+      "row": 450,
+      "studentName": "Sakshi shahi",
+      "mobile": "8470877100",
+      "userid": "DCT-2026-0545"
+    },
+    {
+      "row": 451,
+      "studentName": "Prachi Maurya",
+      "mobile": "9120321064",
+      "userid": "DCT-2026-0546"
+    },
+    {
+      "row": 452,
+      "studentName": "Satyam Rajbhar",
+      "mobile": "8112378285",
+      "userid": "DCT-2026-0547"
+    },
+    {
+      "row": 453,
+      "studentName": "Abhishek Yadav",
+      "mobile": "6393627767",
+      "userid": "DCT-2026-0548"
+    },
+    {
+      "row": 454,
+      "studentName": "Anuj Singh yadav",
+      "mobile": "9792825228",
+      "userid": "DCT-2026-0549"
+    },
+    {
+      "row": 456,
+      "studentName": "Ajit Kumar",
+      "mobile": "8292135472",
+      "userid": "DCT-2026-0550"
+    },
+    {
+      "row": 457,
+      "studentName": "Aditya Yadav",
+      "mobile": "9214809106",
+      "userid": "DCT-2026-0551"
+    },
+    {
+      "row": 458,
+      "studentName": "Sabina Khatoon",
+      "mobile": "9670782348",
+      "userid": "DCT-2026-0552"
+    },
+    {
+      "row": 459,
+      "studentName": "Akash Rai",
+      "mobile": "6386106613",
+      "userid": "DCT-2026-0553"
+    },
+    {
+      "row": 460,
+      "studentName": "Durgesh Kumar Yadav",
+      "mobile": "9517545736",
+      "userid": "DCT-2026-0554"
+    },
+    {
+      "row": 461,
+      "studentName": "Abhishek Pandey",
+      "mobile": "9555743871",
+      "userid": "DCT-2026-0555"
+    },
+    {
+      "row": 462,
+      "studentName": "RAVI KESARWANI",
+      "mobile": "7525834141",
+      "userid": "DCT-2026-0556"
+    },
+    {
+      "row": 464,
+      "studentName": "Abhishek  patel",
+      "mobile": "8188018359",
+      "userid": "DCT-2026-0557"
+    },
+    {
+      "row": 465,
+      "studentName": "Akash kumar",
+      "mobile": "6386409848",
+      "userid": "DCT-2026-0558"
+    },
+    {
+      "row": 466,
+      "studentName": "Sameer Chauhan",
+      "mobile": "9111976994",
+      "userid": "DCT-2026-0559"
+    },
+    {
+      "row": 467,
+      "studentName": "Avinash prakash",
+      "mobile": "9936161075",
+      "userid": "DCT-2026-0560"
+    },
+    {
+      "row": 468,
+      "studentName": "Honey Singh",
+      "mobile": "7982827905",
+      "userid": "DCT-2026-0561"
+    },
+    {
+      "row": 474,
+      "studentName": "Shivanki maurya",
+      "mobile": "9621392485",
+      "userid": "DCT-2026-0562"
+    },
+    {
+      "row": 475,
+      "studentName": "Muskan",
+      "mobile": "9648012044",
+      "userid": "DCT-2026-0563"
+    },
+    {
+      "row": 476,
+      "studentName": "Dhirendra Gangwar",
+      "mobile": "6398026458",
+      "userid": "DCT-2026-0564"
+    },
+    {
+      "row": 477,
+      "studentName": "Ankit Vishavakarma",
+      "mobile": "9140443100",
+      "userid": "DCT-2026-0565"
+    },
+    {
+      "row": 478,
+      "studentName": "Sachin Kumar Chaudhari",
+      "mobile": "6306380753",
+      "userid": "DCT-2026-0566"
+    },
+    {
+      "row": 481,
+      "studentName": "Khushi Chauhan",
+      "mobile": "9369046289",
+      "userid": "DCT-2026-0567"
+    },
+    {
+      "row": 482,
+      "studentName": "Ankita yadav",
+      "mobile": "6307965396",
+      "userid": "DCT-2026-0568"
+    },
+    {
+      "row": 483,
+      "studentName": "Bhawana Singh",
+      "mobile": "9369129560",
+      "userid": "DCT-2026-0569"
+    },
+    {
+      "row": 484,
+      "studentName": "Archika Gupta",
+      "mobile": "8127096632",
+      "userid": "DCT-2026-0570"
+    },
+    {
+      "row": 485,
+      "studentName": "ANSHIKA PANDEY",
+      "mobile": "9335722313",
+      "userid": "DCT-2026-0571"
+    },
+    {
+      "row": 486,
+      "studentName": "Vikas kumar",
+      "mobile": "9555446550",
+      "userid": "DCT-2026-0572"
+    },
+    {
+      "row": 487,
+      "studentName": "Ankita",
+      "mobile": "9719615636",
+      "userid": "DCT-2026-0573"
+    },
+    {
+      "row": 488,
+      "studentName": "Anshika Sharma",
+      "mobile": "8081788420",
+      "userid": "DCT-2026-0574"
+    },
+    {
+      "row": 489,
+      "studentName": "Pritam Giri",
+      "mobile": "9621871181",
+      "userid": "DCT-2026-0575"
+    },
+    {
+      "row": 490,
+      "studentName": "Sanjay Thakur",
+      "mobile": "6387608317",
+      "userid": "DCT-2026-0576"
+    },
+    {
+      "row": 491,
+      "studentName": "Anurag Singh",
+      "mobile": "7060253690",
+      "userid": "DCT-2026-0577"
+    },
+    {
+      "row": 492,
+      "studentName": "Sandhi Verma",
+      "mobile": "9453284256",
+      "userid": "DCT-2026-0578"
+    },
+    {
+      "row": 493,
+      "studentName": "Sandhya Rajpoot",
+      "mobile": "6386518277",
+      "userid": "DCT-2026-0579"
+    },
+    {
+      "row": 494,
+      "studentName": "Ritika Gupta",
+      "mobile": "6392315010",
+      "userid": "DCT-2026-0580"
+    },
+    {
+      "row": 495,
+      "studentName": "Nisha Yadav",
+      "mobile": "8840235404",
+      "userid": "DCT-2026-0581"
+    },
+    {
+      "row": 496,
+      "studentName": "Mukesh Kumar",
+      "mobile": "7668428795",
+      "userid": "DCT-2026-0582"
+    },
+    {
+      "row": 497,
+      "studentName": "Pradeep Pal",
+      "mobile": "8957492353",
+      "userid": "DCT-2026-0583"
+    },
+    {
+      "row": 498,
+      "studentName": "Preet Chauhan",
+      "mobile": "8193067920",
+      "userid": "DCT-2026-0584"
+    },
+    {
+      "row": 504,
+      "studentName": "Shruti Gupta",
+      "mobile": "9305374472",
+      "userid": "DCT-2026-0585"
+    },
+    {
+      "row": 505,
+      "studentName": "Shreya rastogi",
+      "mobile": "7398183807",
+      "userid": "DCT-2026-0586"
+    },
+    {
+      "row": 506,
+      "studentName": "Lovepreet kaur",
+      "mobile": "9457543250",
+      "userid": "DCT-2026-0587"
+    },
+    {
+      "row": 507,
+      "studentName": "Priyanshi Srivastava",
+      "mobile": "7900171666",
+      "userid": "DCT-2026-0588"
+    },
+    {
+      "row": 513,
+      "studentName": "Prince Dwivedi",
+      "mobile": "8115146876",
+      "userid": "DCT-2026-0589"
+    },
+    {
+      "row": 514,
+      "studentName": "Shivani Patel",
+      "mobile": "6306927810",
+      "userid": "DCT-2026-0590"
+    },
+    {
+      "row": 521,
+      "studentName": "suchi Tiwari",
+      "mobile": "7754936690",
+      "userid": "DCT-2026-0591"
+    },
+    {
+      "row": 522,
+      "studentName": "Harsh VARDHAN",
+      "mobile": "7668598615",
+      "userid": "DCT-2026-0592"
+    },
+    {
+      "row": 523,
+      "studentName": "Anchal ray",
+      "mobile": "8318032804",
+      "userid": "DCT-2026-0593"
+    },
+    {
+      "row": 524,
+      "studentName": "Mahima Nagvanshi",
+      "mobile": "9569424162",
+      "userid": "DCT-2026-0594"
+    },
+    {
+      "row": 526,
+      "studentName": "RISHABH SHAKYA",
+      "mobile": "7466860746",
+      "userid": "DCT-2026-0595"
+    },
+    {
+      "row": 527,
+      "studentName": "Mohit Agarwal",
+      "mobile": "7906618597",
+      "userid": "DCT-2026-0596"
+    },
+    {
+      "row": 530,
+      "studentName": "Shubhansh Sharma",
+      "mobile": "7037822411",
+      "userid": "DCT-2026-0597"
+    },
+    {
+      "row": 534,
+      "studentName": "Laxmisen",
+      "mobile": "9889092031",
+      "userid": "DCT-2026-0598"
+    },
+    {
+      "row": 535,
+      "studentName": "CHANDAN KANAUJIYA",
+      "mobile": "7084148434",
+      "userid": "DCT-2026-0599"
+    },
+    {
+      "row": 536,
+      "studentName": "Sweta yadav",
+      "mobile": "6386175062",
+      "userid": "DCT-2026-0600"
+    },
+    {
+      "row": 537,
+      "studentName": "Vishal yadav",
+      "mobile": "9219505214",
+      "userid": "DCT-2026-0601"
+    },
+    {
+      "row": 538,
+      "studentName": "shivani Patel",
+      "mobile": "8953852662",
+      "userid": "DCT-2026-0602"
+    },
+    {
+      "row": 539,
+      "studentName": "Divakar bind",
+      "mobile": "9198659978",
+      "userid": "DCT-2026-0603"
+    },
+    {
+      "row": 540,
+      "studentName": "Amit vishwakarma",
+      "mobile": "8545065797",
+      "userid": "DCT-2026-0604"
+    },
+    {
+      "row": 541,
+      "studentName": "Manoj kumar",
+      "mobile": "7080739491",
+      "userid": "DCT-2026-0605"
+    },
+    {
+      "row": 542,
+      "studentName": "Vinay Kumar",
+      "mobile": "9161519038",
+      "userid": "DCT-2026-0606"
+    },
+    {
+      "row": 544,
+      "studentName": "kamini Gangwar",
+      "mobile": "7453866215",
+      "userid": "DCT-2026-0607"
+    },
+    {
+      "row": 546,
+      "studentName": "Shashi Kumar",
+      "mobile": "8887638764",
+      "userid": "DCT-2026-0608"
+    },
+    {
+      "row": 547,
+      "studentName": "Aditya Chaudhary",
+      "mobile": "9721117636",
+      "userid": "DCT-2026-0609"
+    },
+    {
+      "row": 548,
+      "studentName": "Tejasvi Rajvanshi",
+      "mobile": "9214043371",
+      "userid": "DCT-2026-0610"
+    },
+    {
+      "row": 552,
+      "studentName": "Mahek Sharma",
+      "mobile": "8400805602",
+      "userid": "DCT-2026-0611"
+    },
+    {
+      "row": 553,
+      "studentName": "Indrajeet",
+      "mobile": "7991394420",
+      "userid": "DCT-2026-0612"
+    },
+    {
+      "row": 554,
+      "studentName": "Ravi Kumar Yadav",
+      "mobile": "9651715311",
+      "userid": "DCT-2026-0613"
+    },
+    {
+      "row": 555,
+      "studentName": "Rahul singh",
+      "mobile": "7818927639",
+      "userid": "DCT-2026-0614"
+    },
+    {
+      "row": 556,
+      "studentName": "Abhinav yadav",
+      "mobile": "7311102597",
+      "userid": "DCT-2026-0615"
+    },
+    {
+      "row": 557,
+      "studentName": "Gautam Kumar",
+      "mobile": "9279438469",
+      "userid": "DCT-2026-0616"
+    },
+    {
+      "row": 558,
+      "studentName": "Rounak maurya",
+      "mobile": "8081660172",
+      "userid": "DCT-2026-0617"
+    },
+    {
+      "row": 559,
+      "studentName": "MANJEET MAURYA",
+      "mobile": "9355448770",
+      "userid": "DCT-2026-0618"
+    },
+    {
+      "row": 560,
+      "studentName": "Gargi Chandra",
+      "mobile": "9917606377",
+      "userid": "DCT-2026-0619"
+    },
+    {
+      "row": 562,
+      "studentName": "Mahvish",
+      "mobile": "9278017902",
+      "userid": "DCT-2026-0620"
+    },
+    {
+      "row": 563,
+      "studentName": "Tanya yadav",
+      "mobile": "8931829639",
+      "userid": "DCT-2026-0621"
+    },
+    {
+      "row": 564,
+      "studentName": "Gagan vishwakarma",
+      "mobile": "9792907159",
+      "userid": "DCT-2026-0622"
+    },
+    {
+      "row": 565,
+      "studentName": "Poonam Kumari",
+      "mobile": "8957523349",
+      "userid": "DCT-2026-0623"
+    },
+    {
+      "row": 568,
+      "studentName": "Aradhya Singh",
+      "mobile": "9305591313",
+      "userid": "DCT-2026-0624"
+    },
+    {
+      "row": 569,
+      "studentName": "Anamika",
+      "mobile": "9555607953",
+      "userid": "DCT-2026-0625"
+    },
+    {
+      "row": 571,
+      "studentName": "Singham yadav",
+      "mobile": "7800860701",
+      "userid": "DCT-2026-0626"
+    },
+    {
+      "row": 572,
+      "studentName": "Amit Prasad",
+      "mobile": "9696565273",
+      "userid": "DCT-2026-0627"
+    },
+    {
+      "row": 573,
+      "studentName": "Priti",
+      "mobile": "7317725374",
+      "userid": "DCT-2026-0628"
+    },
+    {
+      "row": 574,
+      "studentName": "Shivani Kasaudhan",
+      "mobile": "7651988641",
+      "userid": "DCT-2026-0629"
+    },
+    {
+      "row": 576,
+      "studentName": "Sudhanshu Shukla",
+      "mobile": "6392574990",
+      "userid": "DCT-2026-0630"
+    },
+    {
+      "row": 578,
+      "studentName": "Ekta Sharma",
+      "mobile": "6388850922",
+      "userid": "DCT-2026-0631"
+    },
+    {
+      "row": 579,
+      "studentName": "Rakesh Kumar Maurya",
+      "mobile": "8874692231",
+      "userid": "DCT-2026-0632"
+    },
+    {
+      "row": 580,
+      "studentName": "Niraj Upadhyay",
+      "mobile": "9519259431",
+      "userid": "DCT-2026-0633"
+    },
+    {
+      "row": 581,
+      "studentName": "Nitish Kumar Singh",
+      "mobile": "6392891215",
+      "userid": "DCT-2026-0634"
+    },
+    {
+      "row": 582,
+      "studentName": "Arpita Singh",
+      "mobile": "6306710949",
+      "userid": "DCT-2026-0635"
+    },
+    {
+      "row": 583,
+      "studentName": "Khushboo Kannaujiya",
+      "mobile": "8303457366",
+      "userid": "DCT-2026-0636"
+    },
+    {
+      "row": 584,
+      "studentName": "Vikash Kumar",
+      "mobile": "9205716823",
+      "userid": "DCT-2026-0637"
+    },
+    {
+      "row": 585,
+      "studentName": "Kavya namdev",
+      "mobile": "8707334128",
+      "userid": "DCT-2026-0638"
+    },
+    {
+      "row": 586,
+      "studentName": "Aditya Pratap Singh",
+      "mobile": "9984412023",
+      "userid": "DCT-2026-0639"
+    },
+    {
+      "row": 587,
+      "studentName": "Aditi Verma",
+      "mobile": "7607130831",
+      "userid": "DCT-2026-0640"
+    },
+    {
+      "row": 588,
+      "studentName": "Sudhanshu kumar",
+      "mobile": "9389843418",
+      "userid": "DCT-2026-0641"
+    },
+    {
+      "row": 590,
+      "studentName": "shalu maurya",
+      "mobile": "7525933240",
+      "userid": "DCT-2026-0642"
+    },
+    {
+      "row": 591,
+      "studentName": "Ankit kumar",
+      "mobile": "7267004656",
+      "userid": "DCT-2026-0643"
+    },
+    {
+      "row": 592,
+      "studentName": "Sapna",
+      "mobile": "9084317536",
+      "userid": "DCT-2026-0644"
+    },
+    {
+      "row": 593,
+      "studentName": "Ananya bhasin",
+      "mobile": "9026117370",
+      "userid": "DCT-2026-0645"
+    },
+    {
+      "row": 594,
+      "studentName": "Kalpana devi",
+      "mobile": "8545983389",
+      "userid": "DCT-2026-0646"
+    },
+    {
+      "row": 595,
+      "studentName": "Ansh chaubey",
+      "mobile": "8543956392",
+      "userid": "DCT-2026-0647"
+    },
+    {
+      "row": 596,
+      "studentName": "Ishita Sahu",
+      "mobile": "6307084806",
+      "userid": "DCT-2026-0648"
+    },
+    {
+      "row": 597,
+      "studentName": "Sudhir kumar",
+      "mobile": "7518124661",
+      "userid": "DCT-2026-0649"
+    },
+    {
+      "row": 598,
+      "studentName": "Anshika yadav",
+      "mobile": "9453637544",
+      "userid": "DCT-2026-0650"
+    },
+    {
+      "row": 600,
+      "studentName": "Laxmi sharma",
+      "mobile": "9258188430",
+      "userid": "DCT-2026-0651"
+    },
+    {
+      "row": 601,
+      "studentName": "Jasmeen Fatima",
+      "mobile": "7307419211",
+      "userid": "DCT-2026-0652"
+    },
+    {
+      "row": 603,
+      "studentName": "Aman Madheshiya",
+      "mobile": "9628955346",
+      "userid": "DCT-2026-0653"
+    },
+    {
+      "row": 604,
+      "studentName": "Ashutosh Sharma",
+      "mobile": "9837194954",
+      "userid": "DCT-2026-0654"
+    },
+    {
+      "row": 605,
+      "studentName": "Ansh",
+      "mobile": "6395222603",
+      "userid": "DCT-2026-0655"
+    },
+    {
+      "row": 606,
+      "studentName": "Ambuj Kumar",
+      "mobile": "9838770258",
+      "userid": "DCT-2026-0656"
+    },
+    {
+      "row": 607,
+      "studentName": "Nishtha Saxena",
+      "mobile": "7599160426",
+      "userid": "DCT-2026-0657"
+    },
+    {
+      "row": 609,
+      "studentName": "Shivank Tiwari",
+      "mobile": "9336381936",
+      "userid": "DCT-2026-0658"
+    },
+    {
+      "row": 623,
+      "studentName": "Aman Kumar",
+      "mobile": "9027048244",
+      "userid": "DCT-2026-0659"
+    },
+    {
+      "row": 624,
+      "studentName": "Naitik Chandra",
+      "mobile": "9675098835",
+      "userid": "DCT-2026-0660"
+    },
+    {
+      "row": 625,
+      "studentName": "Yuvank Chaudhary",
+      "mobile": "7037089234",
+      "userid": "DCT-2026-0661"
+    },
+    {
+      "row": 628,
+      "studentName": "Rohan vishwakarma",
+      "mobile": "8887624448",
+      "userid": "DCT-2026-0662"
+    },
+    {
+      "row": 632,
+      "studentName": "Shubham Tripathi",
+      "mobile": "9125547329",
+      "userid": "DCT-2026-0663"
+    },
+    {
+      "row": 633,
+      "studentName": "Vimal Singh",
+      "mobile": "8127821859",
+      "userid": "DCT-2026-0664"
+    },
+    {
+      "row": 636,
+      "studentName": "Suvarna Singh Chauhan",
+      "mobile": "9580358647",
+      "userid": "DCT-2026-0665"
+    }
+  ],
+  "failed": [
+    {
+      "row": 2,
+      "studentName": "Rani Yadav",
+      "mobile": "7985367725",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 3,
+      "studentName": "Mohammad Samshid",
+      "mobile": "9170633109",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 94,
+      "studentName": "Nitu Sahani",
+      "mobile": "8009458108",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 183,
+      "studentName": "payal",
+      "mobile": "90683262605",
+      "errors": [
+        "mobile: valid 10-digit number required"
+      ]
+    },
+    {
+      "row": 195,
+      "studentName": "SHIVAM SINGH",
+      "mobile": "916386161761",
+      "errors": [
+        "mobile: valid 10-digit number required"
+      ]
+    },
+    {
+      "row": 200,
+      "studentName": "Naveen Kumar",
+      "mobile": "8853953729",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 297,
+      "studentName": "Deeksha",
+      "mobile": "9259564742",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 298,
+      "studentName": "Vivek Mishra",
+      "mobile": "7524865278",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 299,
+      "studentName": "Anshika Dubey",
+      "mobile": "8957385336",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 300,
+      "studentName": "Asmita Tiwari",
+      "mobile": "9696235704",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 301,
+      "studentName": "Ruchi Devi",
+      "mobile": "6388299700",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 302,
+      "studentName": "Suman Bharti",
+      "mobile": "9044686983",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 303,
+      "studentName": "Shreya Singh",
+      "mobile": "8707353870",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 320,
+      "studentName": "Akansha Yadav",
+      "mobile": "9580649150",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 324,
+      "studentName": "Amrita Yadav",
+      "mobile": "9919119272",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 325,
+      "studentName": "Vivek",
+      "mobile": "7818025463",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 361,
+      "studentName": "Aditya Singh",
+      "mobile": "7307686966",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 455,
+      "studentName": "test",
+      "mobile": "7777777777",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 463,
+      "studentName": "Ananya Verma",
+      "mobile": "9140047207",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 469,
+      "studentName": "Ankit Suresh Mishra",
+      "mobile": "8369845989",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 470,
+      "studentName": "Shweta Chaurasiya",
+      "mobile": "8737968694",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 471,
+      "studentName": "Vidhan upadhyay",
+      "mobile": "8057038818",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 472,
+      "studentName": "Vidhan upadhyay",
+      "mobile": "8057038818",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 473,
+      "studentName": "Vidhan upadhyay",
+      "mobile": "8057038818",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 479,
+      "studentName": "Khushi Gupta",
+      "mobile": "8858000812",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 480,
+      "studentName": "Jyoti Prajapati",
+      "mobile": "6306368662",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 499,
+      "studentName": "Aashish Sharma",
+      "mobile": "7355982900",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 500,
+      "studentName": "Mrityunjay Singh",
+      "mobile": "9455886226",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 501,
+      "studentName": "Vaibhav Kumar",
+      "mobile": "8114047702",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 502,
+      "studentName": "Vaibhav Kumar",
+      "mobile": "8114047702",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 503,
+      "studentName": "Vaibhav Kumar",
+      "mobile": "8114047702",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 508,
+      "studentName": "RISU BHARATI",
+      "mobile": "6296578144",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 509,
+      "studentName": "Adarsh Kumar Arya",
+      "mobile": "7839057435",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 510,
+      "studentName": "RISU BHARATI",
+      "mobile": "6296578144",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 511,
+      "studentName": "Nitin Kumar Sharma",
+      "mobile": "8810959970",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 512,
+      "studentName": "Adarsh Kumar Arya",
+      "mobile": "7839057435",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 515,
+      "studentName": "Vishwamitra Gond",
+      "mobile": "7985672451",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 516,
+      "studentName": "Vishwamitra Gond",
+      "mobile": "7985672451",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 517,
+      "studentName": "Vishwamitra Gond",
+      "mobile": "7985672451",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 518,
+      "studentName": "Vishwamitra Gond",
+      "mobile": "7985672451",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 519,
+      "studentName": "VINIT YADAV",
+      "mobile": "8417875012",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 520,
+      "studentName": "Ragini Chaudhary",
+      "mobile": "8840687090",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 525,
+      "studentName": "Ayush Tripathi",
+      "mobile": "8400805881",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 528,
+      "studentName": "Jeetendra",
+      "mobile": "7460858806",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 529,
+      "studentName": "Digambar",
+      "mobile": "8685863678",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 531,
+      "studentName": "Vishwamitra Gond",
+      "mobile": "7985672451",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 532,
+      "studentName": "Anshika maurya",
+      "mobile": "6306696584",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 533,
+      "studentName": "Vishwamitra Gond",
+      "mobile": "7985672451",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 543,
+      "studentName": "Ambuj Kumar",
+      "mobile": "9795316965",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 545,
+      "studentName": "Shashank",
+      "mobile": "7651996145",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 549,
+      "studentName": "Shashank",
+      "mobile": "7651996145",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 550,
+      "studentName": "NITESH MAURYA",
+      "mobile": "7617436860",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 551,
+      "studentName": "Shashank",
+      "mobile": "7651996145",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 561,
+      "studentName": "Gargi Chandra",
+      "mobile": "9917606377",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 566,
+      "studentName": "Supriya Singh",
+      "mobile": "9214742180",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 567,
+      "studentName": "Supriya Singh",
+      "mobile": "9214742180",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 570,
+      "studentName": "Ganesh Datt",
+      "mobile": "7457960273",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 575,
+      "studentName": "komal yadav",
+      "mobile": "6394947578",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 577,
+      "studentName": "Vaishnavi singh",
+      "mobile": "9259665913",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 589,
+      "studentName": "Anjali Pathak",
+      "mobile": "8009986826",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 599,
+      "studentName": "ALOK RATAN MAURYA",
+      "mobile": "7054955563",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 602,
+      "studentName": "Astha Gauatam",
+      "mobile": "9369520683",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 608,
+      "studentName": "Lakshya Sharma",
+      "mobile": "8429911819",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 610,
+      "studentName": "Kamni",
+      "mobile": "7253980050",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 611,
+      "studentName": "Lakshya Sharma",
+      "mobile": "8429911819",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 612,
+      "studentName": "Md Haidar Ali",
+      "mobile": "6299616031",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 613,
+      "studentName": "Abhishek Sharma",
+      "mobile": "8808155830",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 614,
+      "studentName": "Vikas chandra omre",
+      "mobile": "9335105726",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 615,
+      "studentName": "CHANDAN CHAURASIA",
+      "mobile": "8810798729",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 616,
+      "studentName": "Anvi sharma",
+      "mobile": "9569180601",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 617,
+      "studentName": "Rohan Kumar",
+      "mobile": "7607813247",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 618,
+      "studentName": "Dhananjay Kumar",
+      "mobile": "9670756077",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 619,
+      "studentName": "Rani",
+      "mobile": "9720688537",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 620,
+      "studentName": "Vasu Goyal",
+      "mobile": "7906922782",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 621,
+      "studentName": "Prince Kumar Tiwari",
+      "mobile": "9263505607",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 622,
+      "studentName": "Mahendra Pratap Singh",
+      "mobile": "9305287312",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 626,
+      "studentName": "Ramjan ali",
+      "mobile": "9118592039",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 627,
+      "studentName": "Abdul Ilham Khan",
+      "mobile": "9580246981",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 629,
+      "studentName": "Pradeep kumar",
+      "mobile": "9506288216",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 630,
+      "studentName": "Nikhil Kumar",
+      "mobile": "6387529065",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 631,
+      "studentName": "khushi singh",
+      "mobile": "9236909036",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 634,
+      "studentName": "Aditya Kumar Singh",
+      "mobile": "8114134838",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 635,
+      "studentName": "Ramesh Kumar",
+      "mobile": "9305727439",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 637,
+      "studentName": "Abhishek Sharma",
+      "mobile": "8808155830",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 638,
+      "studentName": "Pradeep Kumar",
+      "mobile": "9506288216",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 639,
+      "studentName": "Shalini singh",
+      "mobile": "9140815321",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 640,
+      "studentName": "Sagun",
+      "mobile": "8448656932",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 641,
+      "studentName": "Rinku",
+      "mobile": "7505601721",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 642,
+      "studentName": "Donot call",
+      "mobile": "1000010000",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 643,
+      "studentName": "Gopi Yadav",
+      "mobile": "9759679950",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 644,
+      "studentName": "Ambuj Kumar",
+      "mobile": "9795316965",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 645,
+      "studentName": "Kajal yadav",
+      "mobile": "9236032514",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 646,
+      "studentName": "Harshit Srivastav",
+      "mobile": "7080578175",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 647,
+      "studentName": "Nisha jaiswal",
+      "mobile": "9369279662",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 648,
+      "studentName": "Anushka Gupta",
+      "mobile": "8953823107",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 649,
+      "studentName": "Lavish kumar",
+      "mobile": "8077917128",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 650,
+      "studentName": "Ramprasad Patel",
+      "mobile": "9336614728",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 651,
+      "studentName": "Praveen Kumar",
+      "mobile": "8394830218",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 652,
+      "studentName": "Anjali Yadav",
+      "mobile": "9451728274",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 653,
+      "studentName": "VIPIN KUMAR",
+      "mobile": "9012641906",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 654,
+      "studentName": "Deepak singh",
+      "mobile": "7247818963",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 655,
+      "studentName": "Chetan",
+      "mobile": "7652007471",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 656,
+      "studentName": "Vaishnavi Gupta",
+      "mobile": "9129161486",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 657,
+      "studentName": "Vaishnavi Gupta",
+      "mobile": "9129161486",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 658,
+      "studentName": "Chitranjan Shukla",
+      "mobile": "8115888068",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 659,
+      "studentName": "Sandeep Kumar Patel",
+      "mobile": "9695114533",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 660,
+      "studentName": "Abhishek Kumar",
+      "mobile": "9835512118",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 661,
+      "studentName": "SONI TIWARI",
+      "mobile": "8081691708",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 662,
+      "studentName": "Yash patel",
+      "mobile": "9005125992",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 663,
+      "studentName": "Satyam srivastava",
+      "mobile": "7355418542",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 664,
+      "studentName": "Amit Kumar Verma",
+      "mobile": "8528074818",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 665,
+      "studentName": "Saurabh Kumar",
+      "mobile": "7777777777",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 666,
+      "studentName": "Shivam Yadav",
+      "mobile": "9569107625",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 667,
+      "studentName": "Gaurav Gupta",
+      "mobile": "9696559848",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 668,
+      "studentName": "Gaurav Gupta",
+      "mobile": "9696559848",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 669,
+      "studentName": "Krishna Kumar",
+      "mobile": "8726600653",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 670,
+      "studentName": "Gaurav Gupta",
+      "mobile": "9696559848",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 671,
+      "studentName": "Gaurav",
+      "mobile": "8446153232",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 672,
+      "studentName": "test1",
+      "mobile": "7705839870",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 673,
+      "studentName": "Satyanshu",
+      "mobile": "7618802951",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 674,
+      "studentName": "Ritu DigiCoders",
+      "mobile": "6666666666",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 675,
+      "studentName": "Indresh Kumar",
+      "mobile": "7887021571",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 676,
+      "studentName": "Saurabh Kumar",
+      "mobile": "7705839870",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 677,
+      "studentName": "Vishal Chauhan",
+      "mobile": "6206315868",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 678,
+      "studentName": "Pranjal Gaikwad",
+      "mobile": "8999302127",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 679,
+      "studentName": "Deeksha mishra",
+      "mobile": "9997406197",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 680,
+      "studentName": "Pravesh yadav",
+      "mobile": "8810937771",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 681,
+      "studentName": "Akash",
+      "mobile": "9250072678",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 682,
+      "studentName": "Sandeep Yadav",
+      "mobile": "9235077850",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 683,
+      "studentName": "Ashutosh Bajpai",
+      "mobile": "7007522202",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 684,
+      "studentName": "Harshit Srivastav",
+      "mobile": "7080578175",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 685,
+      "studentName": "Rajnish Kumar",
+      "mobile": "7563041139",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 686,
+      "studentName": "Anshu kumari",
+      "mobile": "9792447921",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 687,
+      "studentName": "Roshani Kumari",
+      "mobile": "8092359983",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 688,
+      "studentName": "Krishna Kumar",
+      "mobile": "8726600653",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 689,
+      "studentName": "Harshit Maurya",
+      "mobile": "9934870048",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 690,
+      "studentName": "Saurabh Kumar",
+      "mobile": "7896541230",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 691,
+      "studentName": "Pankaj Kumar Yadav",
+      "mobile": "9120310904",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 692,
+      "studentName": "Saurabh Kumar",
+      "mobile": "4455454544",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 693,
+      "studentName": "Sanjeet",
+      "mobile": "8523025584",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 694,
+      "studentName": "Saurabh Kumar",
+      "mobile": "7705839870",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 695,
+      "studentName": "gaurav",
+      "mobile": "6516516516",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 696,
+      "studentName": "Saurabh Kumar",
+      "mobile": "7005839852",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 697,
+      "studentName": "Ankit tiwari",
+      "mobile": "9695159275",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 698,
+      "studentName": "Ankit tiwari",
+      "mobile": "9695159275",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 699,
+      "studentName": "Ankit tiwari",
+      "mobile": "9695159275",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 700,
+      "studentName": "Ankit tiwari",
+      "mobile": "9695159275",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 701,
+      "studentName": "Ankit tiwari",
+      "mobile": "9695159275",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 702,
+      "studentName": "ABHISHEK KUMAR",
+      "mobile": "8737077240",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 703,
+      "studentName": "ABHISHEK KUMAR",
+      "mobile": "8737077240",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 704,
+      "studentName": "ABHISHEK KUMAR",
+      "mobile": "8737077240",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 705,
+      "studentName": "ABHISHEK KUMAR",
+      "mobile": "8737077240",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 706,
+      "studentName": "ABHISHEK KUMAR",
+      "mobile": "8737077240",
+      "errors": [
+        "mobile already registered"
+      ]
+    },
+    {
+      "row": 707,
+      "studentName": "ABHISHEK KUMAR",
+      "mobile": "8737077240",
+      "errors": [
+        "mobile already registered"
+      ]
+    }
+  ]
+}
