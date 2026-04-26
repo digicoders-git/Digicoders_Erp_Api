@@ -692,7 +692,11 @@ export const updateRegistration = async (req, res) => {
     const {
       whatshapp,
       studentName,
+      email,
+      mobile,
+      training,
       technology,
+      education,
       eduYear,
       fatherName,
       alternateMobile,
@@ -721,6 +725,12 @@ export const updateRegistration = async (req, res) => {
       photoSummited,
       branch,
       collegeName,
+      hrName,
+      batch,
+      discount,
+      discountRemark,
+      qrcode,
+      isStatus,
       tnxId,
       remark,
       tag,
@@ -784,7 +794,8 @@ export const updateRegistration = async (req, res) => {
 
     if (whatshapp) student.whatshapp = whatshapp;
     if (studentName) student.studentName = studentName;
-    if (body.email) student.email = body.email;
+    if (email) student.email = email;
+    if (mobile) student.mobile = mobile;
     if (eduYear) student.eduYear = eduYear;
     if (fatherName) student.fatherName = fatherName;
     if (alternateMobile) student.alternateMobile = alternateMobile;
@@ -823,18 +834,25 @@ export const updateRegistration = async (req, res) => {
 
     if (branch) student.branch = branch;
     if (collegeName) student.collegeName = collegeName;
+    if (hrName) student.hrName = hrName;
+    if (batch) student.batch = batch;
+    if (qrcode) student.qrcode = qrcode;
+    if (typeof isStatus !== "undefined") student.isStatus = isStatus;
     if (tnxId) student.tnxId = tnxId;
     if (remark) student.remark = remark;
     if (tag) student.tag = tag;
     if (password) student.password = password;
-    if (education) student.education = education;
     if (training) student.training = training;
-    if (hrName) student.hrName = hrName;
+    if (education) student.education = education;
     if (discountRemark) student.discountRemark = discountRemark;
     if (typeof paidFee !== "undefined" && paidFee !== "") student.paidAmount = Number(paidFee);
     if (typeof dueFee !== "undefined" && dueFee !== "") student.dueAmount = Number(dueFee);
     if (typeof amount !== "undefined" && amount !== "") student.amount = Number(amount);
-    if (typeof discount !== "undefined" && discount !== "") student.discount = Number(discount);
+    if (typeof discount !== "undefined" && discount !== "") {
+      student.discount = Number(discount);
+      student.finalFee = student.totalFee - Number(discount);
+      student.dueAmount = Math.max(student.finalFee - student.paidAmount, 0);
+    }
     if (typeof totalFee !== "undefined" && totalFee !== "") {
       student.totalFee = Number(totalFee);
       student.finalFee = Number(totalFee) - (Number(discount) || student.discount || 0);

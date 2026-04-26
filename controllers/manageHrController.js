@@ -50,7 +50,7 @@ export const getAllHr = async (req, res) => {
       sortBy = "createdAt", 
       sortOrder = "desc",
       page = 1,
-      limit = 10
+      limit = 1000
     } = req.query;
 
     const filter = {};
@@ -137,11 +137,14 @@ export const updataHr = async (req, res) => {
       .status(200)
       .json({ message: "Hr updated successfull", success: true });
   } catch (error) {
+    // Mongoose validation error (e.g. invalid phone number)
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((e) => e.message);
+      return res.status(400).json({ success: false, message: messages.join(", ") });
+    }
     res.status(500).json({
-      message: "internal server error",
       success: false,
-      error,
-      success: false,
+      message: error.message || "Internal server error",
     });
   }
 };

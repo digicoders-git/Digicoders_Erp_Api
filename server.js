@@ -40,6 +40,7 @@ import path from "path";
 dotenv.config();
 
 const app = express();
+app.disable("etag");
 
 // CORS configuration
 app.use(
@@ -52,7 +53,7 @@ app.use(
     // ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"],
   })
 );
 
