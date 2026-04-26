@@ -686,7 +686,6 @@ export const getAllRegistrations = async (req, res) => {
 export const updateRegistration = async (req, res) => {
   try {
     const { id } = req.params;
-    // For formidable, fields are in req.fields and files in req.files
     const body = req.body || {};
     const files = req.files || {};
 
@@ -727,6 +726,16 @@ export const updateRegistration = async (req, res) => {
       tag,
       password,
       isNocAllowed,
+      education,
+      training,
+      hrName,
+      totalFee,
+      discount,
+      discountRemark,
+      finalFee,
+      amount,
+      paidFee,
+      dueFee,
     } = body;
 
     if (!id) {
@@ -817,6 +826,18 @@ export const updateRegistration = async (req, res) => {
     if (remark) student.remark = remark;
     if (tag) student.tag = tag;
     if (password) student.password = password;
+    if (education) student.education = education;
+    if (training) student.training = training;
+    if (hrName) student.hrName = hrName;
+    if (discountRemark) student.discountRemark = discountRemark;
+    if (typeof paidFee !== "undefined" && paidFee !== "") student.paidAmount = Number(paidFee);
+    if (typeof dueFee !== "undefined" && dueFee !== "") student.dueAmount = Number(dueFee);
+    if (typeof amount !== "undefined" && amount !== "") student.amount = Number(amount);
+    if (typeof discount !== "undefined" && discount !== "") student.discount = Number(discount);
+    if (typeof totalFee !== "undefined" && totalFee !== "") {
+      student.totalFee = Number(totalFee);
+      student.finalFee = Number(totalFee) - (Number(discount) || student.discount || 0);
+    }
     // If technology is being changed, fetch the new technology's price
     if (technology && technology !== student.technology._id) {
       const newTechnology = await TechnologyModal.findById(technology);
