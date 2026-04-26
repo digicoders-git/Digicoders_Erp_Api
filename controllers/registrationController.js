@@ -784,6 +784,7 @@ export const updateRegistration = async (req, res) => {
 
     if (whatshapp) student.whatshapp = whatshapp;
     if (studentName) student.studentName = studentName;
+    if (body.email) student.email = body.email;
     if (eduYear) student.eduYear = eduYear;
     if (fatherName) student.fatherName = fatherName;
     if (alternateMobile) student.alternateMobile = alternateMobile;
