@@ -44,6 +44,25 @@ export const bulkImportRegistrations = async (req, res) => {
 
     const results = { success: [], failed: [] };
 
+    // Extract all mobiles from Excel
+    const allMobilesInExcel = rows.map(r => String(r["Student Primary Mobile *"] || "").trim());
+
+    // Find duplicates within the Excel file itself
+    const seenInExcel = new Set();
+    const duplicateInExcel = new Set();
+    for (const m of allMobilesInExcel) {
+      if (seenInExcel.has(m)) duplicateInExcel.add(m);
+      else seenInExcel.add(m);
+    }
+
+    // Pre-fetch all already registered mobiles from DB in one query
+    const validMobiles = allMobilesInExcel.filter(m => /^\d{10}$/.test(m));
+    const existingDocs = await Registration.find({ mobile: { $in: validMobiles } }, "mobile");
+    const alreadyInDB = new Set(existingDocs.map(d => d.mobile));
+
+    // Track inserted in this session to avoid same-file duplicates
+    const insertedThisSession = new Set();
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const rowNum = i + 2; // Excel row number (1=header, so data starts at 2)
@@ -137,10 +156,21 @@ export const bulkImportRegistrations = async (req, res) => {
           continue;
         }
 
-        // Check duplicate mobile
-        const existing = await Registration.findOne({ mobile });
-        if (existing) {
-          results.failed.push({ row: rowNum, studentName, mobile, errors: [`mobile ${mobile} already registered`] });
+        // Check duplicate within Excel file
+        if (duplicateInExcel.has(mobile)) {
+          results.failed.push({ row: rowNum, studentName, mobile, errors: [`mobile ${mobile} duplicate in Excel file`] });
+          continue;
+        }
+
+        // Check duplicate in DB
+        if (alreadyInDB.has(mobile)) {
+          results.failed.push({ row: rowNum, studentName, mobile, errors: [`mobile ${mobile} already registered in DB`] });
+          continue;
+        }
+
+        // Check duplicate inserted in this session
+        if (insertedThisSession.has(mobile)) {
+          results.failed.push({ row: rowNum, studentName, mobile, errors: [`mobile ${mobile} duplicate in this import`] });
           continue;
         }
 
@@ -201,6 +231,7 @@ export const bulkImportRegistrations = async (req, res) => {
         }
 
         results.success.push({ row: rowNum, studentName, mobile, registrationId: newReg._id, userid: newReg.userid });
+        insertedThisSession.add(mobile);
       } catch (rowErr) {
         results.failed.push({
           row: rowNum,
