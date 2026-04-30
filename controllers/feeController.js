@@ -813,12 +813,13 @@ export const getFeeById = async (req, res) => {
     }).populate({
       path: "registrationId",
       select:
-        "collegeName fatherName email mobile whatshapp paymentStatus studentName training technology education userid eduYear totalFee finalFee paidAmount dueAmount",
+        "collegeName fatherName email mobile whatshapp paymentStatus studentName training technology education userid eduYear totalFee finalFee paidAmount dueAmount branch",
       populate: [
         { path: "training", select: "name" },
         { path: "technology", select: "name" },
         { path: "education", select: "name" },
         { path: "collegeName", select: "name" },
+        { path: "branch", select: "name location" },
       ],
     });
     if (!feedata)

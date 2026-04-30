@@ -7,6 +7,10 @@ const BranchSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    location: {
+      type: String,
+      default: "",
+    },
     addedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     isActive: {
       type: Boolean,

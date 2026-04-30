@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 // Create - Add new branch
 export const addBranch = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, location } = req.body;
     if (!name) {
       return res.status(400).json({
         success: false,
@@ -18,7 +18,7 @@ export const addBranch = async (req, res) => {
         message: "Branch with this name already exists",
       });
     }
-    const newBranch = new Branch({ name,addedBy:req.user._id });
+    const newBranch = new Branch({ name, location, addedBy:req.user._id });
     const savedBranch = await newBranch.save();
 
     res.status(201).json({
@@ -182,7 +182,7 @@ export const getAllBranches = async (req, res) => {
 export const updateBranch = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, isActive } = req.body;
+    const { name, isActive, location } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
@@ -193,6 +193,7 @@ export const updateBranch = async (req, res) => {
 
     const updateData = {};
     if (name) updateData.name = name;
+    if (typeof location !== "undefined") updateData.location = location;
     if (typeof isActive !== "undefined") updateData.isActive = isActive;
 
     if (Object.keys(updateData).length === 0) {
