@@ -107,6 +107,8 @@ const sendNotification = async (req, res) => {
     console.log('=== NOTIFICATION SEND REQUEST ===');
     console.log('Request body:', { title, body, targetType });
     console.log('Sent by user:', sentBy);
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('FRONTEND_URL env:', process.env.FRONTEND_URL);
     console.log('User object:', req.user);
 
     if (!title || !body) {
@@ -186,6 +188,13 @@ const sendNotification = async (req, res) => {
       try {
         console.log(`Processing batch ${Math.floor(i/batchSize) + 1} with ${batch.length} tokens`);
         
+        // Determine frontend URL based on environment
+        const frontendUrl = process.env.NODE_ENV === 'production' 
+          ? 'https://erp.thedigicoders.com'
+          : process.env.FRONTEND_URL || 'http://localhost:5173';
+        
+        console.log('Using frontend URL:', frontendUrl);
+        
         const message = {
           notification: { 
             title, 
@@ -193,16 +202,12 @@ const sendNotification = async (req, res) => {
           },
           webpush: {
             fcm_options: {
-              link: process.env.NODE_ENV === 'production' 
-                ? 'https://erp.thedigicoders.com' 
-                : (process.env.FRONTEND_URL || 'http://localhost:5173')
+              link: frontendUrl
             },
             notification: {
               icon: '/img/digicoders.jpeg',
               badge: '/img/digicoders.jpeg',
-              click_action: process.env.NODE_ENV === 'production' 
-                ? 'https://erp.thedigicoders.com' 
-                : (process.env.FRONTEND_URL || 'http://localhost:5173')
+              click_action: frontendUrl
             }
           },
           tokens: batch
