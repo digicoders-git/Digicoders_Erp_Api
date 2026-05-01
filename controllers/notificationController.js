@@ -189,18 +189,20 @@ const sendNotification = async (req, res) => {
         const message = {
           notification: { 
             title, 
-            body,
-            icon: '/img/digicoders.jpeg',
-            badge: '/img/digicoders.jpeg'
+            body
           },
           webpush: {
             fcm_options: {
-              link: process.env.FRONTEND_URL || 'https://erp.thedigicoders.com'
+              link: process.env.NODE_ENV === 'production' 
+                ? 'https://erp.thedigicoders.com' 
+                : (process.env.FRONTEND_URL || 'http://localhost:5173')
             },
             notification: {
               icon: '/img/digicoders.jpeg',
               badge: '/img/digicoders.jpeg',
-              click_action: process.env.FRONTEND_URL || 'https://erp.thedigicoders.com'
+              click_action: process.env.NODE_ENV === 'production' 
+                ? 'https://erp.thedigicoders.com' 
+                : (process.env.FRONTEND_URL || 'http://localhost:5173')
             }
           },
           tokens: batch
