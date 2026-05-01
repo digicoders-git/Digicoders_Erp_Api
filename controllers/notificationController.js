@@ -157,7 +157,22 @@ const sendNotification = async (req, res) => {
       
       try {
         const message = {
-          notification: { title, body },
+          notification: { 
+            title, 
+            body,
+            icon: '/img/digicoders.jpeg',
+            badge: '/img/digicoders.jpeg'
+          },
+          webpush: {
+            fcm_options: {
+              link: process.env.FRONTEND_URL || 'https://erp.thedigicoders.com'
+            },
+            notification: {
+              icon: '/img/digicoders.jpeg',
+              badge: '/img/digicoders.jpeg',
+              click_action: process.env.FRONTEND_URL || 'https://erp.thedigicoders.com'
+            }
+          },
           tokens: batch
         };
 
