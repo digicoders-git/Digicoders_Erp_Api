@@ -47,14 +47,14 @@ app.disable("etag");
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ? JSON.parse(process.env.CORS_ORIGIN) : ["http://localhost:5173", "http://localhost:5174"],
+    origin: process.env.CORS_ORIGIN ? JSON.parse(process.env.CORS_ORIGIN) : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176"],
     // origin: [
     //   "https://erp.thedigicoders.com",
     //   "https://student.thedigicoders.com",
     //   "http://localhost/thedigicoders-com",
     // ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "Cache-Control", "Pragma"],
   })
 );
