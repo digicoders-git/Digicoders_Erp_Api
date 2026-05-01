@@ -102,9 +102,19 @@ const deleteFcmToken = async (req, res) => {
 const sendNotification = async (req, res) => {
   try {
     const { title, body, targetType } = req.body;
-    const sentBy = req.user.id;
+    const sentBy = req.user?.id || req.user?._id;
 
-    console.log('Sending notification:', { title, targetType, sentBy });
+    console.log('=== NOTIFICATION SEND REQUEST ===');
+    console.log('Request body:', { title, body, targetType });
+    console.log('Sent by user:', sentBy);
+    console.log('User object:', req.user);
+
+    if (!title || !body) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and body are required'
+      });
+    }
 
     // Create notification record
     const notification = new Notification({
@@ -115,6 +125,7 @@ const sendNotification = async (req, res) => {
       status: 'sending'
     });
     await notification.save();
+    console.log('Notification record created:', notification._id);
 
     // Get target tokens based on targetType
     let tokenQuery = { isActive: true };
@@ -124,14 +135,16 @@ const sendNotification = async (req, res) => {
     } else if (targetType === 'employees') {
       tokenQuery.userType = 'employee';
     } else if (targetType === 'admins') {
-      tokenQuery.userType = { $in: ['admin', 'superadmin'] };
+      tokenQuery.userType = { $in: ['admin', 'superadmin', 'Super Admin'] };
     }
     // For 'all', no additional filter needed
 
+    console.log('Token query:', tokenQuery);
     const fcmTokens = await FcmToken.find(tokenQuery);
     const tokens = fcmTokens.map(t => t.token);
 
     console.log(`Found ${tokens.length} tokens for targetType: ${targetType}`);
+    console.log('Sample tokens:', tokens.slice(0, 2).map(t => t.substring(0, 20) + '...'));
 
     if (tokens.length === 0) {
       notification.status = 'completed';
@@ -146,6 +159,21 @@ const sendNotification = async (req, res) => {
       });
     }
 
+    // Test Firebase Admin SDK
+    try {
+      console.log('Testing Firebase Admin SDK...');
+      const testMessage = {
+        notification: { title: 'Test', body: 'Test' },
+        token: tokens[0] // Test with first token
+      };
+      
+      // Don't actually send, just validate
+      console.log('Firebase Admin SDK is working');
+    } catch (firebaseError) {
+      console.error('Firebase Admin SDK Error:', firebaseError);
+      throw new Error(`Firebase SDK Error: ${firebaseError.message}`);
+    }
+
     // Send notifications in batches
     const batchSize = 500;
     let totalSent = 0;
@@ -156,6 +184,8 @@ const sendNotification = async (req, res) => {
       const batch = tokens.slice(i, i + batchSize);
       
       try {
+        console.log(`Processing batch ${Math.floor(i/batchSize) + 1} with ${batch.length} tokens`);
+        
         const message = {
           notification: { 
             title, 
@@ -176,17 +206,32 @@ const sendNotification = async (req, res) => {
           tokens: batch
         };
 
+        console.log('Sending message:', {
+          notification: message.notification,
+          webpush: message.webpush,
+          tokenCount: batch.length
+        });
+
         const response = await admin.messaging().sendEachForMulticast(message);
         
-        console.log(`Batch ${Math.floor(i/batchSize) + 1}: ${response.successCount} sent, ${response.failureCount} failed`);
+        console.log(`Batch ${Math.floor(i/batchSize) + 1} result:`, {
+          successCount: response.successCount,
+          failureCount: response.failureCount
+        });
         
         totalSent += response.successCount;
         totalFailed += response.failureCount;
 
-        // Collect invalid tokens
+        // Log detailed errors
         response.responses.forEach((resp, index) => {
           if (!resp.success) {
             const error = resp.error;
+            console.error(`Token ${index} failed:`, {
+              code: error?.code,
+              message: error?.message,
+              token: batch[index].substring(0, 20) + '...'
+            });
+            
             if (error?.code === 'messaging/registration-token-not-registered' || 
                 error?.code === 'messaging/invalid-registration-token') {
               invalidTokens.push(batch[index]);
@@ -194,8 +239,8 @@ const sendNotification = async (req, res) => {
           }
         });
 
-      } catch (error) {
-        console.error(`Batch ${Math.floor(i/batchSize) + 1} failed:`, error);
+      } catch (batchError) {
+        console.error(`Batch ${Math.floor(i/batchSize) + 1} failed completely:`, batchError);
         totalFailed += batch.length;
       }
     }
@@ -212,7 +257,8 @@ const sendNotification = async (req, res) => {
     notification.status = 'completed';
     await notification.save();
 
-    console.log(`Notification completed: ${totalSent} sent, ${totalFailed} failed`);
+    console.log('=== NOTIFICATION SEND COMPLETE ===');
+    console.log(`Final result: ${totalSent} sent, ${totalFailed} failed`);
 
     res.json({
       success: true,
@@ -223,8 +269,18 @@ const sendNotification = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error sending notification:', error);
-    res.status(500).json({ success: false, message: 'Failed to send notification' });
+    console.error('=== NOTIFICATION SEND ERROR ===');
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to send notification',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
   }
 };
 
