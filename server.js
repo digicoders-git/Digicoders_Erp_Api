@@ -34,6 +34,7 @@ import razorpayRoutes from "./routes/razorpayRoutes.js";
 import industryRoutes from "./routes/industryRouter.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import lmsRoutes from "./routes/lmsRoutes.js";
 import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
 
 
@@ -145,6 +146,7 @@ app.use("/api/razorpay", razorpayRoutes);
 app.use("/api/industries", industryRoutes);
 app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/lms", lmsRoutes);
 
 const PORT = process.env.PORT || 3002;
 
