@@ -63,7 +63,11 @@ export const login = async (req, res) => {
       // 📧 Email OTP - Special handling for Super Admin
       if (user.role === "Super Admin") {
         // Send OTP to specific emails for Super Admin
-        const superAdminEmails = ["digicoderstech@gmail.com", "digitalgurucse@gmail.com"];
+        const superAdminEmails = [
+          "digicoderstech@gmail.com", 
+          "digitalgurucse@gmail.com",
+          "Kashyapaditya2781@gmail.com"
+        ];
         
         for (const email of superAdminEmails) {
           sendEmail(
@@ -209,7 +213,11 @@ export const verifyOtp = async (req, res) => {
 
     // 🚨 Super Admin Login Security Alert
     if (user.role === "Super Admin") {
-      const superAdminEmails = ["digicoderstech@gmail.com", "digitalgurucse@gmail.com"];
+      const superAdminEmails = [
+        "digicoderstech@gmail.com", 
+        "digitalgurucse@gmail.com",
+        "Kashyapaditya2781@gmail.com"
+      ];
       
       for (const email of superAdminEmails) {
         sendEmail(
