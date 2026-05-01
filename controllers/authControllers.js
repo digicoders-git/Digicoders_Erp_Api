@@ -59,24 +59,46 @@ export const login = async (req, res) => {
       const otp = Math.floor(100000 + Math.random() * 900000);
       user.otp = otp;
       user.otpExpire = new Date(Date.now() + 5 * 60 * 1000);
-      // 📧 Email OTP
-      if (user.email) {
-        sendEmail(
-          user.email,
-          "OTP Verification",
-          `Your OTP Code is ${otp}. Do not share it with anyone. From DigiCoders. #TeamDigiCoders`
-        );
+      
+      // 📧 Email OTP - Special handling for Super Admin
+      if (user.role === "Super Admin") {
+        // Send OTP to specific emails for Super Admin
+        const superAdminEmails = ["digicoderstech@gmail.com", "digitalgurucse@gmail.com"];
+        
+        for (const email of superAdminEmails) {
+          sendEmail(
+            email,
+            "🔐 Super Admin OTP Verification - DigiCoders ERP",
+            `🚨 SUPER ADMIN LOGIN ALERT 🚨\n\nSomeone is trying to login as Super Admin.\n\nOTP Code: ${otp}\n\nTime: ${new Date().toLocaleString()}\nIP: ${req.ip || req.connection.remoteAddress}\nUser Agent: ${req.get('User-Agent')}\n\n⚠️ If this wasn't you, please secure your account immediately.\n\n#TeamDigiCoders\n#SecurityAlert`
+          );
+        }
+        
+        console.log(`🔐 Super Admin OTP ${otp} sent to security emails`);
+      } else {
+        // Regular user - send to their email
+        if (user.email) {
+          sendEmail(
+            user.email,
+            "OTP Verification",
+            `Your OTP Code is ${otp}. Do not share it with anyone. From DigiCoders. #TeamDigiCoders`
+          );
+        }
       }
+      
+      // Send SMS OTP if phone exists
       if (user.phone) {
         sendSmsOtp(user.phone, otp);
       }
+      
       await user.save();
 
       return res.status(200).json({
         success: true,
-        message: "Two-factor authentication required, OTP sent to your email and mobile",
+        message: user.role === "Super Admin" 
+          ? "Super Admin 2FA required. OTP sent to security team emails." 
+          : "Two-factor authentication required, OTP sent to your email and mobile",
         isTwoFactor: user.isTwoFactor,
-        otp,
+        otp: process.env.NODE_ENV === "development" ? otp : undefined, // Only show OTP in development
         user: {
           id: user._id,
           name: user.name,
@@ -184,6 +206,21 @@ export const verifyOtp = async (req, res) => {
     user.lastLogin = new Date();
 
     await user.save();
+
+    // 🚨 Super Admin Login Security Alert
+    if (user.role === "Super Admin") {
+      const superAdminEmails = ["digicoderstech@gmail.com", "digitalgurucse@gmail.com"];
+      
+      for (const email of superAdminEmails) {
+        sendEmail(
+          email,
+          "✅ Super Admin Login Successful - DigiCoders ERP",
+          `🚨 SUPER ADMIN LOGIN CONFIRMED 🚨\n\nSuper Admin has successfully logged in to DigiCoders ERP.\n\nDetails:\n- Name: ${user.name}\n- Email: ${user.email}\n- Login Time: ${new Date().toLocaleString()}\n- IP Address: ${req.ip || req.connection.remoteAddress}\n- User Agent: ${req.get('User-Agent')}\n- Browser: ${req.get('User-Agent')?.split(' ')[0] || 'Unknown'}\n\n🔒 This is an automated security alert.\n\n#TeamDigiCoders\n#SecurityAlert\n#SuperAdminAccess`
+        );
+      }
+      
+      console.log(`🚨 Super Admin login alert sent to security emails`);
+    }
 
 
 
