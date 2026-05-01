@@ -7,10 +7,38 @@ import User from '../models/User.js';
 const saveFcmToken = async (req, res) => {
   try {
     const { token, deviceInfo } = req.body;
-    const userId = req.user.id;
-    const userType = req.user.role;
+    const userId = req.user?.id || req.user?._id;
+    let userType = req.user?.role;
 
-    console.log('Saving FCM token:', { userId, userType, token: token?.substring(0, 20) + '...' });
+    console.log('FCM Token Save Request:', {
+      userId,
+      userType,
+      hasToken: !!token,
+      tokenLength: token?.length,
+      deviceInfo,
+      userObject: req.user
+    });
+
+    // Validate required fields
+    if (!token) {
+      return res.status(400).json({ success: false, message: 'Token is required' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'User ID not found' });
+    }
+
+    // Map user roles to FCM userType
+    const roleMapping = {
+      'Super Admin': 'admin',
+      'Admin': 'admin', 
+      'Employee': 'employee',
+      'student': 'student'
+    };
+
+    userType = roleMapping[userType] || userType?.toLowerCase() || 'student';
+
+    console.log('Mapped userType:', userType);
 
     // Check if token already exists
     const existingToken = await FcmToken.findOne({ token });
@@ -24,7 +52,7 @@ const saveFcmToken = async (req, res) => {
       existingToken.lastUsed = new Date();
       await existingToken.save();
       
-      console.log('Updated existing FCM token');
+      console.log('Updated existing FCM token for user:', userId);
       return res.json({ success: true, message: 'Token updated successfully' });
     }
 
@@ -38,12 +66,20 @@ const saveFcmToken = async (req, res) => {
     });
 
     await fcmToken.save();
-    console.log('Saved new FCM token');
+    console.log('Saved new FCM token for user:', userId);
     
     res.json({ success: true, message: 'Token saved successfully' });
   } catch (error) {
-    console.error('Error saving FCM token:', error);
-    res.status(500).json({ success: false, message: 'Failed to save token' });
+    console.error('Error saving FCM token:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to save token',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 };
 

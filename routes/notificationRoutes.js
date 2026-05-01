@@ -14,6 +14,20 @@ import {
 router.post('/fcm/save-token', auth, saveFcmToken);
 router.delete('/fcm/delete-token', auth, deleteFcmToken);
 
+// Test endpoint for debugging
+router.get('/test', auth, (req, res) => {
+  res.json({
+    success: true,
+    message: 'Notification routes working',
+    user: {
+      id: req.user?.id || req.user?._id,
+      role: req.user?.role,
+      email: req.user?.email
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Send Notifications (Super Admin only)
 router.post('/send', auth, (req, res, next) => {
   if (req.user.role !== 'Super Admin') {
