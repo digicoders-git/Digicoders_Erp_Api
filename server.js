@@ -62,9 +62,16 @@ app.use(
 // ✅ EXACT uploads folder expose karo with CORS headers
 app.use("/uploads", (req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  next();
+  res.header('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma');
+  res.header('Access-Control-Expose-Headers', 'Content-Length, Content-Range');
+  res.header('Cache-Control', 'public, max-age=31536000');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
 }, express.static(path.join(process.cwd(), "uploads")));
 // Security middleware
 app.use(helmet());
