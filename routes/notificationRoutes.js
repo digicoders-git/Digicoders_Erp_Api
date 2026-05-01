@@ -1,14 +1,14 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const auth = require('../middleware/auth');
-const {
+import { auth } from '../middleware/auth.js';
+import {
   saveFcmToken,
   deleteFcmToken,
   sendNotification,
   getNotificationStats,
   getNotificationHistory,
   deleteNotification
-} = require('../controllers/notificationController');
+} from '../controllers/notificationController.js';
 
 // FCM Token Management
 router.post('/fcm/save-token', auth, saveFcmToken);
@@ -46,4 +46,4 @@ router.delete('/:id', auth, (req, res, next) => {
   next();
 }, deleteNotification);
 
-module.exports = router;
+export default router;

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const fcmTokenSchema = new mongoose.Schema({
   userId: {
@@ -40,4 +40,4 @@ fcmTokenSchema.index({ userId: 1, userType: 1 });
 fcmTokenSchema.index({ token: 1 }, { unique: true });
 fcmTokenSchema.index({ isActive: 1, userType: 1 });
 
-module.exports = mongoose.model('FcmToken', fcmTokenSchema);
+export default mongoose.model('FcmToken', fcmTokenSchema);

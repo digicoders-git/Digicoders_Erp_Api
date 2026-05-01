@@ -1,7 +1,7 @@
-const admin = require('../config/firebase');
-const FcmToken = require('../models/FcmToken');
-const Notification = require('../models/Notification');
-const User = require('../models/User');
+import admin from '../config/firebase.js';
+import FcmToken from '../models/FcmToken.js';
+import Notification from '../models/Notification.js';
+import User from '../models/User.js';
 
 // Save FCM Token
 const saveFcmToken = async (req, res) => {
@@ -250,7 +250,7 @@ const deleteNotification = async (req, res) => {
   }
 };
 
-module.exports = {
+export {
   saveFcmToken,
   deleteFcmToken,
   sendNotification,

@@ -1,6 +1,6 @@
 import express from 'express';
 import upload from '../middleware/upload.js';
-import auth from '../middleware/auth.js';
+import { auth } from '../middleware/auth.js';
 import {
   getCoursesByTechnology,
   createCourse,

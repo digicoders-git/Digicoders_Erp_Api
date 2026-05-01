@@ -22,11 +22,13 @@ const storage = multer.diskStorage({
 const imageTypes = /jpeg|jpg|png|webp/;
 const pdfTypes = /pdf/;
 const xlsxTypes = /xlsx|xls/;
+const videoTypes = /mp4|avi|mov|wmv|flv|webm|mkv/;
 
-// Fields where PDF is allowed
+// Fields where different file types are allowed
 const pdfAllowedFields = ["assignmentFiles", "cv", "aadharCard", "submittedFile"];
-const imageAllowedFields = ["profilePhoto", "image", "assignmentFiles", "submittedFile", "aadharCard"];
+const imageAllowedFields = ["profilePhoto", "image", "assignmentFiles", "submittedFile", "aadharCard", "thumbnail"];
 const xlsxAllowedFields = ["importFile"];
+const videoAllowedFields = ["video"];
 
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
@@ -38,12 +40,22 @@ const fileFilter = (req, file, cb) => {
     mime === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     mime === "application/vnd.ms-excel"
   );
+  const isVideo = videoTypes.test(ext) && mime.startsWith("video/");
 
   if (isXlsx) {
     if (xlsxAllowedFields.includes(file.fieldname)) {
       return cb(null, true);
     } else {
       return cb(new Error(`Excel file is not allowed for ${file.fieldname}`), false);
+    }
+  }
+
+  // Check if field is allowed for Video
+  if (isVideo) {
+    if (videoAllowedFields.includes(file.fieldname)) {
+      return cb(null, true);
+    } else {
+      return cb(new Error(`Video is not allowed for ${file.fieldname}`), false);
     }
   }
 
@@ -67,7 +79,7 @@ const fileFilter = (req, file, cb) => {
 
   return cb(
     new Error(
-      "Invalid file type. Only images and PDFs (for specific fields) are allowed."
+      "Invalid file type. Only images, videos, and PDFs (for specific fields) are allowed."
     ),
     false
   );
@@ -78,7 +90,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 25 * 1024 * 1024, // 25MB
+    fileSize: 100 * 1024 * 1024, // 100MB for videos
   },
 });
 
