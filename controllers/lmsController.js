@@ -1,6 +1,5 @@
 import LmsCourse from '../models/lmsCourse.js';
 import LmsVideo from '../models/lmsVideo.js';
-import cloudinary from '../config/cloudinary.js';
 import fs from 'fs';
 
 // Get courses by technology
@@ -62,25 +61,19 @@ const createCourse = async (req, res) => {
       technology
     };
 
-    // Handle thumbnail upload
+    // Handle thumbnail upload - Save locally instead of Cloudinary
     if (req.files && req.files.length > 0) {
       const thumbnailFile = req.files.find(file => file.fieldname === 'thumbnail');
       
       if (thumbnailFile) {
-        console.log('Uploading thumbnail to cloudinary...');
-        const result = await cloudinary.uploader.upload(thumbnailFile.path, {
-          folder: 'lms/course-thumbnails',
-          resource_type: 'image'
-        });
+        console.log('Saving thumbnail locally:', thumbnailFile.filename);
         
         courseData.thumbnail = {
-          url: result.secure_url,
-          public_id: result.public_id
+          url: `/uploads/${thumbnailFile.filename}`,
+          public_id: thumbnailFile.filename
         };
         
-        // Delete local file
-        fs.unlinkSync(thumbnailFile.path);
-        console.log('Thumbnail uploaded successfully');
+        console.log('Thumbnail saved locally:', courseData.thumbnail.url);
       }
     }
 
@@ -98,15 +91,6 @@ const createCourse = async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating course:', error);
-    
-    // Clean up uploaded files on error
-    if (req.files) {
-      req.files.forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
     
     res.status(500).json({
       success: false,
@@ -137,32 +121,28 @@ const updateCourse = async (req, res) => {
     if (description !== undefined) course.description = description;
     if (technology) course.technology = technology;
 
-    // Handle thumbnail update
+    // Handle thumbnail update - Save locally
     if (req.files && req.files.length > 0) {
       const thumbnailFile = req.files.find(file => file.fieldname === 'thumbnail');
       
       if (thumbnailFile) {
-        console.log('Updating thumbnail...');
+        console.log('Updating thumbnail locally:', thumbnailFile.filename);
         
-        // Delete old thumbnail from cloudinary
-        if (course.thumbnail?.public_id) {
-          await cloudinary.uploader.destroy(course.thumbnail.public_id);
+        // Delete old thumbnail file if exists
+        if (course.thumbnail?.public_id && course.thumbnail.url.startsWith('/uploads/')) {
+          const oldFilePath = `uploads/${course.thumbnail.public_id}`;
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlinkSync(oldFilePath);
+            console.log('Deleted old thumbnail:', oldFilePath);
+          }
         }
         
-        // Upload new thumbnail
-        const result = await cloudinary.uploader.upload(thumbnailFile.path, {
-          folder: 'lms/course-thumbnails',
-          resource_type: 'image'
-        });
-        
         course.thumbnail = {
-          url: result.secure_url,
-          public_id: result.public_id
+          url: `/uploads/${thumbnailFile.filename}`,
+          public_id: thumbnailFile.filename
         };
         
-        // Delete local file
-        fs.unlinkSync(thumbnailFile.path);
-        console.log('Thumbnail updated successfully');
+        console.log('Thumbnail updated locally:', course.thumbnail.url);
       }
     }
 
@@ -178,15 +158,6 @@ const updateCourse = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating course:', error);
-    
-    // Clean up uploaded files on error
-    if (req.files) {
-      req.files.forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
     
     res.status(500).json({
       success: false,
@@ -213,21 +184,33 @@ const deleteCourse = async (req, res) => {
     // Delete all videos in this course
     const videos = await LmsVideo.find({ course: id });
     for (let video of videos) {
-      // Delete video files from cloudinary
-      if (video.video?.public_id) {
-        await cloudinary.uploader.destroy(video.video.public_id, { resource_type: 'video' });
+      // Delete video files from local storage
+      if (video.video?.public_id && video.video.url.startsWith('/uploads/')) {
+        const videoPath = `uploads/${video.video.public_id}`;
+        if (fs.existsSync(videoPath)) {
+          fs.unlinkSync(videoPath);
+          console.log('Deleted video file:', videoPath);
+        }
       }
-      if (video.thumbnail?.public_id) {
-        await cloudinary.uploader.destroy(video.thumbnail.public_id);
+      if (video.thumbnail?.public_id && video.thumbnail.url.startsWith('/uploads/')) {
+        const thumbnailPath = `uploads/${video.thumbnail.public_id}`;
+        if (fs.existsSync(thumbnailPath)) {
+          fs.unlinkSync(thumbnailPath);
+          console.log('Deleted video thumbnail:', thumbnailPath);
+        }
       }
     }
     
     // Delete all videos from database
     await LmsVideo.deleteMany({ course: id });
     
-    // Delete course thumbnail from cloudinary
-    if (course.thumbnail?.public_id) {
-      await cloudinary.uploader.destroy(course.thumbnail.public_id);
+    // Delete course thumbnail from local storage
+    if (course.thumbnail?.public_id && course.thumbnail.url.startsWith('/uploads/')) {
+      const thumbnailPath = `uploads/${course.thumbnail.public_id}`;
+      if (fs.existsSync(thumbnailPath)) {
+        fs.unlinkSync(thumbnailPath);
+        console.log('Deleted course thumbnail:', thumbnailPath);
+      }
     }
     
     // Delete course
@@ -299,41 +282,29 @@ const uploadVideo = async (req, res) => {
       order: parseInt(order) || 0
     };
 
-    // Handle file uploads
+    // Handle file uploads - Save locally
     if (req.files && req.files.length > 0) {
       for (let file of req.files) {
         if (file.fieldname === 'video') {
-          console.log('Uploading video to cloudinary...');
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'lms/videos',
-            resource_type: 'video'
-          });
+          console.log('Saving video locally:', file.filename);
           
           videoData.video = {
-            url: result.secure_url,
-            public_id: result.public_id
+            url: `/uploads/${file.filename}`,
+            public_id: file.filename
           };
           
-          // Delete local file
-          fs.unlinkSync(file.path);
-          console.log('Video uploaded successfully');
+          console.log('Video saved locally:', videoData.video.url);
         }
         
         if (file.fieldname === 'thumbnail') {
-          console.log('Uploading video thumbnail...');
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'lms/video-thumbnails',
-            resource_type: 'image'
-          });
+          console.log('Saving video thumbnail locally:', file.filename);
           
           videoData.thumbnail = {
-            url: result.secure_url,
-            public_id: result.public_id
+            url: `/uploads/${file.filename}`,
+            public_id: file.filename
           };
           
-          // Delete local file
-          fs.unlinkSync(file.path);
-          console.log('Video thumbnail uploaded successfully');
+          console.log('Video thumbnail saved locally:', videoData.thumbnail.url);
         }
       }
     }
@@ -364,15 +335,6 @@ const uploadVideo = async (req, res) => {
   } catch (error) {
     console.error('Error uploading video:', error);
     
-    // Clean up uploaded files on error
-    if (req.files) {
-      req.files.forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
-    
     res.status(500).json({
       success: false,
       message: 'Failed to upload video'
@@ -402,55 +364,47 @@ const updateVideo = async (req, res) => {
     if (description !== undefined) video.description = description;
     if (order !== undefined) video.order = parseInt(order) || 0;
 
-    // Handle file updates
+    // Handle file updates - Save locally
     if (req.files && req.files.length > 0) {
       for (let file of req.files) {
         if (file.fieldname === 'video') {
-          console.log('Updating video file...');
+          console.log('Updating video file locally:', file.filename);
           
-          // Delete old video from cloudinary
-          if (video.video?.public_id) {
-            await cloudinary.uploader.destroy(video.video.public_id, { resource_type: 'video' });
+          // Delete old video file if exists
+          if (video.video?.public_id && video.video.url.startsWith('/uploads/')) {
+            const oldFilePath = `uploads/${video.video.public_id}`;
+            if (fs.existsSync(oldFilePath)) {
+              fs.unlinkSync(oldFilePath);
+              console.log('Deleted old video:', oldFilePath);
+            }
           }
           
-          // Upload new video
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'lms/videos',
-            resource_type: 'video'
-          });
-          
           video.video = {
-            url: result.secure_url,
-            public_id: result.public_id
+            url: `/uploads/${file.filename}`,
+            public_id: file.filename
           };
           
-          // Delete local file
-          fs.unlinkSync(file.path);
-          console.log('Video file updated successfully');
+          console.log('Video file updated locally:', video.video.url);
         }
         
         if (file.fieldname === 'thumbnail') {
-          console.log('Updating video thumbnail...');
+          console.log('Updating video thumbnail locally:', file.filename);
           
-          // Delete old thumbnail from cloudinary
-          if (video.thumbnail?.public_id) {
-            await cloudinary.uploader.destroy(video.thumbnail.public_id);
+          // Delete old thumbnail file if exists
+          if (video.thumbnail?.public_id && video.thumbnail.url.startsWith('/uploads/')) {
+            const oldFilePath = `uploads/${video.thumbnail.public_id}`;
+            if (fs.existsSync(oldFilePath)) {
+              fs.unlinkSync(oldFilePath);
+              console.log('Deleted old thumbnail:', oldFilePath);
+            }
           }
           
-          // Upload new thumbnail
-          const result = await cloudinary.uploader.upload(file.path, {
-            folder: 'lms/video-thumbnails',
-            resource_type: 'image'
-          });
-          
           video.thumbnail = {
-            url: result.secure_url,
-            public_id: result.public_id
+            url: `/uploads/${file.filename}`,
+            public_id: file.filename
           };
           
-          // Delete local file
-          fs.unlinkSync(file.path);
-          console.log('Video thumbnail updated successfully');
+          console.log('Video thumbnail updated locally:', video.thumbnail.url);
         }
       }
     }
@@ -467,15 +421,6 @@ const updateVideo = async (req, res) => {
     });
   } catch (error) {
     console.error('Error updating video:', error);
-    
-    // Clean up uploaded files on error
-    if (req.files) {
-      req.files.forEach(file => {
-        if (fs.existsSync(file.path)) {
-          fs.unlinkSync(file.path);
-        }
-      });
-    }
     
     res.status(500).json({
       success: false,
@@ -501,12 +446,20 @@ const deleteVideo = async (req, res) => {
 
     const courseId = video.course;
 
-    // Delete video files from cloudinary
-    if (video.video?.public_id) {
-      await cloudinary.uploader.destroy(video.video.public_id, { resource_type: 'video' });
+    // Delete video files from local storage
+    if (video.video?.public_id && video.video.url.startsWith('/uploads/')) {
+      const videoPath = `uploads/${video.video.public_id}`;
+      if (fs.existsSync(videoPath)) {
+        fs.unlinkSync(videoPath);
+        console.log('Deleted video file:', videoPath);
+      }
     }
-    if (video.thumbnail?.public_id) {
-      await cloudinary.uploader.destroy(video.thumbnail.public_id);
+    if (video.thumbnail?.public_id && video.thumbnail.url.startsWith('/uploads/')) {
+      const thumbnailPath = `uploads/${video.thumbnail.public_id}`;
+      if (fs.existsSync(thumbnailPath)) {
+        fs.unlinkSync(thumbnailPath);
+        console.log('Deleted video thumbnail:', thumbnailPath);
+      }
     }
     
     // Delete video from database
