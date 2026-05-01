@@ -59,8 +59,13 @@ app.use(
   })
 );
 
-// ✅ EXACT uploads folder expose karo
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+// ✅ EXACT uploads folder expose karo with CORS headers
+app.use("/uploads", (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+}, express.static(path.join(process.cwd(), "uploads")));
 // Security middleware
 app.use(helmet());
 // app.use(mongoSanitize());

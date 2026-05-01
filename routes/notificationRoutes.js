@@ -16,7 +16,7 @@ router.delete('/fcm/delete-token', auth, deleteFcmToken);
 
 // Send Notifications (Super Admin only)
 router.post('/send', auth, (req, res, next) => {
-  if (req.user.role !== 'superadmin') {
+  if (req.user.role !== 'Super Admin') {
     return res.status(403).json({ success: false, message: 'Access denied. Super Admin only.' });
   }
   next();
@@ -24,7 +24,7 @@ router.post('/send', auth, (req, res, next) => {
 
 // Get Statistics (Super Admin only)
 router.get('/stats', auth, (req, res, next) => {
-  if (req.user.role !== 'superadmin') {
+  if (req.user.role !== 'Super Admin') {
     return res.status(403).json({ success: false, message: 'Access denied. Super Admin only.' });
   }
   next();
@@ -32,7 +32,7 @@ router.get('/stats', auth, (req, res, next) => {
 
 // Get History (Super Admin only)
 router.get('/history', auth, (req, res, next) => {
-  if (req.user.role !== 'superadmin') {
+  if (req.user.role !== 'Super Admin') {
     return res.status(403).json({ success: false, message: 'Access denied. Super Admin only.' });
   }
   next();
@@ -40,7 +40,7 @@ router.get('/history', auth, (req, res, next) => {
 
 // Delete Notification (Super Admin only)
 router.delete('/:id', auth, (req, res, next) => {
-  if (req.user.role !== 'superadmin') {
+  if (req.user.role !== 'Super Admin') {
     return res.status(403).json({ success: false, message: 'Access denied. Super Admin only.' });
   }
   next();
