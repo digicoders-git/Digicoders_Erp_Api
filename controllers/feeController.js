@@ -87,6 +87,23 @@ export const recordPayment = async (req, res) => {
         });
       }
       finalTnxStatus = "paid";
+    } else if (mode === "online") {
+      // Online payment validation
+      if (!tnxId) {
+        return res.status(400).json({
+          success: false,
+          message: "Transaction ID required for online payment",
+        });
+      }
+      // Check if tnxId is unique
+      const existingTxn = await Fee.findOne({ tnxId });
+      if (existingTxn) {
+        return res.status(400).json({
+          success: false,
+          message: "Transaction ID already used for another payment",
+        });
+      }
+      finalTnxStatus = "pending";
     } else if (mode === "payment_link") {
       // Razorpay payment link generation
       if (razorpay) {
@@ -125,7 +142,7 @@ export const recordPayment = async (req, res) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: "Invalid payment mode. Use: cash, upi_qr, pos, or payment_link",
+        message: "Invalid payment mode. Use: cash, upi_qr, pos, online, or payment_link",
       });
     }
 
@@ -646,7 +663,7 @@ export const getallPayments = async (req, res) => {
         qrcodes,
         tnxStatuses: ["pending", "paid", "failed", "full paid"],
         paymentTypes: ["registration", "installment", "full"],
-        modes: ["cash", "upi_qr", "pos", "payment_link"],
+        modes: ["cash", "upi_qr", "pos", "online", "payment_link"],
       },
     });
   } catch (error) {
