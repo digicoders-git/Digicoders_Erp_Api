@@ -112,7 +112,7 @@ feeSchema.pre("save", async function (next) {
 
     const year = new Date().getFullYear();
 
-    // 🔍 is year ka last receipt nikaalo
+    // 🔍 Find the last receipt for this year
     const lastFee = await this.constructor
         .findOne({ receiptNo: new RegExp(`^DCTREC-${year}-`) })
         .sort({ createdAt: -1 })
@@ -121,10 +121,13 @@ feeSchema.pre("save", async function (next) {
     let nextNumber = 1;
 
     if (lastFee?.receiptNo) {
-        const lastNumber = parseInt(
-            lastFee.receiptNo.split("-")[2]
-        );
-        nextNumber = lastNumber + 1;
+        const receiptParts = lastFee.receiptNo.split("-");
+        if (receiptParts.length === 3) {
+            const lastNumber = parseInt(receiptParts[2]);
+            if (!isNaN(lastNumber)) {
+                nextNumber = lastNumber + 1;
+            }
+        }
     }
 
     // 000001 format (6 digit)

@@ -9,7 +9,9 @@ import {
   getOneRegistrations,
   login,
   sendOtp,
-  verifyOtp,RegistrationByWeb,
+  verifyOtp,
+  RegistrationByWeb,
+  getUserData,
 } from "../controllers/registrationController.js";
 import { bulkImportRegistrations } from "../controllers/bulkImportController.js";
 import { auth } from "../middleware/auth.js";
@@ -21,11 +23,13 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.post("/register", addRegistration);
 router.post("/web/register", RegistrationByWeb);
-// router.post("/sendmail", sendmail);
 router.post("/sendOtp", sendOtp);
 router.post("/verifyOtp", verifyOtp);
 router.post("/login", login);
 router.get("/get/user/:username", getOneRegistrations);
+
+// New API - Get user data by mobile or student ID
+router.get("/user-data/:identifier", getUserData);
 
 // Admin routes (admin authentication required)
 router.get("/all", auth, getAllRegistrations);

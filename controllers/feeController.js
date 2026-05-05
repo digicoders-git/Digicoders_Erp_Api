@@ -30,6 +30,15 @@ export const recordPayment = async (req, res) => {
       });
     }
 
+    // Validate amount is a positive number
+    const numericAmount = Number(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount must be a valid positive number",
+      });
+    }
+
     // Find registration
     const registration = await Registration.findById(registrationId);
     if (!registration) {
@@ -109,7 +118,7 @@ export const recordPayment = async (req, res) => {
       if (razorpay) {
         try {
           paymentLink = await razorpay.paymentLink.create({
-            amount: amount * 100, // Amount in paise
+            amount: numericAmount * 100, // Amount in paise
             currency: "INR",
             description: `DigiCoders Fee Payment - ${registration.studentName}`,
             customer: {
@@ -148,11 +157,11 @@ export const recordPayment = async (req, res) => {
 
     const paidAmount = mode === "payment_link"
       ? Number(registration.paidAmount)
-      : Number(registration.paidAmount) + Number(amount);
+      : Number(registration.paidAmount) + numericAmount;
 
     const dueAmount = mode === "payment_link"
       ? Number(registration.dueAmount)
-      : Number(registration.dueAmount) - Number(amount);
+      : Math.max(Number(registration.dueAmount) - numericAmount, 0);
 
     // Build fee object
     const feeData = {
@@ -160,7 +169,7 @@ export const recordPayment = async (req, res) => {
       totalFee: registration.totalFee,
       finalFee: registration.finalFee,
       paidAmount: paidAmount,
-      amount,
+      amount: numericAmount, // Use validated numeric amount
       dueAmount: dueAmount,
       paymentType,
       mode,
@@ -197,10 +206,10 @@ export const recordPayment = async (req, res) => {
     // Send notifications for successful payment
     if (mode !== "payment_link" && finalTnxStatus === "paid") {
       try {
-        await sendSmsInstallmentReceived(registration.mobile, registration.studentName, amount);
+        await sendSmsInstallmentReceived(registration.mobile, registration.studentName, numericAmount);
         await sendInstallmentReceivedEmail(registration.email, {
           studentName: registration.studentName,
-          amount,
+          amount: numericAmount,
           dueAmount: dueAmount > 0 ? dueAmount : null,
         });
       } catch (error) {

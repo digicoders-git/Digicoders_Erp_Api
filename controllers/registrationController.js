@@ -1363,6 +1363,61 @@ export const verifyPaymentLink = async (req, res) => {
 // };
 
 // Add new registration
+// Get user data by mobile number or student ID
+export const getUserData = async (req, res) => {
+  try {
+    const { identifier } = req.params; // mobile number ya student ID
+
+    if (!identifier) {
+      return res.status(400).json({
+        success: false,
+        message: "Mobile number ya Student ID provide karo"
+      });
+    }
+
+    // Search by mobile number or student ID
+    const user = await Registration.findOne({
+      $or: [
+        { mobile: identifier },
+        { userid: identifier }
+      ]
+    })
+    .select("-password -otp -otpExpire")
+    .populate("training", "name duration")
+    .populate("technology", "name price")
+    .populate("education", "name")
+    .populate("branch", "name address")
+    .populate("hrName", "name email phone")
+    .populate("collegeName", "name district")
+    .populate("batch", "batchName startDate endDate")
+    .populate("tag", "name")
+    .populate("qrcode", "name upi")
+    .populate("registeredBy", "name email")
+    .populate("verifiedBy", "name email");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User nahi mila is mobile number ya student ID se"
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User data successfully fetch kiya gaya",
+      data: user
+    });
+
+  } catch (error) {
+    console.error("Error fetching user data:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
 export const RegistrationByWeb = async (req, res) => {
   try {
     const {
