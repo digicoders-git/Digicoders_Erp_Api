@@ -180,6 +180,9 @@ export const recordPayment = async (req, res) => {
       if (dueAmount === 0) {
         registration.trainingFeeStatus = "full paid";
         registration.tnxStatus = "full paid";
+        // Update current fee record to show full paid status
+        fee.tnxStatus = "full paid";
+        await fee.save();
       } else if (paidAmount > 0) {
         registration.trainingFeeStatus = "partial";
         registration.tnxStatus = "paid";
@@ -261,6 +264,9 @@ export const verifyFeePaymentLink = async (req, res) => {
           if (newDue === 0) {
             registration.trainingFeeStatus = "full paid";
             registration.tnxStatus = "full paid";
+            // Ensure fee record also shows full paid
+            feeRecord.tnxStatus = "full paid";
+            await feeRecord.save();
           } else if (registration.paidAmount > 0) {
             registration.trainingFeeStatus = "partial";
             registration.tnxStatus = "paid";
@@ -347,17 +353,16 @@ export const handleFeePaymentCallback = async (req, res) => {
       if (feeRecord) {
 
         const registration = await Registration.findById(feeRecord.registrationId);
+        const newPaidAmount = Number(registration.paidAmount) + Number(feeRecord.amount);
+        const newDueAmount = Number(registration.dueAmount) - Number(feeRecord.amount);
 
         // Update fee status
-        feeRecord.tnxStatus = "paid";
+        feeRecord.tnxStatus = newDueAmount === 0 ? "full paid" : "paid";
         feeRecord.tnxId = razorpay_payment_id;
         await feeRecord.save();
 
         // Update registration payment status
         if (registration) {
-          const newPaidAmount = Number(registration.paidAmount) + Number(feeRecord.amount);
-          const newDueAmount = Number(registration.dueAmount) - Number(feeRecord.amount);
-
           registration.paidAmount = newPaidAmount;
           registration.dueAmount = newDueAmount;
           
@@ -365,6 +370,9 @@ export const handleFeePaymentCallback = async (req, res) => {
           if (newDueAmount === 0) {
             registration.trainingFeeStatus = "full paid";
             registration.tnxStatus = "full paid";
+            // Ensure fee record also shows full paid
+            feeRecord.tnxStatus = "full paid";
+            await feeRecord.save();
           } else if (newPaidAmount > 0) {
             registration.trainingFeeStatus = "partial";
             registration.tnxStatus = "paid";
