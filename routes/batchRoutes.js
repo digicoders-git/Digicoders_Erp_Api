@@ -7,7 +7,8 @@ import {
   assignTeacher,
   updateBatchStudents, // NEW
   removeStudentFromBatch,
-  deleteBatch,updateStatus,getBatchByStudentId
+  deleteBatch,updateStatus,getBatchByStudentId,
+  fixBatchInconsistencies
 } from "../controllers/batchController.js";
 import { auth } from "../middleware/auth.js";
 const router = express.Router();
@@ -23,5 +24,6 @@ router.put("/:batchId/students", updateBatchStudents); // NEW - for bulk student
 router.delete("/remove-student", removeStudentFromBatch);
 router.delete("/:id", deleteBatch);
 router.patch("/updatestatus/:id", updateStatus);
+router.post("/fix-inconsistencies", fixBatchInconsistencies); // NEW - fix batch-student inconsistencies
 
 export default router;

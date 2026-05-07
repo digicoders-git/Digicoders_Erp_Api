@@ -183,10 +183,25 @@ export const getBatchById = async (req, res) => {
   try {
     const batch = await Batch.findById(req.params.id)
       .populate("teacher", "name email")
-      .populate(
-        "students",
-        "studentName email mobile technology fatherName status dueAmount createdAt"
-      );
+      .populate({
+        path: "students",
+        select: "studentName email mobile technology training branch fatherName status dueAmount createdAt",
+        populate: [
+          {
+            path: "technology",
+            select: "name"
+          },
+          {
+            path: "training", 
+            select: "name"
+          },
+          {
+            path: "branch",
+            select: "name"
+          }
+        ]
+      });
+      
     if (!batch)
       return res
         .status(404)
@@ -403,5 +418,73 @@ export const updateStatus = async (req, res) => {
       .json({ message: "status change", success: true, batch });
   } catch (error) {
     return res.status(500).json({ message: error.message, success: false });
+  }
+};
+
+// ➤ Fix Batch-Student Inconsistencies
+export const fixBatchInconsistencies = async (req, res) => {
+  try {
+    console.log("🔧 Starting batch-student consistency check...");
+    
+    // Get all batches with their students
+    const batches = await Batch.find({}).populate('students', '_id studentName');
+    
+    let fixedCount = 0;
+    
+    for (const batch of batches) {
+      console.log(`📋 Checking batch: ${batch.batchName} (${batch._id})`);
+      
+      // For each student in this batch, ensure they have this batch in their batch array
+      for (const student of batch.students) {
+        const studentDoc = await Registration.findById(student._id);
+        
+        if (studentDoc && !studentDoc.batch.includes(batch._id)) {
+          console.log(`🔧 Adding batch ${batch.batchName} to student ${studentDoc.studentName}`);
+          
+          await Registration.findByIdAndUpdate(
+            student._id,
+            { $addToSet: { batch: batch._id } }
+          );
+          
+          fixedCount++;
+        }
+      }
+    }
+    
+    // Also check for students who have batches that don't include them
+    const studentsWithBatches = await Registration.find({ 
+      batch: { $exists: true, $ne: [] } 
+    }).populate('batch', '_id batchName students');
+    
+    for (const student of studentsWithBatches) {
+      for (const batch of student.batch) {
+        if (batch && !batch.students.includes(student._id)) {
+          console.log(`🔧 Adding student ${student.studentName} to batch ${batch.batchName}`);
+          
+          await Batch.findByIdAndUpdate(
+            batch._id,
+            { $addToSet: { students: student._id } }
+          );
+          
+          fixedCount++;
+        }
+      }
+    }
+    
+    console.log(`✅ Fixed ${fixedCount} inconsistencies`);
+    
+    res.status(200).json({
+      success: true,
+      message: `Batch consistency check completed. Fixed ${fixedCount} inconsistencies.`,
+      fixedCount
+    });
+    
+  } catch (error) {
+    console.error("❌ Error fixing batch inconsistencies:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fixing batch inconsistencies",
+      error: error.message
+    });
   }
 };

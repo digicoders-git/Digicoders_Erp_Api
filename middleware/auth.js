@@ -24,7 +24,16 @@ export const auth = async (req, res, next) => {
 
     let student = null;
     if (!user) {
-      student = await Registration.findById(decoded.id).select("studentName")
+      student = await Registration.findById(decoded.id)
+        .select("-password -otp -otpExpire")
+        .populate("training", "name duration")
+        .populate("technology", "name price")
+        .populate("education", "name")
+        .populate("branch", "name address")
+        .populate("hrName", "name email")
+        .populate("collegeName", "name district")
+        .populate("batch", "batchName startDate endDate")
+        .populate("tag", "name");
     }
 
     if (!user && !student) {

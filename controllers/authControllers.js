@@ -476,6 +476,7 @@ export const getMe = async (req, res) => {
         .populate({ path: "education", select: "title" })
         .populate({ path: "hrName", select: "name mobile" })
         .populate({ path: "technology", select: "name" })
+        .populate({ path: "batch", select: "batchName classTime subject room startDate teacher isActive", populate: { path: "teacher", select: "name" } })
         .populate({
           path: "training",
           select: "name duration",   // 👈 training fields
@@ -490,6 +491,14 @@ export const getMe = async (req, res) => {
         studentObj.isPasswordSet = true;
       }
       delete studentObj.password;
+
+      // 🔍 Debug: Log batch information
+      console.log("🔍 Student batch debug:", {
+        studentId: student._id,
+        studentName: student.studentName,
+        batchArray: student.batch,
+        batchCount: student.batch ? student.batch.length : 0
+      });
 
       return res.status(200).json({
         success: true,

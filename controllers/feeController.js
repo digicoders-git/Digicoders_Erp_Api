@@ -199,7 +199,19 @@ export const recordPayment = async (req, res) => {
     if (mode !== "payment_link" && finalTnxStatus !== "pending") {
       registration.paidAmount = paidAmount;
       registration.dueAmount = dueAmount;
-      registration.trainingFeeStatus = dueAmount === 0 ? "full paid" : "partial";
+      
+      // Auto-update training fee status based on due amount
+      if (dueAmount === 0) {
+        registration.trainingFeeStatus = "full paid";
+        registration.tnxStatus = "full paid";
+      } else if (paidAmount > 0) {
+        registration.trainingFeeStatus = "partial";
+        registration.tnxStatus = "paid";
+      } else {
+        registration.trainingFeeStatus = "pending";
+        registration.tnxStatus = "pending";
+      }
+      
       await registration.save();
     }
 
@@ -268,7 +280,19 @@ export const verifyFeePaymentLink = async (req, res) => {
         if (registration) {
           registration.paidAmount = Number(registration.paidAmount) + paid;
           registration.dueAmount = newDue;
-          registration.trainingFeeStatus = newDue === 0 ? "full paid" : "partial";
+          
+          // Auto-update training fee status based on due amount
+          if (newDue === 0) {
+            registration.trainingFeeStatus = "full paid";
+            registration.tnxStatus = "full paid";
+          } else if (registration.paidAmount > 0) {
+            registration.trainingFeeStatus = "partial";
+            registration.tnxStatus = "paid";
+          } else {
+            registration.trainingFeeStatus = "pending";
+            registration.tnxStatus = "pending";
+          }
+          
           await registration.save();
 
           // Send confirmation
@@ -360,7 +384,19 @@ export const handleFeePaymentCallback = async (req, res) => {
 
           registration.paidAmount = newPaidAmount;
           registration.dueAmount = newDueAmount;
-          registration.trainingFeeStatus = newDueAmount === 0 ? "full paid" : "partial";
+          
+          // Auto-update training fee status based on due amount
+          if (newDueAmount === 0) {
+            registration.trainingFeeStatus = "full paid";
+            registration.tnxStatus = "full paid";
+          } else if (newPaidAmount > 0) {
+            registration.trainingFeeStatus = "partial";
+            registration.tnxStatus = "paid";
+          } else {
+            registration.trainingFeeStatus = "pending";
+            registration.tnxStatus = "pending";
+          }
+          
           await registration.save();
 
           // Send confirmation
@@ -793,9 +829,22 @@ export const changeStatus = async (req, res) => {
       // Apply payment to student registration
       Student.paidAmount = Number(Student.paidAmount) + Number(FeeData.amount);
       Student.dueAmount = Math.max(Number(Student.dueAmount) - Number(FeeData.amount), 0);
-      Student.trainingFeeStatus = Student.dueAmount === 0 ? "full paid" : "partial";
-
-      FeeData.tnxStatus = Student.dueAmount === 0 ? "full paid" : "paid";
+      
+      // Auto-update training fee status based on due amount
+      if (Student.dueAmount === 0) {
+        Student.trainingFeeStatus = "full paid";
+        Student.tnxStatus = "full paid";
+        FeeData.tnxStatus = "full paid";
+      } else if (Student.paidAmount > 0) {
+        Student.trainingFeeStatus = "partial";
+        Student.tnxStatus = "paid";
+        FeeData.tnxStatus = "paid";
+      } else {
+        Student.trainingFeeStatus = "pending";
+        Student.tnxStatus = "pending";
+        FeeData.tnxStatus = "pending";
+      }
+      
       await Student.save();
     } else if (status === "rejected" && FeeData.status === "accepted") {
       // Reverse payment from student registration

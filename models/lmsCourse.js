@@ -10,12 +10,18 @@ const lmsCourseSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  technology: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Technology',
+  // Store base technology name instead of specific technology ID
+  baseTechnology: {
+    type: String,
     required: true,
+    trim: true,
     index: true
   },
+  // Keep reference to all related technologies (different durations)
+  relatedTechnologies: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Technology'
+  }],
   thumbnail: {
     url: String,
     public_id: String
@@ -32,7 +38,7 @@ const lmsCourseSchema = new mongoose.Schema({
   timestamps: true
 });
 
-lmsCourseSchema.index({ technology: 1, isActive: 1 });
+lmsCourseSchema.index({ baseTechnology: 1, isActive: 1 });
 lmsCourseSchema.index({ title: 1 });
 
 export default mongoose.model('LmsCourse', lmsCourseSchema);

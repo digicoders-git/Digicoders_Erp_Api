@@ -1,6 +1,57 @@
 
 import Registration from "../models/regsitration.js";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
+
+// @desc    Get student profile
+// @route   GET /api/student/profile
+// @access  Private (Student)
+export const getProfile = async (req, res) => {
+  try {
+    const studentId = req.student?._id;
+
+    if (!studentId) {
+      return res.status(401).json({
+        success: false,
+        message: "Student session not found",
+      });
+    }
+
+    const student = await Registration.findById(studentId)
+      .select("-password -otp -otpExpire")
+      .populate("training", "name duration")
+      .populate("technology", "name price")
+      .populate("education", "name")
+      .populate("branch", "name address")
+      .populate("hrName", "name email")
+      .populate("collegeName", "name district")
+      .populate("batch", "batchName startDate endDate")
+      .populate("tag", "name")
+      .populate("qrcode", "name upi")
+      .populate("registeredBy", "name email")
+      .populate("verifiedBy", "name email");
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student record not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Profile fetched successfully",
+      data: student,
+    });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 
 // @desc    Update student profile
 // @route   PUT /api/student/update
@@ -214,6 +265,82 @@ export const directResetPassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error",
+    });
+  }
+};
+
+// @desc    Debug batch information for current student
+// @route   GET /api/student/debug-batch
+// @access  Private (Student)
+export const debugBatchInfo = async (req, res) => {
+  try {
+    const studentId = req.student?._id;
+
+    if (!studentId) {
+      return res.status(401).json({
+        success: false,
+        message: "Student session not found",
+      });
+    }
+
+    // Get student with batch info
+    const student = await Registration.findById(studentId)
+      .select("studentName mobile batch")
+      .populate({
+        path: "batch",
+        select: "batchName classTime subject room startDate teacher isActive students",
+        populate: {
+          path: "teacher",
+          select: "name"
+        }
+      });
+
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student record not found",
+      });
+    }
+
+    // Also check which batches have this student in their students array
+    const batchesWithStudent = await mongoose.model('Batch').find({
+      students: studentId
+    }).select("batchName classTime isActive students");
+
+    const debugInfo = {
+      studentInfo: {
+        id: student._id,
+        name: student.studentName,
+        mobile: student.mobile
+      },
+      studentBatchArray: {
+        count: student.batch ? student.batch.length : 0,
+        batches: student.batch || []
+      },
+      batchesContainingStudent: {
+        count: batchesWithStudent.length,
+        batches: batchesWithStudent
+      },
+      consistency: {
+        isConsistent: student.batch?.length === batchesWithStudent.length,
+        message: student.batch?.length === batchesWithStudent.length 
+          ? "✅ Data is consistent" 
+          : "❌ Data inconsistency detected"
+      }
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "Batch debug information",
+      data: debugInfo
+    });
+
+  } catch (error) {
+    console.error("Debug batch info error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
     });
   }
 };

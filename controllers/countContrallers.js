@@ -164,11 +164,13 @@ export const getStudentCounts = async (req, res) => {
 
     // 2. Fee Counts
     const studentReg = await Registration.findById(studentId).select(
-      "finalFee dueAmount batch mobile"
+      "totalFee finalFee dueAmount paidAmount batch mobile"
     );
 
-    const totalFee = studentReg?.finalFee || 0;
+    const totalFee = studentReg?.totalFee || 0;
+    const finalFee = studentReg?.finalFee || 0;
     const dueFee = studentReg?.dueAmount || 0;
+    const paidAmount = studentReg?.paidAmount || 0;
 
     // 3. Assignment Counts
     const studentBatches = studentReg?.batch || [];
@@ -195,8 +197,10 @@ export const getStudentCounts = async (req, res) => {
         absent,
       },
       fee: {
-        totalFee,
+        totalFee: finalFee, // Use finalFee as the base for percentage calculation
         dueFee,
+        paidAmount,
+        originalTotalFee: totalFee, // Keep original for reference
       },
       assignments: {
         total: totalAssignments,

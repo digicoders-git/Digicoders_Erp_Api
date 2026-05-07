@@ -297,25 +297,43 @@ export const removeFileFromAssignment = async (req, res) => {
 
 export const studentGetAllAssignments = async (req, res) => {
   try {
+    // Check if student is authenticated
+    if (!req.student) {
+      return res.status(401).json({
+        success: false,
+        message: "Student authentication required",
+      });
+    }
+
     const student = req.student;
+    console.log('Student ID:', student._id);
+    
     // Student ke saare batches find karo
     const batches = await Batch.find({ students: student._id }).select(
       "_id batchName"
     );
 
+    console.log('Student batches:', batches);
+
     if (!batches || batches.length === 0) {
-      return res.status(404).json({
-        success: false,
+      return res.status(200).json({
+        success: true,
         message: "No batches found for this student",
+        batches: [],
+        assignments: [],
       });
     }
+    
     // Batch IDs extract karo
     const batchIds = batches.map((batch) => batch._id);
+    console.log('Batch IDs:', batchIds);
 
     // Assignments find karo jo in batches me hain
     const assignments = await Assignment.find({
       batches: { $in: batchIds },
     }).populate("batches", "batchName").populate("submissions");
+
+    console.log('Found assignments:', assignments.length);
 
     return res.status(200).json({
       success: true,
@@ -323,7 +341,7 @@ export const studentGetAllAssignments = async (req, res) => {
       assignments,
     });
   } catch (error) {
-    console.log(error);
+    console.error('Student assignments error:', error);
     res.status(500).json({
       success: false,
       message: error.message,

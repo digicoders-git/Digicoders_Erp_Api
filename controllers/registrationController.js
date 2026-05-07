@@ -42,12 +42,32 @@ export const addRegistration = async (req, res) => {
       registeredBy,
       tag,
       isNocAllowed,
+      // Offer fields
+      offerGiven,
+      offerType,
+      offerValue,
+      offerDescription,
+      offerValidTill,
     } = req.body;
 
     // Get technology price if amount not provided
     const tech = await TechnologyModal.findById(technology).select("price");
     const totalFee = tech.price;
-    const finalFee = totalFee - discount;
+    const originalPrice = totalFee; // Store original price before any offers
+    
+    // Calculate final fee with discount and offers
+    let finalDiscount = discount || 0;
+    
+    // Apply offer if given
+    if (offerGiven && offerType && offerValue) {
+      if (offerType === "percentage") {
+        finalDiscount += (totalFee * offerValue) / 100;
+      } else if (offerType === "fixed_amount") {
+        finalDiscount += offerValue;
+      }
+    }
+    
+    const finalFee = Math.max(totalFee - finalDiscount, 0);
     // Validate payment type
     if (!["registration", "full"].includes(paymentType)) {
       return res.status(400).json({
@@ -771,6 +791,8 @@ export const updateRegistration = async (req, res) => {
       if (!student.profilePhoto) student.profilePhoto = {};
       student.profilePhoto.url = `/uploads/${files.profilePhoto[0].filename}`;
       student.profilePhoto.public_id = files.profilePhoto[0].filename;
+      student.photoSummited = true; // ✅ Set photo submitted flag
+      student.idCardIssued = true; // ✅ Auto-issue ID card when photo is uploaded
     }
 
     if (files.cv) {
@@ -843,14 +865,64 @@ export const updateRegistration = async (req, res) => {
     if (typeof paidFee !== "undefined" && paidFee !== "") student.paidAmount = Number(paidFee);
     if (typeof dueFee !== "undefined" && dueFee !== "") student.dueAmount = Number(dueFee);
     if (typeof amount !== "undefined" && amount !== "") student.amount = Number(amount);
+    
+    // Auto-update training fee status based on paid amount
+    if (typeof paidFee !== "undefined" || typeof dueFee !== "undefined" || typeof amount !== "undefined") {
+      const currentPaidAmount = student.paidAmount || 0;
+      const currentFinalFee = student.finalFee || 0;
+      
+      // Recalculate due amount to ensure consistency
+      student.dueAmount = Math.max(currentFinalFee - currentPaidAmount, 0);
+      
+      if (currentPaidAmount >= currentFinalFee) {
+        student.trainingFeeStatus = "full paid";
+        student.tnxStatus = "full paid";
+      } else if (currentPaidAmount > 0) {
+        student.trainingFeeStatus = "partial";
+        student.tnxStatus = "paid";
+      } else {
+        student.trainingFeeStatus = "pending";
+        student.tnxStatus = "pending";
+      }
+    }
     if (typeof discount !== "undefined" && discount !== "") {
       student.discount = Number(discount);
       student.finalFee = student.totalFee - Number(discount);
       student.dueAmount = Math.max(student.finalFee - student.paidAmount, 0);
+      
+      // Auto-update training fee status after discount change
+      const currentPaidAmount = student.paidAmount || 0;
+      const currentFinalFee = student.finalFee || 0;
+      
+      if (currentPaidAmount >= currentFinalFee) {
+        student.trainingFeeStatus = "full paid";
+        student.tnxStatus = "full paid";
+      } else if (currentPaidAmount > 0) {
+        student.trainingFeeStatus = "partial";
+        student.tnxStatus = "paid";
+      } else {
+        student.trainingFeeStatus = "pending";
+        student.tnxStatus = "pending";
+      }
     }
     if (typeof totalFee !== "undefined" && totalFee !== "") {
       student.totalFee = Number(totalFee);
       student.finalFee = Number(totalFee) - (Number(discount) || student.discount || 0);
+      
+      // Auto-update training fee status after total fee change
+      const currentPaidAmount = student.paidAmount || 0;
+      const currentFinalFee = student.finalFee || 0;
+      
+      if (currentPaidAmount >= currentFinalFee) {
+        student.trainingFeeStatus = "full paid";
+        student.tnxStatus = "full paid";
+      } else if (currentPaidAmount > 0) {
+        student.trainingFeeStatus = "partial";
+        student.tnxStatus = "paid";
+      } else {
+        student.trainingFeeStatus = "pending";
+        student.tnxStatus = "pending";
+      }
     }
     // If technology is being changed, fetch the new technology's price
     if (technology && technology !== student.technology._id) {
@@ -868,9 +940,22 @@ export const updateRegistration = async (req, res) => {
 
       // Recalculate final fee and due fee
       student.finalFee = student.totalFee - student.discount;
-
-      student.dueAmount =
-        newTechnology.price - student.paidAmount - student.discount;
+      student.dueAmount = Math.max(student.finalFee - student.paidAmount, 0);
+      
+      // Auto-update training fee status after technology change
+      const currentPaidAmount = student.paidAmount || 0;
+      const currentFinalFee = student.finalFee || 0;
+      
+      if (currentPaidAmount >= currentFinalFee) {
+        student.trainingFeeStatus = "full paid";
+        student.tnxStatus = "full paid";
+      } else if (currentPaidAmount > 0) {
+        student.trainingFeeStatus = "partial";
+        student.tnxStatus = "paid";
+      } else {
+        student.trainingFeeStatus = "pending";
+        student.tnxStatus = "pending";
+      }
     }
 
     // Save the updated student

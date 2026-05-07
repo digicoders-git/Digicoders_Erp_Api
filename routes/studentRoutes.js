@@ -1,10 +1,18 @@
 
 import express from "express";
-import { updateProfile, changePassword, uploadDocuments, directResetPassword } from "../controllers/studentController.js";
+import { updateProfile, changePassword, uploadDocuments, directResetPassword, getProfile, debugBatchInfo } from "../controllers/studentController.js";
 import { auth } from "../middleware/auth.js";
 import upload from "../middleware/upload.js";
 
 const router = express.Router();
+
+// @route   GET /api/student/profile
+// @access  Private (Student)
+router.get("/profile", auth, getProfile);
+
+// @route   GET /api/student/debug-batch
+// @access  Private (Student)
+router.get("/debug-batch", auth, debugBatchInfo);
 
 // @route   PUT /api/student/update
 // @access  Private (Student)
