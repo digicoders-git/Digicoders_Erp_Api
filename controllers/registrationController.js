@@ -155,12 +155,13 @@ export const addRegistration = async (req, res) => {
       finalTnxId = `emi_${Date.now()}`;
     }
 
-    if (["upi_qr", "pos"].includes(paymentMethod) && tnxId) {
-      const existingTxn = await Registration.findOne({ tnxId: tnxId });
+    // ✅ Enhanced Transaction ID validation for ALL payment methods
+    if (tnxId && tnxId.trim()) {
+      const existingTxn = await Registration.findOne({ tnxId: tnxId.trim() });
       if (existingTxn) {
         return res.status(400).json({
           success: false,
-          message: "Transaction ID already used for another registration",
+          message: "Transaction ID already exists. Please use a unique Transaction ID.",
         });
       }
     }
@@ -855,7 +856,21 @@ export const updateRegistration = async (req, res) => {
     if (batch) student.batch = batch;
     if (qrcode) student.qrcode = qrcode;
     if (typeof isStatus !== "undefined") student.isStatus = isStatus;
-    if (tnxId) student.tnxId = tnxId;
+    
+    // ✅ Transaction ID uniqueness validation
+    if (tnxId && tnxId !== student.tnxId) {
+      const existingTxn = await Registration.findOne({ 
+        tnxId: tnxId,
+        _id: { $ne: student._id } // Exclude current student
+      });
+      if (existingTxn) {
+        return res.status(400).json({
+          success: false,
+          message: "Transaction ID already exists. Please use a unique Transaction ID.",
+        });
+      }
+      student.tnxId = tnxId;
+    }
     if (remark) student.remark = remark;
     if (tag) student.tag = tag;
     if (password) student.password = password;

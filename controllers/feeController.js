@@ -70,14 +70,6 @@ export const recordPayment = async (req, res) => {
           message: "Transaction ID required for UPI QR payment",
         });
       }
-      // Check if tnxId is unique
-      const existingTxn = await Fee.findOne({ tnxId });
-      if (existingTxn) {
-        return res.status(400).json({
-          success: false,
-          message: "Transaction ID already used for another payment",
-        });
-      }
       finalTnxStatus = "pending";
     } else if (mode === "pos") {
       // POS validation
@@ -87,14 +79,6 @@ export const recordPayment = async (req, res) => {
           message: "Transaction ID required for POS payment",
         });
       }
-      // Check if tnxId is unique
-      const existingTxn = await Fee.findOne({ tnxId });
-      if (existingTxn) {
-        return res.status(400).json({
-          success: false,
-          message: "Transaction ID already used for another payment",
-        });
-      }
       finalTnxStatus = "paid";
     } else if (mode === "online") {
       // Online payment validation
@@ -102,14 +86,6 @@ export const recordPayment = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Transaction ID required for online payment",
-        });
-      }
-      // Check if tnxId is unique
-      const existingTxn = await Fee.findOne({ tnxId });
-      if (existingTxn) {
-        return res.status(400).json({
-          success: false,
-          message: "Transaction ID already used for another payment",
         });
       }
       finalTnxStatus = "pending";
