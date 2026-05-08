@@ -872,7 +872,7 @@ export const getFeeById = async (req, res) => {
     }).populate({
       path: "registrationId",
       select:
-        "collegeName fatherName email mobile whatshapp paymentStatus studentName training technology education userid eduYear totalFee finalFee paidAmount dueAmount branch",
+        "collegeName fatherName email mobile whatshapp paymentStatus studentName training technology education userid eduYear totalFee finalFee paidAmount dueAmount discount discountRemark branch",
       populate: [
         { path: "training", select: "name" },
         { path: "technology", select: "name" },
