@@ -138,6 +138,7 @@
 
 
 import College from "../models/college.js";
+import Registration from "../models/regsitration.js";
 
 // Get all colleges with optional filtering
 export const getAllColleges = async (req, res) => {
@@ -217,13 +218,41 @@ export const getAllColleges = async (req, res) => {
       .populate("addedBy", "name email")
       .select("-__v");
 
+    // Get admission counts for each college
+    const collegeIds = colleges.map(college => college._id);
+    const admissionCounts = await Registration.aggregate([
+      {
+        $match: {
+          collegeName: { $in: collegeIds }
+        }
+      },
+      {
+        $group: {
+          _id: "$collegeName",
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Create a map for quick lookup
+    const countMap = {};
+    admissionCounts.forEach(item => {
+      countMap[item._id.toString()] = item.count;
+    });
+
+    // Add admission count to each college
+    const collegesWithCounts = colleges.map(college => ({
+      ...college.toObject(),
+      admissionCount: countMap[college._id.toString()] || 0
+    }));
+
     return res.status(200).json({
       success: true,
-      count: colleges.length,
+      count: collegesWithCounts.length,
       total: totalCount,
       page: pageNumber,
       pages: Math.ceil(totalCount / limitNumber),
-      colleges,
+      colleges: collegesWithCounts,
     });
   } catch (error) {
     console.error("Error fetching colleges:", error);
