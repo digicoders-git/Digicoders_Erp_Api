@@ -8,9 +8,29 @@ import cloudinary from "../config/cloudinary.js";
 import EmployeePermission from "../models/EmployeePermission.js";
 import Permission from "../models/Permission.js";
 import Registration from "../models/regsitration.js";
-import { sendEmail } from "../utils/sendEmail.js";
+import { sendEmail, sendOTPEmail, sendLoginAlertEmail } from "../utils/sendEmail.js";
 import { sendSmsOtp } from "../utils/sendSMS.js";
+import axios from "axios";
 dotenv.config();
+
+// Helper function to get location from IP
+const getLocationFromIP = async (ip) => {
+  try {
+    // Skip for localhost/private IPs
+    if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+      return 'Local Network';
+    }
+
+    const response = await axios.get(`http://ip-api.com/json/${ip}`);
+    if (response.data.status === 'success') {
+      return `${response.data.city}, ${response.data.regionName}, ${response.data.country}`;
+    }
+    return 'Unknown Location';
+  } catch (error) {
+    console.error('Location fetch error:', error.message);
+    return 'Location Unavailable';
+  }
+};
 
 // Login Function
 export const login = async (req, res) => {
@@ -60,6 +80,11 @@ export const login = async (req, res) => {
       user.otp = otp;
       user.otpExpire = new Date(Date.now() + 5 * 60 * 1000);
       
+      // Get user location and device info
+      const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
+      const userAgent = req.get('User-Agent');
+      const location = await getLocationFromIP(userIP);
+      
       // 📧 Email OTP - Special handling for Super Admin
       if (user.role === "Super Admin") {
         // Send OTP to specific emails for Super Admin
@@ -70,22 +95,21 @@ export const login = async (req, res) => {
         ];
         
         for (const email of superAdminEmails) {
-          sendEmail(
-            email,
-            "🔐 Super Admin OTP Verification - DigiCoders ERP",
-            `🚨 SUPER ADMIN LOGIN ALERT 🚨\n\nSomeone is trying to login as Super Admin.\n\nOTP Code: ${otp}\n\nTime: ${new Date().toLocaleString()}\nIP: ${req.ip || req.connection.remoteAddress}\nUser Agent: ${req.get('User-Agent')}\n\n⚠️ If this wasn't you, please secure your account immediately.\n\n#TeamDigiCoders\n#SecurityAlert`
-          );
+          await sendLoginAlertEmail(email, {
+            email: user.email,
+            ip: userIP,
+            location: location,
+            userAgent: userAgent
+          });
+          
+          await sendOTPEmail(email, { otp });
         }
         
         console.log(`🔐 Super Admin OTP ${otp} sent to security emails`);
       } else {
         // Regular user - send to their email
         if (user.email) {
-          sendEmail(
-            user.email,
-            "OTP Verification",
-            `Your OTP Code is ${otp}. Do not share it with anyone. From DigiCoders. #TeamDigiCoders`
-          );
+          await sendOTPEmail(user.email, { otp });
         }
       }
       
@@ -119,6 +143,28 @@ export const login = async (req, res) => {
     // Update last login
     user.lastLogin = new Date();
     await user.save();
+
+    // Send login alert for Super Admin
+    if (user.role === "Super Admin") {
+      const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
+      const userAgent = req.get('User-Agent');
+      const location = await getLocationFromIP(userIP);
+      
+      const superAdminEmails = [
+        "digicoderstech@gmail.com", 
+        "digitalgurucse@gmail.com",
+        "Kashyapaditya2781@gmail.com"
+      ];
+      
+      for (const email of superAdminEmails) {
+        await sendLoginAlertEmail(email, {
+          email: user.email,
+          ip: userIP,
+          location: location,
+          userAgent: userAgent
+        });
+      }
+    }
 
     // Generate token
     const token = user.generateToken();
@@ -213,6 +259,10 @@ export const verifyOtp = async (req, res) => {
 
     // 🚨 Super Admin Login Security Alert
     if (user.role === "Super Admin") {
+      const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
+      const userAgent = req.get('User-Agent');
+      const location = await getLocationFromIP(userIP);
+      
       const superAdminEmails = [
         "digicoderstech@gmail.com", 
         "digitalgurucse@gmail.com",
@@ -220,11 +270,12 @@ export const verifyOtp = async (req, res) => {
       ];
       
       for (const email of superAdminEmails) {
-        sendEmail(
-          email,
-          "✅ Super Admin Login Successful - DigiCoders ERP",
-          `🚨 SUPER ADMIN LOGIN CONFIRMED 🚨\n\nSuper Admin has successfully logged in to DigiCoders ERP.\n\nDetails:\n- Name: ${user.name}\n- Email: ${user.email}\n- Login Time: ${new Date().toLocaleString()}\n- IP Address: ${req.ip || req.connection.remoteAddress}\n- User Agent: ${req.get('User-Agent')}\n- Browser: ${req.get('User-Agent')?.split(' ')[0] || 'Unknown'}\n\n🔒 This is an automated security alert.\n\n#TeamDigiCoders\n#SecurityAlert\n#SuperAdminAccess`
-        );
+        await sendLoginAlertEmail(email, {
+          email: user.email,
+          ip: userIP,
+          location: location,
+          userAgent: userAgent
+        });
       }
       
       console.log(`🚨 Super Admin login alert sent to security emails`);
