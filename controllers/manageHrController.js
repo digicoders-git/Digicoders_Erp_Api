@@ -89,19 +89,53 @@ export const getAllHr = async (req, res) => {
     const limitNumber = limit === "all" ? 0 : parseInt(limit);
     const skip = limitNumber === 0 ? 0 : (pageNumber - 1) * limitNumber;
 
+    // Use aggregation to include registration count
+    const pipeline = [
+      { $match: filter },
+      {
+        $lookup: {
+          from: "registrations",
+          localField: "_id",
+          foreignField: "hrName",
+          as: "registrations"
+        }
+      },
+      {
+        $lookup: {
+          from: "branches",
+          localField: "branch",
+          foreignField: "_id",
+          as: "branch"
+        }
+      },
+      {
+        $unwind: {
+          path: "$branch",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $addFields: {
+          registrationCount: { $size: "$registrations" }
+        }
+      },
+      {
+        $project: {
+          registrations: 0,
+          __v: 0
+        }
+      },
+      { $sort: sortOptions },
+      { $skip: skip }
+    ];
+    
+    if (limitNumber > 0) {
+      pipeline.push({ $limit: limitNumber });
+    }
+
     // Get total count for pagination
     const totalCount = await Hr.countDocuments(filter);
-
-    // Query with pagination and populate
-    const query = Hr.find(filter)
-      .sort(sortOptions)
-      .skip(skip)
-      .populate("branch", "name isActive")
-      .select("-__v");
-
-    if (limitNumber > 0) query.limit(limitNumber);
-
-    const hr = await query;
+    const hr = await Hr.aggregate(pipeline);
 
     return res.status(200).json({
       success: true,

@@ -35,13 +35,44 @@ export const getAllDurations = async (req, res) => {
         const sort = {};
         sort[sortBy] = sortOrder === "asc" ? 1 : -1;
         
-        // Execute queries
+        // Use aggregation to include registration count
+        const pipeline = [
+            { $match: filter },
+            {
+                $lookup: {
+                    from: "trannings", // Training collection name
+                    localField: "_id",
+                    foreignField: "duration",
+                    as: "trainings"
+                }
+            },
+            {
+                $lookup: {
+                    from: "registrations",
+                    localField: "trainings._id",
+                    foreignField: "training",
+                    as: "registrations"
+                }
+            },
+            {
+                $addFields: {
+                    registrationCount: { $size: "$registrations" }
+                }
+            },
+            {
+                $project: {
+                    trainings: 0,
+                    registrations: 0
+                }
+            },
+            { $sort: sort },
+            { $skip: skip },
+            { $limit: limitNum }
+        ];
+        
         const [total, durations] = await Promise.all([
             Duration.countDocuments(filter),
-            Duration.find(filter)
-                .sort(sort)
-                .skip(skip)
-                .limit(limitNum)
+            Duration.aggregate(pipeline)
         ]);
         
         res.status(200).json({

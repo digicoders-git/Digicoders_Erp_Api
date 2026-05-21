@@ -132,11 +132,36 @@ export const getAllEducations = async (req, res) => {
          query[key] = filters[key];
        }
     });
-    const educations = await Education.find(query)
-      .sort({ [sortBy]: sortOrder })
-      .skip((page - 1) * limit)
-      .limit(limit);
+    
+    // Use aggregation to include registration count
+    const pipeline = [
+      { $match: query },
+      {
+        $lookup: {
+          from: "registrations",
+          localField: "_id",
+          foreignField: "education",
+          as: "registrations"
+        }
+      },
+      {
+        $addFields: {
+          registrationCount: { $size: "$registrations" }
+        }
+      },
+      {
+        $project: {
+          registrations: 0 // Remove the registrations array from output
+        }
+      },
+      { $sort: { [sortBy]: sortOrder } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit }
+    ];
+    
+    const educations = await Education.aggregate(pipeline);
     const total = await Education.countDocuments(query);
+    
     res.status(200).json({
       success: true,
       data: educations,
