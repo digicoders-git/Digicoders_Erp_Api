@@ -17,6 +17,7 @@ import mongoose from "mongoose";
 export const getAll = async (req, res) => {
   try {
     const loggedInUser = req.user;
+    const { eduYear } = req.query; // Add eduYear filter from query params
 
     // 🔐 Branch filter logic - Super Admin and Admin see all data
     const isGlobalUser = ["Super Admin"].includes(loggedInUser.role);
@@ -25,24 +26,28 @@ export const getAll = async (req, res) => {
       ? {} // global users → all data
       : { branch: loggedInUser.branch }; // employee/trainer/hr → own branch only
 
-    // Students (Registrations)
-    const studentsNew = await Registration.countDocuments({ status: "new", ...branchFilter });
+    // Add year filter if provided
+    const yearFilter = eduYear && eduYear !== "All" && eduYear !== "" ? { eduYear } : {};
+    const combinedFilter = { ...branchFilter, ...yearFilter };
+
+    // Students (Registrations) - now with year filter
+    const studentsNew = await Registration.countDocuments({ status: "new", ...combinedFilter });
     const studentsAccepted = await Registration.countDocuments({
       status: "accepted",
-      ...branchFilter
+      ...combinedFilter
     });
     const studentsRejected = await Registration.countDocuments({
       status: "rejected",
-      ...branchFilter
+      ...combinedFilter
     });
-    const studentsPending = await Registration.countDocuments({ tnxStatus: "pending", ...branchFilter });
-    const studentsAll = await Registration.countDocuments({ ...branchFilter });
+    const studentsPending = await Registration.countDocuments({ tnxStatus: "pending", ...combinedFilter });
+    const studentsAll = await Registration.countDocuments({ ...combinedFilter });
 
     // Fees (Payments)
     // const feesNew = await Fee.countDocuments({ status: "new", ...branchFilter });
 
 
-    const getFeeCountByStatus = async (status, loggedInUser) => {
+    const getFeeCountByStatus = async (status, loggedInUser, eduYear) => {
       const matchStage = {};
 
       if (status !== "all") {
@@ -54,6 +59,11 @@ export const getAll = async (req, res) => {
         matchStage["registration.branch"] = new mongoose.Types.ObjectId(
           loggedInUser.branch
         );
+      }
+
+      // Add year filter if provided
+      if (eduYear && eduYear !== "All" && eduYear !== "") {
+        matchStage["registration.eduYear"] = eduYear;
       }
 
       const result = await Fee.aggregate([
@@ -73,11 +83,11 @@ export const getAll = async (req, res) => {
       return result[0]?.count || 0;
     };
 
-    // Fees (Payments) ✅ CORRECT
-    const feesNew = await getFeeCountByStatus("new", loggedInUser);
-    const feesAccepted = await getFeeCountByStatus("accepted", loggedInUser);
-    const feesRejected = await getFeeCountByStatus("rejected", loggedInUser);
-    const feesAll = await getFeeCountByStatus("all", loggedInUser);
+    // Fees (Payments) ✅ CORRECT - now with year filter
+    const feesNew = await getFeeCountByStatus("new", loggedInUser, eduYear);
+    const feesAccepted = await getFeeCountByStatus("accepted", loggedInUser, eduYear);
+    const feesRejected = await getFeeCountByStatus("rejected", loggedInUser, eduYear);
+    const feesAll = await getFeeCountByStatus("all", loggedInUser, eduYear);
 
 
     // const feesAccepted = await Fee.countDocuments({ status: "accepted", ...branchFilter });

@@ -112,12 +112,14 @@ export const getAllEducations = async (req, res) => {
     const search = req.query.search || "";
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
+    const eduYear = req.query.eduYear; // Add eduYear filter
+    
     const query = {};
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
     // Handle filters
-    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder"];
+    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder", "eduYear"];
     const filters = { ...req.query };
     excludeFields.forEach((field) => delete filters[field]);
     // Handle boolean isActive filter explicitly if sent as string
@@ -133,14 +135,28 @@ export const getAllEducations = async (req, res) => {
        }
     });
     
-    // Use aggregation to include registration count
+    // Use aggregation to include registration count with eduYear filter
     const pipeline = [
       { $match: query },
       {
         $lookup: {
           from: "registrations",
-          localField: "_id",
-          foreignField: "education",
+          let: { educationId: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: ["$education", "$$educationId"] },
+                    // Add eduYear filter if provided
+                    ...(eduYear && eduYear !== "All" && eduYear !== "" ? 
+                        [{ $eq: ["$eduYear", eduYear] }] : []
+                    )
+                  ]
+                }
+              }
+            }
+          ],
           as: "registrations"
         }
       },

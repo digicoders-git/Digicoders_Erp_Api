@@ -120,12 +120,14 @@ const getAllTechnologies = async (req, res) => {
     const search = req.query.search || "";
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
+    const eduYear = req.query.eduYear; // Add eduYear filter
+    
     const query = {};
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
     // Handle filters
-    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder"];
+    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder", "eduYear"];
     const filters = { ...req.query };
     excludeFields.forEach((field) => delete filters[field]);
     // Example: Handle isActive boolean filter
@@ -146,13 +148,20 @@ const getAllTechnologies = async (req, res) => {
       .limit(limit * 1)
       .skip((page - 1) * limit);
     
-    // Get registration counts for each technology
+    // Get registration counts for each technology with eduYear filter
     const technologiesWithCounts = await Promise.all(
       technologies.map(async (technology) => {
-        const registrationCount = await Registration.countDocuments({
+        const registrationQuery = {
           technology: technology._id,
           status: { $in: ["accepted", "new", "pending"] }
-        });
+        };
+        
+        // Add eduYear filter if provided
+        if (eduYear && eduYear !== "All" && eduYear !== "") {
+          registrationQuery.eduYear = eduYear;
+        }
+        
+        const registrationCount = await Registration.countDocuments(registrationQuery);
         
         return {
           ...technology.toObject(),

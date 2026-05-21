@@ -672,7 +672,7 @@ export const getAllRegistrations = async (req, res) => {
       filter.collegeName = new mongoose.Types.ObjectId(collegeName);
 
     // Direct field filters (String fields only for $regex)
-    if (eduYear && eduYear !== "All") filter.eduYear = eduYear;
+    if (eduYear && eduYear !== "All" && eduYear !== "") filter.eduYear = eduYear;
     if (paymentMethod && paymentMethod !== "All")
       filter.paymentMethod = paymentMethod;
     if (trainingFeeStatus && trainingFeeStatus !== "All")

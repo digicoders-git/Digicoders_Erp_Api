@@ -6,11 +6,12 @@ export const getAllDurations = async (req, res) => {
     try {
         const { 
             page = 1, 
-            limit, 
+            limit = 10, // Default limit set
             sortBy = "createdAt", 
             sortOrder = "desc",
             search,
-            status // For status filter
+            status, // For status filter
+            eduYear // Add eduYear filter
         } = req.query;
         
         // Build filter object
@@ -22,20 +23,20 @@ export const getAllDurations = async (req, res) => {
         }
         
         // Status filter
-        if (status) {
+        if (status && status !== "All") {
             filter.isActive = status === "true";
         }
         
-        // Calculate pagination
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
+        // Calculate pagination with proper validation
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.max(1, parseInt(limit) || 10);
         const skip = (pageNum - 1) * limitNum;
         
         // Build sort
         const sort = {};
         sort[sortBy] = sortOrder === "asc" ? 1 : -1;
         
-        // Use aggregation to include registration count
+        // Use aggregation to include registration count with eduYear filter
         const pipeline = [
             { $match: filter },
             {
@@ -49,8 +50,22 @@ export const getAllDurations = async (req, res) => {
             {
                 $lookup: {
                     from: "registrations",
-                    localField: "trainings._id",
-                    foreignField: "training",
+                    let: { trainingIds: "$trainings._id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $in: ["$training", "$$trainingIds"] },
+                                        // Add eduYear filter if provided
+                                        ...(eduYear && eduYear !== "All" && eduYear !== "" ? 
+                                            [{ $eq: ["$eduYear", eduYear] }] : []
+                                        )
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: "registrations"
                 }
             },
@@ -65,10 +80,14 @@ export const getAllDurations = async (req, res) => {
                     registrations: 0
                 }
             },
-            { $sort: sort },
-            { $skip: skip },
-            { $limit: limitNum }
+            { $sort: sort }
         ];
+        
+        // Add pagination only if limitNum is valid
+        if (limitNum > 0) {
+            pipeline.push({ $skip: skip });
+            pipeline.push({ $limit: limitNum });
+        }
         
         const [total, durations] = await Promise.all([
             Duration.countDocuments(filter),

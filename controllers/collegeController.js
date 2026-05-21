@@ -152,7 +152,8 @@ export const getAllColleges = async (req, res) => {
       sortBy = "createdAt", 
       sortOrder = "desc",
       page = 1,
-      limit = 10
+      limit = 10,
+      eduYear // Add eduYear filter
     } = req.query;
 
     const filter = {};
@@ -218,12 +219,14 @@ export const getAllColleges = async (req, res) => {
       .populate("addedBy", "name email")
       .select("-__v");
 
-    // Get admission counts for each college
+    // Get admission counts for each college with eduYear filter
     const collegeIds = colleges.map(college => college._id);
-    const admissionCounts = await Registration.aggregate([
+    const admissionCountsPipeline = [
       {
         $match: {
-          collegeName: { $in: collegeIds }
+          collegeName: { $in: collegeIds },
+          // Add eduYear filter if provided
+          ...(eduYear && eduYear !== "All" && eduYear !== "" ? { eduYear } : {})
         }
       },
       {
@@ -232,7 +235,9 @@ export const getAllColleges = async (req, res) => {
           count: { $sum: 1 }
         }
       }
-    ]);
+    ];
+
+    const admissionCounts = await Registration.aggregate(admissionCountsPipeline);
 
     // Create a map for quick lookup
     const countMap = {};

@@ -117,7 +117,8 @@ export const getAllBranches = async (req, res) => {
       sortBy = "createdAt", 
       sortOrder = "desc",
       page = 1,
-      limit = 1000
+      limit = 1000,
+      eduYear // Add eduYear filter
     } = req.query;
 
     const filter = {};
@@ -156,13 +157,20 @@ export const getAllBranches = async (req, res) => {
       .skip(skip)
       .limit(limitNumber);
 
-    // Get registration counts for each branch
+    // Get registration counts for each branch with eduYear filter
     const branchesWithCounts = await Promise.all(
       branches.map(async (branch) => {
-        const registrationCount = await Registration.countDocuments({
+        const registrationQuery = {
           branch: branch._id,
           status: { $in: ["accepted", "new", "pending"] }
-        });
+        };
+        
+        // Add eduYear filter if provided
+        if (eduYear && eduYear !== "All" && eduYear !== "") {
+          registrationQuery.eduYear = eduYear;
+        }
+        
+        const registrationCount = await Registration.countDocuments(registrationQuery);
         
         return {
           ...branch.toObject(),
