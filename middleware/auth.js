@@ -142,3 +142,6 @@ export const filterByBranch = (model) => {
     next();
   };
 };
+
+// Alias for backward compatibility
+export const protect = auth;

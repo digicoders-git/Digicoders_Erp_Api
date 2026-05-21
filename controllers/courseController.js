@@ -1,4 +1,5 @@
 import Course from "../models/courseModel.js";
+import Registration from "../models/regsitration.js";
 
 // @desc    Get all courses with pagination and filters
 // @route   GET /api/course
@@ -44,9 +45,25 @@ export const getAllCourses = async (req, res) => {
         .limit(limitNum)
     ]);
 
+    // Get registration counts for each course (Note: Courses are not directly linked to registrations)
+    // This is a placeholder - you may need to adjust based on your actual course-registration relationship
+    const coursesWithCounts = await Promise.all(
+      courses.map(async (course) => {
+        // Since courses are not directly linked to registrations in the current schema,
+        // we'll set registrationCount to 0 for now
+        // You can modify this logic based on your actual requirements
+        const registrationCount = 0;
+        
+        return {
+          ...course.toObject(),
+          registrationCount
+        };
+      })
+    );
+
     res.status(200).json({
       success: true,
-      data: courses,
+      data: coursesWithCounts,
       pagination: {
         totalCount: total,
         totalPages: Math.ceil(total / limitNum),

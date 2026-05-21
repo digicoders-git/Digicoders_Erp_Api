@@ -1,4 +1,5 @@
 import Branch from "../models/branch.js";
+import Registration from "../models/regsitration.js";
 import mongoose from "mongoose";
 
 // Create - Add new branch
@@ -155,11 +156,26 @@ export const getAllBranches = async (req, res) => {
       .skip(skip)
       .limit(limitNumber);
 
+    // Get registration counts for each branch
+    const branchesWithCounts = await Promise.all(
+      branches.map(async (branch) => {
+        const registrationCount = await Registration.countDocuments({
+          branch: branch._id,
+          status: { $in: ["accepted", "new", "pending"] }
+        });
+        
+        return {
+          ...branch.toObject(),
+          registrationCount
+        };
+      })
+    );
+
     return res.status(200).json({
       success: true,
       message: "Branches fetched successfully",
-      data: branches,
-      count: branches.length,
+      data: branchesWithCounts,
+      count: branchesWithCounts.length,
       total: totalCount,
       page: pageNumber,
       pages: Math.ceil(totalCount / limitNumber),

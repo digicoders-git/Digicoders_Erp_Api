@@ -258,6 +258,15 @@ const registrationSchema = new mongoose.Schema(
       default: null,
     },
     paymentLink: String,
+    referralCode: {
+      type: String,
+      trim: true,
+      uppercase: true
+    },
+    referredBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Registration"
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

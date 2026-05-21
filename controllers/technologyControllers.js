@@ -1,6 +1,7 @@
 // ===== TECHNOLOGY CRUD =====
 import TranningModal from "../models/tranning.js";
 import TechnologyModal from "../models/technology.js";
+import Registration from "../models/regsitration.js";
 export const technologyController = async (req, res) => {
   const { action } = req.params;
 
@@ -144,12 +145,28 @@ const getAllTechnologies = async (req, res) => {
       .sort({ [sortBy]: sortOrder })
       .limit(limit * 1)
       .skip((page - 1) * limit);
+    
+    // Get registration counts for each technology
+    const technologiesWithCounts = await Promise.all(
+      technologies.map(async (technology) => {
+        const registrationCount = await Registration.countDocuments({
+          technology: technology._id,
+          status: { $in: ["accepted", "new", "pending"] }
+        });
+        
+        return {
+          ...technology.toObject(),
+          registrationCount
+        };
+      })
+    );
+    
     const totalRecords = await TechnologyModal.countDocuments(query);
     const totalPages = Math.ceil(totalRecords / limit);
     return res.status(200).json({
       success: true,
       message: "Technologies retrieved successfully",
-      data: technologies,
+      data: technologiesWithCounts,
       pagination: {
         currentPage: page,
         limit,

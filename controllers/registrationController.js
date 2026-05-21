@@ -5,6 +5,7 @@ import College from "../models/college.js";
 import TechnologyModal from "../models/technology.js";
 import razorpay from "../utils/razorpay.js";
 import Fee from "../models/fee.js";
+import Referral from "../models/referral.js";
 import { sendEmail, sendRegistrationSuccessEmail, sendPaymentReminderEmail, sendPaymentSuccessEmail } from "../utils/sendEmail.js";
 import {
   sendSmsOtp,
@@ -42,6 +43,7 @@ export const addRegistration = async (req, res) => {
       registeredBy,
       tag,
       isNocAllowed,
+      referralCode,
       // Offer fields
       offerGiven,
       offerType,
@@ -171,6 +173,15 @@ export const addRegistration = async (req, res) => {
       ? finalTnxId
       : undefined;
 
+    // Handle referral logic
+    let referredBy = null;
+    if (referralCode && referralCode.trim()) {
+      const referrer = await Registration.findOne({ userid: referralCode.trim().toUpperCase() });
+      if (referrer) {
+        referredBy = referrer._id;
+      }
+    }
+
     // Create new registration
     const newRegistration = await Registration.create({
       mobile,
@@ -206,6 +217,8 @@ export const addRegistration = async (req, res) => {
       tag: tag || null,
       isNocAllowed: isNocAllowed === "true" || isNocAllowed === true || false,
       paymentLink: paymentLink?.short_url || null,
+      referralCode: referralCode?.trim().toUpperCase() || null,
+      referredBy: referredBy,
     });
 
     const savedRegistration = await newRegistration.save();
@@ -228,6 +241,61 @@ export const addRegistration = async (req, res) => {
       });
 
       await feePayment.save();
+    }
+
+    // Process referral rewards if applicable
+    if (referredBy && referralCode) {
+      try {
+        // Determine training type and reward amount
+        const trainingDoc = await Registration.findById(savedRegistration._id).populate('training');
+        const trainingName = trainingDoc.training?.name?.toLowerCase() || '';
+        
+        let trainingType = 'summer'; // default
+        let rewardAmount = 0;
+        
+        if (trainingName.includes('apprenticeship')) {
+          trainingType = 'apprenticeship';
+          // Get count of apprenticeship referrals for this referrer
+          const apprenticeshipCount = await Referral.countDocuments({
+            referrer: referredBy,
+            trainingType: 'apprenticeship'
+          });
+          
+          if (apprenticeshipCount < 5) {
+            rewardAmount = 200; // First 5 apprenticeship referrals
+          } else {
+            rewardAmount = 500; // After 5 apprenticeship referrals
+          }
+        } else {
+          trainingType = 'summer';
+          // Get count of summer referrals for this referrer
+          const summerCount = await Referral.countDocuments({
+            referrer: referredBy,
+            trainingType: 'summer'
+          });
+          
+          if (summerCount < 5) {
+            rewardAmount = 100; // First 5 summer referrals
+          } else {
+            rewardAmount = 200; // After 5 summer referrals (6-20)
+          }
+        }
+        
+        // Create referral record
+        await Referral.create({
+          referrer: referredBy,
+          referred: savedRegistration._id,
+          referralCode: referralCode.trim().toUpperCase(),
+          trainingType: trainingType,
+          rewardAmount: rewardAmount,
+          status: 'pending'
+        });
+        
+        console.log(`Referral reward created: ₹${rewardAmount} for ${trainingType} training`);
+      } catch (referralError) {
+        console.error('Referral processing error:', referralError);
+        // Don't fail registration if referral processing fails
+      }
     }
     const populatedRegistration = await Registration.findById(
       savedRegistration._id,
