@@ -264,7 +264,7 @@ export const addRegistration = async (req, res) => {
           if (apprenticeshipCount < 5) {
             rewardAmount = 200; // First 5 apprenticeship referrals
           } else {
-            rewardAmount = 500; // After 5 apprenticeship referrals
+            rewardAmount = 500; // After 5 apprenticeship referrals (6th onwards)
           }
         } else {
           trainingType = 'summer';
@@ -276,8 +276,10 @@ export const addRegistration = async (req, res) => {
           
           if (summerCount < 5) {
             rewardAmount = 100; // First 5 summer referrals
+          } else if (summerCount < 20) {
+            rewardAmount = 200; // 6-20 summer referrals
           } else {
-            rewardAmount = 200; // After 5 summer referrals (6-20)
+            rewardAmount = 200; // After 20 summer referrals (keep at 200)
           }
         }
         
@@ -291,7 +293,7 @@ export const addRegistration = async (req, res) => {
           status: 'pending'
         });
         
-        console.log(`Referral reward created: ₹${rewardAmount} for ${trainingType} training`);
+        console.log(`Referral reward created: ₹${rewardAmount} for ${trainingType} training (referral #${trainingType === 'apprenticeship' ? apprenticeshipCount + 1 : summerCount + 1})`);
       } catch (referralError) {
         console.error('Referral processing error:', referralError);
         // Don't fail registration if referral processing fails
