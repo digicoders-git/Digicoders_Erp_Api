@@ -1774,6 +1774,12 @@ export const RegistrationByWebDirect = async (req, res) => {
       paymentType,
     } = req.body;
 
+    const files = req.files || {};
+    let imageUrl = null;
+    if (files.image && files.image[0]) {
+      imageUrl = `/uploads/${files.image[0].filename}`;
+    }
+
     // Get technology price
     const tech = await TechnologyModal.findById(technology).select("price");
     if (!tech) {
@@ -1813,6 +1819,7 @@ export const RegistrationByWebDirect = async (req, res) => {
       totalFee,
       finalFee,
       // amount is left undefined
+      image: imageUrl,
       status: "new",
       paidAmount: 0,
       dueAmount: finalFee,

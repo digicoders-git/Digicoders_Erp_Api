@@ -24,7 +24,7 @@ const router = express.Router();
 // Public routes (no authentication required)
 router.post("/register", addRegistration);
 router.post("/web/register", RegistrationByWeb);
-router.post("/web/register-direct", RegistrationByWebDirect);
+router.post("/web/register-direct", upload.fields([{ name: "image", maxCount: 1 }]), RegistrationByWebDirect);
 router.post("/sendOtp", sendOtp);
 router.post("/verifyOtp", verifyOtp);
 router.post("/login", login);
