@@ -1756,3 +1756,141 @@ export const RegistrationByWeb = async (req, res) => {
   }
 
 };
+
+export const RegistrationByWebDirect = async (req, res) => {
+  try {
+    const {
+      mobile,
+      studentName,
+      training,
+      technology,
+      education,
+      eduYear,
+      fatherName,
+      email,
+      alternateMobile,
+      branch,
+      collegeName,
+      paymentType,
+    } = req.body;
+
+    // Get technology price
+    const tech = await TechnologyModal.findById(technology).select("price");
+    if (!tech) {
+      return res.status(404).json({
+        success: false,
+        message: "Chosen technology not found",
+      });
+    }
+    const totalFee = tech.price || 0;
+    const finalFee = totalFee;
+
+    // Validate payment type
+    const safePaymentType = paymentType || "registration";
+    if (!["registration", "full"].includes(safePaymentType)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid payment type. Use 'registration' or 'full'",
+      });
+    }
+
+    // Create new registration
+    // We leave 'amount' undefined in the new Registration document.
+    // This allows it to successfully bypass Mongoose's validation min: 500 constraint.
+    const newRegistration = new Registration({
+      mobile,
+      whatshapp: mobile,
+      studentName,
+      training,
+      technology,
+      education,
+      eduYear,
+      fatherName,
+      email,
+      alternateMobile,
+      branch,
+      collegeName,
+      totalFee,
+      finalFee,
+      // amount is left undefined
+      status: "new",
+      paidAmount: 0,
+      dueAmount: finalFee,
+      tnxStatus: "pending",
+      trainingFeeStatus: "pending",
+      paymentType: safePaymentType,
+      paymentMethod: "cash",
+    });
+
+    const savedRegistration = await newRegistration.save();
+
+    const populatedRegistration = await Registration.findById(
+      savedRegistration._id,
+    )
+      .select("-password")
+      .populate("training", "name ")
+      .populate("technology", "name ")
+      .populate("education", "name")
+      .populate("hrName", "name")
+      .populate("tag", "name");
+
+    const { password: _, ...userResponse } = savedRegistration.toObject();
+
+    // Send confirmations for direct/offline registration
+    try {
+      await sendSmsRegSuccess(
+        populatedRegistration.mobile,
+        populatedRegistration.studentName,
+        populatedRegistration.training.name,
+        populatedRegistration.technology.name,
+      );
+      if (email) {
+        await sendRegistrationSuccessEmail(email, {
+          studentName: populatedRegistration.studentName,
+          training: populatedRegistration.training?.name,
+          technology: populatedRegistration.technology?.name,
+          totalFee: populatedRegistration.totalFee,
+          discount: populatedRegistration.discount || 0,
+          finalFee: populatedRegistration.finalFee,
+          paidAmount: 0,
+          dueAmount: populatedRegistration.dueAmount,
+          mobile: populatedRegistration.mobile,
+        });
+      }
+    } catch (notifyErr) {
+      console.error("Failed to send notification for direct registration:", notifyErr);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Registration successful",
+      data: userResponse,
+      populatedRegistration,
+      razorpayOrder: null,
+      feeId: null
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      return res.status(400).json({
+        success: false,
+        message: `${field} already exists`,
+      });
+    }
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages[0] || "Validation failed",
+        error: error.message,
+      });
+    }
+
+    return res.status(400).json({
+      success: false,
+      message: error.message || "Registration failed",
+      error: error.message,
+    });
+  }
+};
