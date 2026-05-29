@@ -25,7 +25,7 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (to, subject, html) => {
   try {
     await transporter.sendMail({
-      from: `"DigiCoders Technologies" <${process.env.EMAIL_USER || "alerts@digicoders.in"}>`,
+      from: `"DigiCoders Technologies" <${getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in")}>`,
       to,
       subject,
       html,

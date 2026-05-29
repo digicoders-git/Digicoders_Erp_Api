@@ -26,6 +26,11 @@ const testEmail = "krishnarovji@gmail.com";
 
 async function runTests() {
     console.log("Starting email test script...");
+    console.log("DEBUG ENV VALUES (Strict Check):");
+    console.log("EMAIL_HOST:", JSON.stringify(process.env.EMAIL_HOST));
+    console.log("EMAIL_PORT:", JSON.stringify(process.env.EMAIL_PORT));
+    console.log("EMAIL_USER:", JSON.stringify(process.env.EMAIL_USER));
+    console.log("EMAIL_PASS:", JSON.stringify(process.env.EMAIL_PASS));
     console.log("Sending to: ", testEmail);
 
     try {
