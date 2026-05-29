@@ -8,33 +8,70 @@ const getEnvString = (val, fallback) => {
   return trimmed === "" ? fallback : trimmed;
 };
 
-// Create transporter once at module level to reuse connection pool
-const transporter = nodemailer.createTransport({
-  host: getEnvString(process.env.EMAIL_HOST, "mail.digicoders.in"),
-  port: parseInt(process.env.EMAIL_PORT) || 465,
-  secure: process.env.SMTP_SECURE !== 'false',
-  auth: {
-    user: getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in"),
-    pass: getEnvString(process.env.EMAIL_PASS, ")UFCwRvcw]B}WsO.")
-  },
-  connectionTimeout: 5000,
-  greetingTimeout: 5000,
-  socketTimeout: 5000
-});
+// Create transporter helper
+const createTransporter = (port, secure) => {
+  return nodemailer.createTransport({
+    host: getEnvString(process.env.EMAIL_HOST, "mail.digicoders.in"),
+    port: port,
+    secure: secure,
+    auth: {
+      user: getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in"),
+      pass: getEnvString(process.env.EMAIL_PASS, "Zxi{n@^Q;@=Z?tIa")
+    },
+    tls: {
+      rejectUnauthorized: false // bypass SSL verification issues common with custom SMTP domains
+    },
+    connectionTimeout: 4000, // Fail fast (4s) so fallback can be attempted quickly
+    greetingTimeout: 4000,
+    socketTimeout: 4000
+  });
+};
+
+// Create secure (port 465) and STARTTLS (port 587) transporters once at module level
+const secureTransporter = createTransporter(465, true);
+const starttlsTransporter = createTransporter(587, false);
 
 export const sendEmail = async (to, subject, html) => {
-  try {
-    await transporter.sendMail({
-      from: `"DigiCoders Technologies" <${getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in")}>`,
-      to,
-      subject,
-      html,
-    });
+  // Execute email sending asynchronously in the background so it never blocks HTTP responses
+  // and prevents frontend / user client timeout errors.
+  Promise.resolve().then(async () => {
+    const envPort = parseInt(process.env.EMAIL_PORT) || 465;
+    const isSecure = process.env.SMTP_SECURE !== 'false';
 
-    console.log("✅ Email sent to:", to);
-  } catch (err) {
-    console.error("❌ Email sending failed:", err);
-  }
+    let primaryTransporter;
+    let fallbackTransporter;
+
+    if (envPort === 587 || !isSecure) {
+      primaryTransporter = starttlsTransporter;
+      fallbackTransporter = secureTransporter;
+    } else {
+      primaryTransporter = secureTransporter;
+      fallbackTransporter = starttlsTransporter;
+    }
+
+    try {
+      await primaryTransporter.sendMail({
+        from: `"DigiCoders Technologies" <${getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in")}>`,
+        to,
+        subject,
+        html,
+      });
+      console.log("✅ Email sent to:", to);
+    } catch (err) {
+      console.warn(`⚠️ [SMTP] Primary connection failed: ${err.message}. Trying fallback transport...`);
+      try {
+        await fallbackTransporter.sendMail({
+          from: `"DigiCoders Technologies" <${getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in")}>`,
+          to,
+          subject,
+          html,
+        });
+        console.log("✅ Email sent via fallback to:", to);
+      } catch (fallbackErr) {
+        console.error("❌ [SMTP] Email sending failed completely (both primary and fallback failed):", fallbackErr);
+      }
+    }
+  });
 };
 
 const getBaseTemplate = (title, content) => `

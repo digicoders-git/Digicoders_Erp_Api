@@ -10,7 +10,7 @@ async function testSMTP() {
     secure: false, // true for 465, false for 587
     auth: {
       user: "alerts@digicoders.in",
-      pass: ")UFCwRvcw]B}WsO."
+      pass: "Zxi{n@^Q;@=Z?tIa"
     },
     tls: {
       rejectUnauthorized: false // bypass SSL verification issues
