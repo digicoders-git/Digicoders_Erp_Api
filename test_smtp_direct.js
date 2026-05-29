@@ -3,22 +3,25 @@ import nodemailer from "nodemailer";
 async function testSMTP() {
   console.log("Initializing SMTP direct test script...");
   
-  // Use Gmail SMTP credentials
+  // Use alerts@digicoders.in on Port 587 (TLS)
   const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 465,
-    secure: true,
+    host: "mail.digicoders.in",
+    port: 587,
+    secure: false, // true for 465, false for 587
     auth: {
-      user: "digicoderstest@gmail.com",
-      pass: "quanhsgvxuehgpij"
+      user: "alerts@digicoders.in",
+      pass: ")UFCwRvcw]B}WsO."
     },
-    connectionTimeout: 10000, // 10s connection timeout
+    tls: {
+      rejectUnauthorized: false // bypass SSL verification issues
+    },
+    connectionTimeout: 10000,
     greetingTimeout: 10000,
     socketTimeout: 10000
   });
 
   const mailOptions = {
-    from: '"DigiCoders Alerts" <digicoderstest@gmail.com>',
+    from: '"DigiCoders Alerts" <alerts@digicoders.in>',
     to: "digitalgurucse@gmail.com",
     subject: "SMTP Direct Test Mail - ERP",
     html: `
