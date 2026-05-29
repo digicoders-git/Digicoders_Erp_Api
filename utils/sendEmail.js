@@ -2,31 +2,24 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Create transporter once at module level to reuse connection pool
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || "mail.digicoders.in",
+  port: parseInt(process.env.EMAIL_PORT) || 465,
+  secure: process.env.SMTP_SECURE !== 'false',
+  auth: {
+    user: process.env.EMAIL_USER || "alerts@digicoders.in",
+    pass: process.env.EMAIL_PASS || ")UFCwRvcw]B}WsO."
+  },
+  connectionTimeout: 5000,
+  greetingTimeout: 5000,
+  socketTimeout: 5000
+});
+
 export const sendEmail = async (to, subject, html) => {
   try {
-    // const transporter = nodemailer.createTransport({
-    //   host: process.env.EMAIL_HOST,
-    //   port: process.env.EMAIL_PORT,
-    //   secure: process.env.SMTP_SECURE === 'true',
-    //   auth: {
-    //     user: process.env.EMAIL_USER,
-    //     pass: process.env.EMAIL_PASS,
-    //   },
-    // });
-    const transporter = nodemailer.createTransport({
-      host: "mail.digicoders.in",
-      port: 465,
-      secure: true,
-      auth: {
-        user: "alerts@digicoders.in",
-        pass: "bCFB^]J.HmXF154A"
-      },
-      connectionTimeout: 5000,
-      greetingTimeout: 5000,
-      socketTimeout: 5000
-    });
     await transporter.sendMail({
-      from: `"DigiCoders Technologies" <${process.env.EMAIL_USER}>`,
+      from: `"DigiCoders Technologies" <${process.env.EMAIL_USER || "alerts@digicoders.in"}>`,
       to,
       subject,
       html,
