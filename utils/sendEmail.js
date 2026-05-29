@@ -2,14 +2,20 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
+const getEnvString = (val, fallback) => {
+  if (!val) return fallback;
+  const trimmed = val.trim();
+  return trimmed === "" ? fallback : trimmed;
+};
+
 // Create transporter once at module level to reuse connection pool
 const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || "mail.digicoders.in",
+  host: getEnvString(process.env.EMAIL_HOST, "mail.digicoders.in"),
   port: parseInt(process.env.EMAIL_PORT) || 465,
   secure: process.env.SMTP_SECURE !== 'false',
   auth: {
-    user: process.env.EMAIL_USER || "alerts@digicoders.in",
-    pass: process.env.EMAIL_PASS || ")UFCwRvcw]B}WsO."
+    user: getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in"),
+    pass: getEnvString(process.env.EMAIL_PASS, ")UFCwRvcw]B}WsO.")
   },
   connectionTimeout: 5000,
   greetingTimeout: 5000,

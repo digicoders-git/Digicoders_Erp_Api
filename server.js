@@ -44,6 +44,7 @@ dotenv.config();
 
 const app = express();
 app.disable("etag");
+app.set("trust proxy", 1);
 
 // CORS configuration
 app.use(
