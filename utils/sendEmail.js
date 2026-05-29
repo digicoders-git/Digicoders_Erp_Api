@@ -20,7 +20,10 @@ export const sendEmail = async (to, subject, html) => {
       auth: {
         user: "alerts@digicoders.in",
         pass: "bCFB^]J.HmXF154A"
-      }
+      },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 5000
     });
     await transporter.sendMail({
       from: `"DigiCoders Technologies" <${process.env.EMAIL_USER}>`,

@@ -21,7 +21,7 @@ const getLocationFromIP = async (ip) => {
       return 'Local Network';
     }
 
-    const response = await axios.get(`http://ip-api.com/json/${ip}`);
+    const response = await axios.get(`http://ip-api.com/json/${ip}`, { timeout: 2000 });
     if (response.data.status === 'success') {
       return `${response.data.city}, ${response.data.regionName}, ${response.data.country}`;
     }
@@ -83,39 +83,52 @@ export const login = async (req, res) => {
       // Get user location and device info
       const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
       const userAgent = req.get('User-Agent');
-      const location = await getLocationFromIP(userIP);
       
-      // 📧 Email OTP - Special handling for Super Admin
-      if (user.role === "Super Admin") {
-        // Send OTP to specific emails for Super Admin
-        const superAdminEmails = [
-          "digicoderstech@gmail.com", 
-          "digitalgurucse@gmail.com",
-          "Kashyapaditya2781@gmail.com"
-        ];
-        
-        for (const email of superAdminEmails) {
-          await sendLoginAlertEmail(email, {
-            email: user.email,
-            ip: userIP,
-            location: location,
-            userAgent: userAgent
-          });
+      // 📧 Send Emails and Alerts in the background (non-blocking)
+      const handleBackground2FA = async () => {
+        try {
+          const location = await getLocationFromIP(userIP);
           
-          await sendOTPEmail(email, { otp });
+          if (user.role === "Super Admin") {
+            // Send OTP to specific emails for Super Admin
+            const superAdminEmails = [
+              "digicoderstech@gmail.com", 
+              "digitalgurucse@gmail.com",
+              "Kashyapaditya2781@gmail.com"
+            ];
+            
+            for (const email of superAdminEmails) {
+              try {
+                await sendLoginAlertEmail(email, {
+                  email: user.email,
+                  ip: userIP,
+                  location: location,
+                  userAgent: userAgent
+                });
+                
+                await sendOTPEmail(email, { otp });
+              } catch (err) {
+                console.error(`Error sending Super Admin security email to ${email}:`, err);
+              }
+            }
+            console.log(`🔐 Super Admin OTP ${otp} sent to security emails`);
+          } else {
+            // Regular user - send to their email
+            if (user.email) {
+              await sendOTPEmail(user.email, { otp });
+            }
+          }
+        } catch (err) {
+          console.error("Error in background 2FA tasks:", err);
         }
-        
-        console.log(`🔐 Super Admin OTP ${otp} sent to security emails`);
-      } else {
-        // Regular user - send to their email
-        if (user.email) {
-          await sendOTPEmail(user.email, { otp });
-        }
-      }
+      };
+
+      // Fire and forget background email/location task
+      handleBackground2FA();
       
-      // Send SMS OTP if phone exists
+      // Send SMS OTP if phone exists (fire and forget)
       if (user.phone) {
-        sendSmsOtp(user.phone, otp);
+        sendSmsOtp(user.phone, otp).catch(err => console.error("Error sending SMS OTP:", err));
       }
       
       await user.save();
@@ -144,26 +157,39 @@ export const login = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    // Send login alert for Super Admin
+    // Send login alert for Super Admin (non-blocking)
     if (user.role === "Super Admin") {
       const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
       const userAgent = req.get('User-Agent');
-      const location = await getLocationFromIP(userIP);
       
-      const superAdminEmails = [
-        "digicoderstech@gmail.com", 
-        "digitalgurucse@gmail.com",
-        "Kashyapaditya2781@gmail.com"
-      ];
-      
-      for (const email of superAdminEmails) {
-        await sendLoginAlertEmail(email, {
-          email: user.email,
-          ip: userIP,
-          location: location,
-          userAgent: userAgent
-        });
-      }
+      const handleBackgroundSuccessAlert = async () => {
+        try {
+          const location = await getLocationFromIP(userIP);
+          const superAdminEmails = [
+            "digicoderstech@gmail.com", 
+            "digitalgurucse@gmail.com",
+            "Kashyapaditya2781@gmail.com"
+          ];
+          
+          for (const email of superAdminEmails) {
+            try {
+              await sendLoginAlertEmail(email, {
+                email: user.email,
+                ip: userIP,
+                location: location,
+                userAgent: userAgent
+              });
+            } catch (err) {
+              console.error(`Error sending background Super Admin login alert to ${email}:`, err);
+            }
+          }
+          console.log(`🚨 Super Admin login alert sent to security emails`);
+        } catch (err) {
+          console.error("Error in background login alert tasks:", err);
+        }
+      };
+
+      handleBackgroundSuccessAlert();
     }
 
     // Generate token
@@ -257,28 +283,39 @@ export const verifyOtp = async (req, res) => {
 
     await user.save();
 
-    // 🚨 Super Admin Login Security Alert
+    // 🚨 Super Admin Login Security Alert (non-blocking)
     if (user.role === "Super Admin") {
       const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
       const userAgent = req.get('User-Agent');
-      const location = await getLocationFromIP(userIP);
       
-      const superAdminEmails = [
-        "digicoderstech@gmail.com", 
-        "digitalgurucse@gmail.com",
-        "Kashyapaditya2781@gmail.com"
-      ];
-      
-      for (const email of superAdminEmails) {
-        await sendLoginAlertEmail(email, {
-          email: user.email,
-          ip: userIP,
-          location: location,
-          userAgent: userAgent
-        });
-      }
-      
-      console.log(`🚨 Super Admin login alert sent to security emails`);
+      const handleBackgroundVerifyAlert = async () => {
+        try {
+          const location = await getLocationFromIP(userIP);
+          const superAdminEmails = [
+            "digicoderstech@gmail.com", 
+            "digitalgurucse@gmail.com",
+            "Kashyapaditya2781@gmail.com"
+          ];
+          
+          for (const email of superAdminEmails) {
+            try {
+              await sendLoginAlertEmail(email, {
+                email: user.email,
+                ip: userIP,
+                location: location,
+                userAgent: userAgent
+              });
+            } catch (err) {
+              console.error(`Error sending background Super Admin OTP verify alert to ${email}:`, err);
+            }
+          }
+          console.log(`🚨 Super Admin login alert sent to security emails`);
+        } catch (err) {
+          console.error("Error in background verify alert tasks:", err);
+        }
+      };
+
+      handleBackgroundVerifyAlert();
     }
 
 
