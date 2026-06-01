@@ -960,4 +960,89 @@ export const reminder = async (req, res) => {
       error: error.message
     });
   }
-}
+};
+
+// Add edit payment endpoint
+export const editPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { amount } = req.body;
+    
+    // Check if user is Super Admin
+    if (req.user.role !== 'Super Admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only Super Admin can edit payments'
+      });
+    }
+    
+    // Validate amount
+    const numericAmount = Number(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a valid positive number'
+      });
+    }
+    
+    // Find the fee record
+    const feeRecord = await Fee.findById(id);
+    if (!feeRecord) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment record not found'
+      });
+    }
+    
+    // Get registration record
+    const registration = await Registration.findById(feeRecord.registrationId);
+    if (!registration) {
+      return res.status(404).json({
+        success: false,
+        message: 'Registration not found'
+      });
+    }
+    
+    // Calculate the difference
+    const oldAmount = Number(feeRecord.amount);
+    const difference = numericAmount - oldAmount;
+    
+    // Update fee record
+    feeRecord.amount = numericAmount;
+    await feeRecord.save();
+    
+    // Update registration amounts if payment was accepted
+    if (feeRecord.status === 'accepted') {
+      registration.paidAmount = Number(registration.paidAmount) + difference;
+      registration.dueAmount = Math.max(Number(registration.dueAmount) - difference, 0);
+      
+      // Update payment status based on new amounts
+      if (registration.dueAmount === 0) {
+        registration.trainingFeeStatus = 'full paid';
+        registration.tnxStatus = 'full paid';
+        feeRecord.tnxStatus = 'full paid';
+      } else if (registration.paidAmount > 0) {
+        registration.trainingFeeStatus = 'partial';
+        registration.tnxStatus = 'paid';
+        feeRecord.tnxStatus = 'paid';
+      }
+      
+      await registration.save();
+      await feeRecord.save();
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Payment amount updated successfully',
+      data: feeRecord
+    });
+    
+  } catch (error) {
+    console.error('Edit payment error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating payment amount',
+      error: error.message
+    });
+  }
+};
