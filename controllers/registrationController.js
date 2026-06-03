@@ -1969,8 +1969,8 @@ export const sendExportOtp = async (req, res) => {
 // Verify OTP and return the student data for export
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
-    const { otp, branch, technologies } = req.body;
-    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies });
+    const { otp, branch, technologies, status } = req.body;
+    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status });
     console.log("🔍 [DEBUG verify] Logged-in user from token:", req.user?._id);
 
     if (!otp) {
@@ -2012,7 +2012,14 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
     await user.save();
 
     // Now fetch the data
-    const filter = { status: "accepted" }; // ONLY export accepted registrations
+    const filter = {};
+    if (status) {
+      if (status !== "all") {
+        filter.status = status;
+      }
+    } else {
+      filter.status = "accepted"; // Default to accepted for backward compatibility
+    }
 
     // Branch restriction logic (just like in getAllRegistrations)
     if (user.role !== "Super Admin") {
