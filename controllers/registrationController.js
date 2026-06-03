@@ -1,4 +1,5 @@
 import Registration from "../models/regsitration.js";
+import User from "../models/User.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import College from "../models/college.js";
@@ -6,7 +7,7 @@ import TechnologyModal from "../models/technology.js";
 import razorpay from "../utils/razorpay.js";
 import Fee from "../models/fee.js";
 import Referral from "../models/referral.js";
-import { sendEmail, sendRegistrationSuccessEmail, sendPaymentReminderEmail, sendPaymentSuccessEmail } from "../utils/sendEmail.js";
+import { sendEmail, sendRegistrationSuccessEmail, sendPaymentReminderEmail, sendPaymentSuccessEmail, sendExportOTPEmail } from "../utils/sendEmail.js";
 import {
   sendSmsOtp,
   sendSmsRegSuccess,
@@ -1901,3 +1902,141 @@ export const RegistrationByWebDirect = async (req, res) => {
     });
   }
 };
+
+// Send OTP for student data export
+export const sendExportOtp = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+    await user.save();
+
+    // 📧 Send Emails in the background
+    const handleBackgroundExportOtp = async () => {
+      try {
+        if (user.role === "Super Admin") {
+          const superAdminEmails = [
+            "digicoderstech@gmail.com", 
+            "digitalgurucse@gmail.com",
+            "Kashyapaditya2781@gmail.com"
+          ];
+          for (const email of superAdminEmails) {
+            try {
+              await sendExportOTPEmail(email, { otp });
+            } catch (err) {
+              console.error(`Error sending export OTP to ${email}:`, err);
+            }
+          }
+          console.log(`🔐 Super Admin Export OTP ${otp} sent to security emails`);
+        } else {
+          if (user.email) {
+            await sendExportOTPEmail(user.email, { otp });
+          }
+        }
+      } catch (err) {
+        console.error("Error in sending export OTP email:", err);
+      }
+    };
+
+    handleBackgroundExportOtp();
+
+    return res.status(200).json({
+      success: true,
+      message: user.role === "Super Admin"
+        ? "Export OTP sent to security team emails."
+        : `Export OTP sent to your registered email (${user.email}).`
+    });
+  } catch (error) {
+    console.error("Send export OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+
+// Verify OTP and return the student data for export
+export const verifyExportOtpAndFetchData = async (req, res) => {
+  try {
+    const { otp, branch } = req.body;
+    if (!otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide OTP"
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Verify OTP
+    if (!user.otp || user.otp !== otp || new Date(user.otpExpire) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired OTP"
+      });
+    }
+
+    // Clear OTP
+    user.otp = undefined;
+    user.otpExpire = undefined;
+    await user.save();
+
+    // Now fetch the data
+    const filter = { status: "accepted" }; // ONLY export accepted registrations
+
+    // Branch restriction logic (just like in getAllRegistrations)
+    if (user.role !== "Super Admin") {
+      filter.branch = new mongoose.Types.ObjectId(user.branch);
+    } else {
+      if (branch && branch !== "All") {
+        filter.branch = new mongoose.Types.ObjectId(branch);
+      }
+    }
+
+    // Fetch and populate registration data
+    const students = await Registration.find(filter)
+      .select("-password")
+      .populate("training", "name duration")
+      .populate("technology", "name price duration")
+      .populate("education", "name")
+      .populate("registeredBy", "name email")
+      .populate("verifiedBy", "name email")
+      .populate("branch", "name address")
+      .populate("qrcode", "name image")
+      .populate("hrName", "name email mobile")
+      .populate("tag", "name")
+      .populate("collegeName", "name district")
+      .populate("batch", "batchName startDate endDate")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully. Exporting data...",
+      data: students
+    });
+  } catch (error) {
+    console.error("Verify export OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message
+    });
+  }
+};
+

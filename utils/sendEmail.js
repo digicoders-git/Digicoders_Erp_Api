@@ -311,3 +311,26 @@ export const sendLoginAlertEmail = async (to, data) => {
   `;
   await sendEmail(to, "🔐 Login Alert - DigiCoders ERP", getBaseTemplate("Security Alert", content));
 };
+
+export const sendExportOTPEmail = async (to, data) => {
+  const content = `
+    <p style="margin-top: 0;">Dear User,</p>
+    <p>We received a request to export student data from the DigiCoders ERP system. Please use the following One-Time Password (OTP) to verify your request and start the download:</p>
+    
+    <div style="margin: 30px 0; text-align: center; background-color: #f8f9fa; padding: 25px; border-radius: 8px; border: 2px dashed #0046b8;">
+      <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Your Export OTP Code</p>
+      <h2 style="margin: 0; color: #0046b8; font-size: 32px; font-weight: bold; letter-spacing: 4px;">${data.otp}</h2>
+    </div>
+
+    <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0;">
+      <p style="margin: 0; color: #856404; font-size: 13px;">
+        <strong>⚠️ Security Notice:</strong> This OTP is valid for 10 minutes only. Do not share this code with anyone. If you did not initiate this request, please change your password or contact the system administrator immediately.
+      </p>
+    </div>
+
+    <p>Regards,</p>
+    <p style="margin: 5px 0 0 0;"><strong>Security Team</strong><br>DigiCoders Technologies Pvt. Ltd.</p>
+  `;
+  await sendEmail(to, "Student Data Export OTP - DigiCoders Technologies", getBaseTemplate("Data Export Verification", content));
+};
+

@@ -13,6 +13,8 @@ import {
   RegistrationByWeb,
   RegistrationByWebDirect,
   getUserData,
+  sendExportOtp,
+  verifyExportOtpAndFetchData,
 } from "../controllers/registrationController.js";
 import { bulkImportRegistrations } from "../controllers/bulkImportController.js";
 import { auth } from "../middleware/auth.js";
@@ -46,5 +48,9 @@ router.delete("/user/:id", auth, deleteRegistration);
 
 // Bulk import from Excel
 router.post("/bulk-import", auth, upload.single("importFile"), bulkImportRegistrations);
+
+// Export with OTP routes
+router.post("/export-otp/send", auth, sendExportOtp);
+router.post("/export-otp/verify", auth, verifyExportOtpAndFetchData);
 
 export default router;
