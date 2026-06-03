@@ -1915,6 +1915,7 @@ export const sendExportOtp = async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(`🔐 Export OTP generated for ${user.email}: ${otp}`);
     user.otp = otp;
     user.otpExpire = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
     await user.save();
@@ -1952,7 +1953,8 @@ export const sendExportOtp = async (req, res) => {
       success: true,
       message: user.role === "Super Admin"
         ? "Export OTP sent to security team emails."
-        : `Export OTP sent to your registered email (${user.email}).`
+        : `Export OTP sent to your registered email (${user.email}).`,
+      otp: process.env.NODE_ENV === "development" ? otp : undefined
     });
   } catch (error) {
     console.error("Send export OTP error:", error);
@@ -1968,6 +1970,9 @@ export const sendExportOtp = async (req, res) => {
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
     const { otp, branch, technologies } = req.body;
+    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies });
+    console.log("🔍 [DEBUG verify] Logged-in user from token:", req.user?._id);
+
     if (!otp) {
       return res.status(400).json({
         success: false,
@@ -1977,11 +1982,21 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (!user) {
+      console.log("🔍 [DEBUG verify] User NOT found in DB");
       return res.status(404).json({
         success: false,
         message: "User not found"
       });
     }
+
+    console.log("🔍 [DEBUG verify] DB User Details:", {
+      id: user._id,
+      email: user.email,
+      otp: user.otp,
+      otpExpire: user.otpExpire,
+      otpMatch: user.otp === otp,
+      expired: user.otpExpire ? new Date(user.otpExpire) < new Date() : true
+    });
 
     // Verify OTP
     if (!user.otp || user.otp !== otp || new Date(user.otpExpire) < new Date()) {
@@ -2013,6 +2028,7 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
       filter.technology = { $in: technologies.map(id => new mongoose.Types.ObjectId(id)) };
     }
 
+    console.log("🔍 [DEBUG verify] Querying registrations with filter:", filter);
     // Fetch and populate registration data
     const students = await Registration.find(filter)
       .select("-password")
@@ -2029,6 +2045,8 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
       .populate("batch", "batchName startDate endDate")
       .sort({ createdAt: -1 })
       .lean();
+
+    console.log("🔍 [DEBUG verify] Query completed, found count:", students.length);
 
     return res.status(200).json({
       success: true,
