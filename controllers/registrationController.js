@@ -1967,7 +1967,7 @@ export const sendExportOtp = async (req, res) => {
 // Verify OTP and return the student data for export
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
-    const { otp, branch } = req.body;
+    const { otp, branch, technologies } = req.body;
     if (!otp) {
       return res.status(400).json({
         success: false,
@@ -2006,6 +2006,11 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
       if (branch && branch !== "All") {
         filter.branch = new mongoose.Types.ObjectId(branch);
       }
+    }
+
+    // Technology filtering (multiple selection support)
+    if (technologies && Array.isArray(technologies) && technologies.length > 0) {
+      filter.technology = { $in: technologies.map(id => new mongoose.Types.ObjectId(id)) };
     }
 
     // Fetch and populate registration data
