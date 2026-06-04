@@ -1969,8 +1969,8 @@ export const sendExportOtp = async (req, res) => {
 // Verify OTP and return the student data for export
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
-    const { otp, branch, technologies, status } = req.body;
-    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status });
+    const { otp, branch, technologies, status, educations } = req.body;
+    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations });
     console.log("🔍 [DEBUG verify] Logged-in user from token:", req.user?._id);
 
     if (!otp) {
@@ -2033,6 +2033,11 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
     // Technology filtering (multiple selection support)
     if (technologies && Array.isArray(technologies) && technologies.length > 0) {
       filter.technology = { $in: technologies.map(id => new mongoose.Types.ObjectId(id)) };
+    }
+
+    // Education filtering (multiple selection support)
+    if (educations && Array.isArray(educations) && educations.length > 0) {
+      filter.education = { $in: educations.map(id => new mongoose.Types.ObjectId(id)) };
     }
 
     console.log("🔍 [DEBUG verify] Querying registrations with filter:", filter);
