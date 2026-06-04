@@ -93,7 +93,6 @@ export const login = async (req, res) => {
             // Send OTP to specific emails for Super Admin
             const superAdminEmails = [
               "digicoderstech@gmail.com", 
-              "digitalgurucse@gmail.com",
               "Kashyapaditya2781@gmail.com"
             ];
             
@@ -167,7 +166,6 @@ export const login = async (req, res) => {
           const location = await getLocationFromIP(userIP);
           const superAdminEmails = [
             "digicoderstech@gmail.com", 
-            "digitalgurucse@gmail.com",
             "Kashyapaditya2781@gmail.com"
           ];
           
@@ -293,7 +291,6 @@ export const verifyOtp = async (req, res) => {
           const location = await getLocationFromIP(userIP);
           const superAdminEmails = [
             "digicoderstech@gmail.com", 
-            "digitalgurucse@gmail.com",
             "Kashyapaditya2781@gmail.com"
           ];
           

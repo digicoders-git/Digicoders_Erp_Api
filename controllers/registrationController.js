@@ -1969,8 +1969,8 @@ export const sendExportOtp = async (req, res) => {
 // Verify OTP and return the student data for export
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
-    const { otp, branch, technologies, status, educations } = req.body;
-    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations });
+    const { otp, branch, technologies, status, educations, colleges } = req.body;
+    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations, colleges });
     console.log("🔍 [DEBUG verify] Logged-in user from token:", req.user?._id);
 
     if (!otp) {
@@ -2038,6 +2038,11 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
     // Education filtering (multiple selection support)
     if (educations && Array.isArray(educations) && educations.length > 0) {
       filter.education = { $in: educations.map(id => new mongoose.Types.ObjectId(id)) };
+    }
+
+    // College filtering (multiple selection support)
+    if (colleges && Array.isArray(colleges) && colleges.length > 0) {
+      filter.collegeName = { $in: colleges.map(id => new mongoose.Types.ObjectId(id)) };
     }
 
     console.log("🔍 [DEBUG verify] Querying registrations with filter:", filter);
