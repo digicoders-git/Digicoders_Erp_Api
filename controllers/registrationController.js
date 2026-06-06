@@ -2011,6 +2011,13 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
     user.otpExpire = undefined;
     await user.save();
 
+    if (req.body.onlyVerify) {
+      return res.status(200).json({
+        success: true,
+        message: "OTP verified successfully"
+      });
+    }
+
     // Now fetch the data
     const filter = {};
     if (status) {
