@@ -125,11 +125,11 @@ export const assignPermissions = async (req, res) => {
       }
     }
 
-    // Check if employee is actually an employee
-    if (employee.role !== "Employee") {
+    // Check if employee is actually an employee or admin
+    if (employee.role !== "Employee" && employee.role !== "Admin") {
       return res.status(400).json({
         success: false,
-        message: "Only employees can be assigned permissions",
+        message: "Only employees and admins can be assigned permissions",
       });
     }
 
