@@ -751,6 +751,7 @@ export const updateUser = async (req, res) => {
     const { id } = req.params;
     const {
       name,
+      email,
       phone,
       address,
       branch,
@@ -794,6 +795,18 @@ export const updateUser = async (req, res) => {
           message: "You can only update your own profile",
         });
       }
+    }
+
+    // Check if email is being updated and validate uniqueness
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: id } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Email already exists with another user",
+        });
+      }
+      user.email = email;
     }
 
     // Update fields
