@@ -204,9 +204,9 @@ export const login = async (req, res) => {
     // Generate token
     const token = user.generateToken();
 
-    // Get employee permissions if employee
+    // Get employee permissions if employee or admin
     let permissions = [];
-    if (user.role === "Employee" && user.branch) {
+    if ((user.role === "Employee" || user.role === "Admin") && user.branch) {
       const employeePerm = await EmployeePermission.findOne({
         employee: user._id,
         branch: user.branch
@@ -346,9 +346,9 @@ export const verifyOtp = async (req, res) => {
     // Generate token
     const token = user.generateToken();
 
-    // Get employee permissions if employee
+    // Get employee permissions if employee or admin
     let permissions = [];
-    if (user.role === "Employee" && user.branch) {
+    if ((user.role === "Employee" || user.role === "Admin") && user.branch) {
       const employeePerm = await EmployeePermission.findOne({
         employee: user._id,
         branch: user.branch
@@ -555,7 +555,7 @@ export const getMe = async (req, res) => {
     if (req.user) {
       let userWithPermissions = req.user.toObject();
 
-      if (req.user.role === "Employee" && req.user.branch) {
+      if ((req.user.role === "Employee" || req.user.role === "Admin") && req.user.branch) {
         const employeePerm = await EmployeePermission.findOne({
           employee: req.user._id,
           branch: req.user.branch
@@ -964,9 +964,9 @@ export const verifyToken = async (req, res) => {
       });
     }
 
-    // Get employee permissions if employee
+    // Get employee permissions if employee or admin
     let userWithPermissions = user.toObject();
-    if (user.role === "Employee" && user.branch) {
+    if ((user.role === "Employee" || user.role === "Admin") && user.branch) {
       const employeePerm = await EmployeePermission.findOne({
         employee: user._id,
         branch: user.branch

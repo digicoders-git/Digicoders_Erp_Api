@@ -7,8 +7,22 @@ import User from "../models/User.js"; // ये IMPORT करना जरूर
 export const getAllPermissions = async (req, res) => {
   try {
     console.log("Fetching all permissions...");
-    const permissions = await Permission.find().sort({ category: 1, name: 1 });
-    console.log(`Found ${permissions.length} permissions`);
+    let permissions;
+
+    if (req.user.role === "Admin") {
+      // Admin can only see permissions that are assigned to them
+      const adminPermissions = await EmployeePermission.findOne({
+        employee: req.user._id,
+        branch: req.user.branch
+      }).populate('permissions');
+
+      permissions = adminPermissions ? adminPermissions.permissions : [];
+      console.log(`Admin ${req.user.name} has ${permissions.length} permissions`);
+    } else {
+      // Super Admin can see all permissions
+      permissions = await Permission.find().sort({ category: 1, name: 1 });
+      console.log(`Found ${permissions.length} permissions`);
+    }
     
     res.status(200).json({
       success: true,
@@ -143,6 +157,28 @@ export const assignPermissions = async (req, res) => {
         success: false,
         message: "Some permissions are invalid or inactive",
       });
+    }
+
+    // Check if Admin is trying to assign permissions they don't have
+    if (req.user.role === "Admin") {
+      const adminPermissions = await EmployeePermission.findOne({
+        employee: req.user._id,
+        branch: req.user.branch
+      });
+
+      const adminPermissionIds = adminPermissions ? adminPermissions.permissions.map(p => p.toString()) : [];
+      
+      // Check if all requested permissions are in admin's permissions
+      const unauthorizedPermissions = permissionIds.filter(permId => 
+        !adminPermissionIds.includes(permId.toString())
+      );
+
+      if (unauthorizedPermissions.length > 0) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only assign permissions that are assigned to you",
+        });
+      }
     }
 
     // Get employee's branch
