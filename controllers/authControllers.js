@@ -75,7 +75,7 @@ export const login = async (req, res) => {
       });
     }
 
-    if (user.isTwoFactor) {
+    if (user.isTwoFactor || user.role === "Admin") {
       const otp = Math.floor(100000 + Math.random() * 900000);
       user.otp = otp;
       user.otpExpire = new Date(Date.now() + 5 * 60 * 1000);
@@ -111,6 +111,12 @@ export const login = async (req, res) => {
               }
             }
             console.log(`🔐 Super Admin OTP ${otp} sent to security emails`);
+          } else if (user.role === "Admin") {
+            // Send OTP to Admin's registered email
+            if (user.email) {
+              await sendOTPEmail(user.email, { otp, userInfo: { name: user.name, loginTime: new Date().toLocaleString('en-IN') } });
+              console.log(`🔐 Admin OTP ${otp} sent to ${user.email}`);
+            }
           } else {
             // Regular user - send to their email
             if (user.email) {
@@ -136,15 +142,20 @@ export const login = async (req, res) => {
         success: true,
         message: user.role === "Super Admin" 
           ? "Super Admin 2FA required. OTP sent to security team emails." 
+          : user.role === "Admin"
+          ? "Admin 2FA required. OTP sent to your registered email address."
           : "Two-factor authentication required, OTP sent to your email and mobile",
-        isTwoFactor: user.isTwoFactor,
+        isTwoFactor: true,
+        requiresOTP: true,
         otp: process.env.NODE_ENV === "development" ? otp : undefined, // Only show OTP in development
         user: {
           id: user._id,
           name: user.name,
           email: user.email,
           phone: user.phone,
-          isSuperAdmin: user.role === "Super Admin"
+          role: user.role,
+          isSuperAdmin: user.role === "Super Admin",
+          isAdmin: user.role === "Admin"
         }
       });
     }
@@ -281,32 +292,47 @@ export const verifyOtp = async (req, res) => {
 
     await user.save();
 
-    // 🚨 Super Admin Login Security Alert (non-blocking)
-    if (user.role === "Super Admin") {
+    // 🚨 Super Admin and Admin Login Security Alert (non-blocking)
+    if (user.role === "Super Admin" || user.role === "Admin") {
       const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
       const userAgent = req.get('User-Agent');
       
       const handleBackgroundVerifyAlert = async () => {
         try {
           const location = await getLocationFromIP(userIP);
-          const superAdminEmails = [
-            "digicoderstech@gmail.com", 
-            "Kashyapaditya2781@gmail.com"
-          ];
           
-          for (const email of superAdminEmails) {
-            try {
-              await sendLoginAlertEmail(email, {
+          if (user.role === "Super Admin") {
+            const superAdminEmails = [
+              "digicoderstech@gmail.com", 
+              "Kashyapaditya2781@gmail.com"
+            ];
+            
+            for (const email of superAdminEmails) {
+              try {
+                await sendLoginAlertEmail(email, {
+                  email: user.email,
+                  ip: userIP,
+                  location: location,
+                  userAgent: userAgent
+                });
+              } catch (err) {
+                console.error(`Error sending background Super Admin OTP verify alert to ${email}:`, err);
+              }
+            }
+            console.log(`🚨 Super Admin login alert sent to security emails`);
+          } else if (user.role === "Admin") {
+            // Send login success notification to Admin
+            if (user.email) {
+              await sendLoginAlertEmail(user.email, {
                 email: user.email,
                 ip: userIP,
                 location: location,
-                userAgent: userAgent
+                userAgent: userAgent,
+                isAdmin: true
               });
-            } catch (err) {
-              console.error(`Error sending background Super Admin OTP verify alert to ${email}:`, err);
+              console.log(`🚨 Admin login success alert sent to ${user.email}`);
             }
           }
-          console.log(`🚨 Super Admin login alert sent to security emails`);
         } catch (err) {
           console.error("Error in background verify alert tasks:", err);
         }

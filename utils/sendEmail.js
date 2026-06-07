@@ -265,51 +265,77 @@ export const sendFeeReminderEmail = async (to, data) => {
 };
 
 export const sendOTPEmail = async (to, data) => {
+  const isAdmin = data.userInfo && data.userInfo.name;
+  
   const content = `
-    <p style="margin-top: 0;">Dear User,</p>
-    <p>You have requested to access your account. Please use the following One-Time Password (OTP) to complete your login:</p>
+    <p style="margin-top: 0;">${isAdmin ? `Dear <strong>${data.userInfo.name}</strong>,` : 'Dear User,'}</p>
+    <p>${isAdmin 
+      ? 'A login request has been initiated for your Admin account. Please use the following One-Time Password (OTP) to complete your secure login:'
+      : 'You have requested to access your account. Please use the following One-Time Password (OTP) to complete your login:'}</p>
     
     <div style="margin: 30px 0; text-align: center; background-color: #f8f9fa; padding: 25px; border-radius: 8px; border: 2px dashed #0046b8;">
-      <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Your OTP Code</p>
+      <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">${isAdmin ? 'Admin Login OTP' : 'Your OTP Code'}</p>
       <h2 style="margin: 0; color: #0046b8; font-size: 32px; font-weight: bold; letter-spacing: 4px;">${data.otp}</h2>
     </div>
 
+    ${isAdmin ? `
+    <div style="background-color: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 4px; margin: 20px 0;">
+      <p style="margin: 0; color: #0d47a1; font-size: 13px;">
+        <strong>📧 Admin Security:</strong> This login attempt was made at ${data.userInfo.loginTime}. If this was not you, please contact the Super Admin immediately.
+      </p>
+    </div>
+    ` : ''}
+
     <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0;">
       <p style="margin: 0; color: #856404; font-size: 13px;">
-        <strong>⚠️ Security Notice:</strong> This OTP is valid for 10 minutes only. Do not share this code with anyone for security reasons.
+        <strong>⚠️ Security Notice:</strong> This OTP is valid for 5 minutes only. Do not share this code with anyone for security reasons.
       </p>
     </div>
 
     <p>If you did not request this OTP, please ignore this email or contact our support team immediately.</p>
 
     <p style="margin: 0;">Regards,</p>
-    <p style="margin: 5px 0 0 0;"><strong>Security Team</strong><br>DigiCoders Technologies Pvt. Ltd.</p>
+    <p style="margin: 5px 0 0 0;"><strong>${isAdmin ? 'Admin Security Team' : 'Security Team'}</strong><br>DigiCoders Technologies Pvt. Ltd.</p>
   `;
-  await sendEmail(to, "Login OTP - DigiCoders Technologies", getBaseTemplate("Login Verification", content));
+  await sendEmail(to, `${isAdmin ? '🔐 Admin ' : ''}Login OTP - DigiCoders Technologies`, getBaseTemplate("Login Verification", content));
 };
 
 export const sendLoginAlertEmail = async (to, data) => {
+  const isAdmin = data.isAdmin || false;
+  
   const content = `
-    <p style="margin-top: 0;">Dear Admin,</p>
-    <p>A new login attempt has been detected on the DigiCoders ERP System.</p>
+    <p style="margin-top: 0;">Dear ${isAdmin ? 'Admin' : 'Security Team'},</p>
+    <p>${isAdmin 
+      ? 'Your Admin account has been successfully accessed. Below are the login details for your records:'
+      : 'A new login attempt has been detected on the DigiCoders ERP System.'}</p>
     
     <div style="margin: 25px 0; border: 1px solid #eeeeee; padding: 20px; background-color: #fafafa;">
-      <h3 style="margin: 0 0 15px 0; color: #0046b8; font-size: 14px; text-transform: uppercase;">Login Details</h3>
+      <h3 style="margin: 0 0 15px 0; color: #0046b8; font-size: 14px; text-transform: uppercase;">${isAdmin ? 'Admin Login Confirmation' : 'Login Details'}</h3>
       <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 14px;">
-        <tr><td style="padding: 5px 0; color: #666666; width: 30%;">Email:</td><td style="padding: 5px 0; color: #333333; font-weight: bold;">${data.email}</td></tr>
-        <tr><td style="padding: 5px 0; color: #666666;">Time:</td><td style="padding: 5px 0; color: #333333;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td></tr>
+        <tr><td style="padding: 5px 0; color: #666666; width: 30%;">Account:</td><td style="padding: 5px 0; color: #333333; font-weight: bold;">${data.email}</td></tr>
+        <tr><td style="padding: 5px 0; color: #666666;">Login Time:</td><td style="padding: 5px 0; color: #333333;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td></tr>
         <tr><td style="padding: 5px 0; color: #666666;">IP Address:</td><td style="padding: 5px 0; color: #333333;">${data.ip}</td></tr>
         ${data.location ? `<tr><td style="padding: 5px 0; color: #666666;">Location:</td><td style="padding: 5px 0; color: #333333;">${data.location}</td></tr>` : ''}
-        ${data.userAgent ? `<tr><td style="padding: 5px 0; color: #666666;">Device:</td><td style="padding: 5px 0; color: #333333;">${data.userAgent}</td></tr>` : ''}
+        ${data.userAgent ? `<tr><td style="padding: 5px 0; color: #666666;">Device Info:</td><td style="padding: 5px 0; color: #333333; font-size: 12px;">${data.userAgent}</td></tr>` : ''}
       </table>
     </div>
 
-    <p>This is an automated security notification. If this login attempt was not authorized, please take immediate action.</p>
+    ${isAdmin ? `
+    <div style="background-color: #e8f5e8; border: 1px solid #4caf50; padding: 15px; border-radius: 4px; margin: 20px 0;">
+      <p style="margin: 0; color: #2e7d32; font-size: 13px;">
+        <strong>✅ Security Status:</strong> Login successful. If this was not you, please change your password immediately and contact the Super Admin.
+      </p>
+    </div>
+    ` : ''}
+
+    <p>${isAdmin 
+      ? 'This is an automated security confirmation for your Admin account access.'
+      : 'This is an automated security notification. If this login attempt was not authorized, please take immediate action.'}</p>
 
     <p style="margin: 0;">Regards,</p>
-    <p style="margin: 5px 0 0 0;"><strong>Security System</strong><br>DigiCoders Technologies Pvt. Ltd.</p>
+    <p style="margin: 5px 0 0 0;"><strong>${isAdmin ? 'Admin Security System' : 'Security System'}</strong><br>DigiCoders Technologies Pvt. Ltd.</p>
   `;
-  await sendEmail(to, "🔐 Login Alert - DigiCoders ERP", getBaseTemplate("Security Alert", content));
+  await sendEmail(to, `${isAdmin ? '🔓 Admin Login Confirmation' : '🔐 Login Alert'} - DigiCoders ERP`, getBaseTemplate("Security Alert", content));
 };
 
 export const sendExportOTPEmail = async (to, data) => {
