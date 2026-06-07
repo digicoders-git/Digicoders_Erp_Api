@@ -47,8 +47,8 @@ export const auth = async (req, res, next) => {
       });
     }
 
-    // For Employee role, fetch permissions
-    if (user && user.role === "Employee" && user.branch) {
+    // For Employee and Admin roles, fetch permissions
+    if (user && (user.role === "Employee" || user.role === "Admin") && user.branch) {
       const employeePerm = await EmployeePermission.findOne({
         employee: user._id,
         branch: user.branch
@@ -108,8 +108,8 @@ export const authorize = (roles = [], requiredPermission = null) => {
       });
     }
 
-    // Check permissions for Employee
-    if (req.user.role === "Employee" && requiredPermission) {
+    // Check permissions for Employee and Admin
+    if ((req.user.role === "Employee" || req.user.role === "Admin") && requiredPermission) {
       if (!req.user.permissions || !req.user.permissions.includes(requiredPermission)) {
         return res.status(403).json({
           success: false,
