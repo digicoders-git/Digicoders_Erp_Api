@@ -8,6 +8,8 @@ import {
   deleteRegistration,
   getOneRegistrations,
   login,
+  logout,
+  getMe,
   sendOtp,
   verifyOtp,
   RegistrationByWeb,
@@ -30,6 +32,8 @@ router.post("/web/register-direct", upload.fields([{ name: "image", maxCount: 1 
 router.post("/sendOtp", sendOtp);
 router.post("/verifyOtp", verifyOtp);
 router.post("/login", login);
+router.post("/logout", auth, logout);
+router.get("/me", auth, getMe);
 router.get("/get/user/:username", getOneRegistrations);
 
 // New API - Get user data by mobile or student ID

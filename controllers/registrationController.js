@@ -449,20 +449,37 @@ export const login = async (req, res) => {
           "Your registration payment is pending. Please complete the payment to login.",
       });
     }
+    
+    // Update login tracking
+    user.isLogin = true;
+    user.loginAt = new Date();
+    user.logoutAt = null;
+    await user.save();
+
     // 🔐 Generate JWT token
     const accessToken = await user.generateToken();
 
+    // Set secure cookie with proper configuration
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
-      maxAge: Number(process.env.COOKIE_EXPIRE),
+      secure: process.env.NODE_ENV === "production", // true in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // none for cross-origin in production
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     });
 
     return res.status(200).json({ 
-      message: "login successfull", 
+      message: "Login successful", 
       success: true, 
-      user,
+      user: {
+        id: user._id,
+        userid: user.userid,
+        name: user.studentName,
+        email: user.email,
+        mobile: user.mobile,
+        role: 'student',
+        branch: user.branch,
+        isPasswordSet: user.isPasswordSet
+      },
       accessToken
     });
   } catch (error) {
@@ -1326,25 +1343,39 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
-    // ✅ OTP verified → clear OTP
+    // ✅ OTP verified → clear OTP and update login tracking
     student.otp = null;
     student.otpExpire = null;
+    student.isLogin = true;
+    student.loginAt = new Date();
+    student.logoutAt = null;
     await student.save();
 
     // 🔐 Generate JWT token
     const accessToken = await student.generateToken();
 
+    // Set secure cookie with proper configuration
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true, // production me true
-      sameSite: "None", // frontend different domain ho to
-      maxAge: Number(process.env.COOKIE_EXPIRE),
+      secure: process.env.NODE_ENV === "production", // true in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // none for cross-origin in production
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
     });
 
     return res.status(200).json({
       success: true,
       message: "OTP verified successfully",
       userId: student._id,
+      user: {
+        id: student._id,
+        userid: student.userid,
+        name: student.studentName,
+        email: student.email,
+        mobile: student.mobile,
+        role: 'student',
+        branch: student.branch,
+        isPasswordSet: student.isPasswordSet
+      },
       accessToken,
     });
   } catch (error) {
@@ -1967,6 +1998,75 @@ export const sendExportOtp = async (req, res) => {
 };
 
 // Verify OTP and return the student data for export
+// @desc    Verify student token and get current student info
+// @route   GET /api/registration/me
+// @access  Private (Student)
+export const getMe = async (req, res) => {
+  try {
+    if (!req.student) {
+      return res.status(404).json({
+        success: false,
+        message: "Student session not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Student session verified",
+      user: {
+        id: req.student._id,
+        userid: req.student.userid,
+        name: req.student.studentName,
+        email: req.student.email,
+        mobile: req.student.mobile,
+        role: 'student',
+        branch: req.student.branch,
+        isPasswordSet: req.student.isPasswordSet
+      },
+    });
+  } catch (error) {
+    console.error("Get student me error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Student logout
+// @route   POST /api/registration/logout
+// @access  Private (Student)
+export const logout = async (req, res) => {
+  try {
+    // Update logout tracking if student is logged in
+    if (req.student) {
+      req.student.isLogin = false;
+      req.student.logoutAt = new Date();
+      await req.student.save();
+    }
+
+    // Clear cookie
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
+    console.error("Student logout error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
     const { otp, branch, technologies, status, educations, colleges } = req.body;

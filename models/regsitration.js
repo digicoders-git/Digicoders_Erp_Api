@@ -324,12 +324,18 @@ registrationSchema.pre("save", async function (next) {
   next();
 });
 
-// Generate JWT token
+// Generate JWT token for student
 registrationSchema.methods.generateToken = function () {
   return jwt.sign(
-    { id: this._id, email: this.email, role: this.role },
+    { 
+      id: this._id, 
+      email: this.email, 
+      mobile: this.mobile,
+      role: 'student', // Student का role set करें
+      userid: this.userid
+    },
     process.env.JWT_SECRET,
-    { expiresIn: process.env.JWT_EXPIRE }
+    { expiresIn: '365d' } // 1 year expiration
   );
 };
 
