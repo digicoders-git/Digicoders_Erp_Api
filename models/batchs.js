@@ -14,6 +14,8 @@ const batchSchema = new mongoose.Schema({
   teacher: { type: mongoose.Schema.Types.ObjectId, ref: "Teachers" },
   branch: { type: mongoose.Schema.Types.ObjectId, ref: "Branch" },
   students: [{ type: mongoose.Schema.Types.ObjectId, ref: "Registration" }],
+  wpLink: String,
+  gmeetLink: String,
   addBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 });
 export default mongoose.model("Batch", batchSchema);

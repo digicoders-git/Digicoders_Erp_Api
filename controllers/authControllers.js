@@ -587,7 +587,7 @@ export const getMe = async (req, res) => {
         .populate({ path: "education", select: "title" })
         .populate({ path: "hrName", select: "name mobile" })
         .populate({ path: "technology", select: "name" })
-        .populate({ path: "batch", select: "batchName classTime subject room startDate teacher isActive", populate: { path: "teacher", select: "name" } })
+        .populate({ path: "batch", select: "batchName classTime subject room startDate teacher isActive wpLink gmeetLink", populate: { path: "teacher", select: "name" } })
         .populate({
           path: "training",
           select: "name duration",   // 👈 training fields

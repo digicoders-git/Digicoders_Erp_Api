@@ -5,7 +5,7 @@ import Registration from "../models/regsitration.js"; // Student Model
 // ➤ Create Batch
 export const createBatch = async (req, res) => {
   try {
-    const { batchName, startDate, teacher, branch, room, classTime, subject } = req.body;
+    const { batchName, startDate, teacher, branch, room, classTime, subject, wpLink, gmeetLink } = req.body;
 
     // Validation
     if (!batchName || !startDate || !teacher || !branch || !classTime || !subject) {
@@ -33,6 +33,8 @@ export const createBatch = async (req, res) => {
       startDate,
       teacher,
       branch,
+      wpLink,
+      gmeetLink,
       addBy: req.user._id,
     });
 
