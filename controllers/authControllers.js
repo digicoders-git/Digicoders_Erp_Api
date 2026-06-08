@@ -756,7 +756,8 @@ export const updateUser = async (req, res) => {
       address,
       branch,
       isActive,
-      isTwoFactor
+      isTwoFactor,
+      password
     } = req.body;
 
     const file = req.file;
@@ -813,6 +814,7 @@ export const updateUser = async (req, res) => {
     if (name) user.name = name;
     if (phone) user.phone = phone;
     if (address) user.address = address;
+    if (password) user.password = password;
 
     // Branch can only be changed by Super Admin
     if (branch && loggedInUser.role === "Super Admin") {
