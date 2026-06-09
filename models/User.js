@@ -288,7 +288,6 @@ userSchema.virtual('isAccountLocked').get(function () {
 
 // Indexes
 userSchema.index({ role: 1, branch: 1 });
-userSchema.index({ email: 1 }, { unique: true });
 
 // Pre-save middleware
 userSchema.pre('save', async function (next) {

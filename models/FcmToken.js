@@ -15,8 +15,7 @@ const fcmTokenSchema = new mongoose.Schema({
   token: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   deviceInfo: {
     userAgent: String,
@@ -37,7 +36,6 @@ const fcmTokenSchema = new mongoose.Schema({
 });
 
 fcmTokenSchema.index({ userId: 1, userType: 1 });
-fcmTokenSchema.index({ token: 1 }, { unique: true });
 fcmTokenSchema.index({ isActive: 1, userType: 1 });
 
 export default mongoose.model('FcmToken', fcmTokenSchema);

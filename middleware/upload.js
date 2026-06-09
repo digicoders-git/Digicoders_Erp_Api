@@ -23,12 +23,14 @@ const imageTypes = /jpeg|jpg|png|webp/;
 const pdfTypes = /pdf/;
 const xlsxTypes = /xlsx|xls/;
 const videoTypes = /mp4|avi|mov|wmv|flv|webm|mkv/;
+const audioTypes = /mp3|wav|ogg|mpeg/;
 
 // Fields where different file types are allowed
 const pdfAllowedFields = ["assignmentFiles", "cv", "aadharCard", "submittedFile"];
 const imageAllowedFields = ["profilePhoto", "image", "assignmentFiles", "submittedFile", "aadharCard", "thumbnail"];
 const xlsxAllowedFields = ["importFile"];
 const videoAllowedFields = ["video"];
+const audioAllowedFields = ["sound"];
 
 const fileFilter = (req, file, cb) => {
   const ext = path.extname(file.originalname).toLowerCase();
@@ -41,6 +43,7 @@ const fileFilter = (req, file, cb) => {
     mime === "application/vnd.ms-excel"
   );
   const isVideo = videoTypes.test(ext) && mime.startsWith("video/");
+  const isAudio = audioTypes.test(ext) && (mime.startsWith("audio/") || mime === "application/ogg" || mime === "video/ogg");
 
   if (isXlsx) {
     if (xlsxAllowedFields.includes(file.fieldname)) {
@@ -56,6 +59,15 @@ const fileFilter = (req, file, cb) => {
       return cb(null, true);
     } else {
       return cb(new Error(`Video is not allowed for ${file.fieldname}`), false);
+    }
+  }
+
+  // Check if field is allowed for Audio
+  if (isAudio) {
+    if (audioAllowedFields.includes(file.fieldname)) {
+      return cb(null, true);
+    } else {
+      return cb(new Error(`Audio is not allowed for ${file.fieldname}`), false);
     }
   }
 
@@ -79,7 +91,7 @@ const fileFilter = (req, file, cb) => {
 
   return cb(
     new Error(
-      "Invalid file type. Only images, videos, and PDFs (for specific fields) are allowed."
+      "Invalid file type. Only images, videos, audio, and PDFs (for specific fields) are allowed."
     ),
     false
   );

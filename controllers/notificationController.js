@@ -6,9 +6,23 @@ import User from '../models/User.js';
 // Save FCM Token
 const saveFcmToken = async (req, res) => {
   try {
+    console.log('=== FCM SAVE TOKEN DEBUG ===');
+    console.log('Headers:', req.headers.authorization ? 'Authorization present' : 'No auth header');
+    console.log('req.user:', req.user ? 'Present' : 'Null');
+    console.log('req.student:', req.student ? 'Present' : 'Null');
+    
+    if (req.user) {
+      console.log('User details:', { id: req.user._id, role: req.user.role });
+    }
+    if (req.student) {
+      console.log('Student details:', { id: req.student._id, userid: req.student.userid });
+    }
+    
     const { token, deviceInfo } = req.body;
-    const userId = req.user?.id || req.user?._id;
-    let userType = req.user?.role;
+    
+    // Handle both admin users and students
+    const userId = req.user?.id || req.user?._id || req.student?._id;
+    let userType = req.user?.role || (req.student ? 'student' : null);
 
     console.log('FCM Token Save Request:', {
       userId,
@@ -16,7 +30,8 @@ const saveFcmToken = async (req, res) => {
       hasToken: !!token,
       tokenLength: token?.length,
       deviceInfo,
-      userObject: req.user
+      hasUser: !!req.user,
+      hasStudent: !!req.student
     });
 
     // Validate required fields
@@ -40,35 +55,40 @@ const saveFcmToken = async (req, res) => {
 
     console.log('Mapped userType:', userType);
 
-    // Check if token already exists
-    const existingToken = await FcmToken.findOne({ token });
-    
-    if (existingToken) {
-      // Update existing token with new user info
-      existingToken.userId = userId;
-      existingToken.userType = userType;
-      existingToken.deviceInfo = deviceInfo;
-      existingToken.isActive = true;
-      existingToken.lastUsed = new Date();
-      await existingToken.save();
+    try {
+      // Use findOneAndUpdate with upsert to prevent race conditions
+      const updatedToken = await FcmToken.findOneAndUpdate(
+        { token },
+        {
+          userId,
+          userType,
+          deviceInfo,
+          isActive: true,
+          lastUsed: new Date()
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+      );
       
-      console.log('Updated existing FCM token for user:', userId);
-      return res.json({ success: true, message: 'Token updated successfully' });
+      console.log('Saved/Updated FCM token for user:', userId);
+      return res.json({ success: true, message: 'Token saved successfully' });
+    } catch (dbError) {
+      // Handle potential duplicate key error (code 11000) under concurrent execution
+      if (dbError.code === 11000) {
+        console.log('Duplicate key error during upsert, token already exists. Falling back to update...');
+        await FcmToken.updateOne(
+          { token },
+          {
+            userId,
+            userType,
+            deviceInfo,
+            isActive: true,
+            lastUsed: new Date()
+          }
+        );
+        return res.json({ success: true, message: 'Token saved successfully' });
+      }
+      throw dbError;
     }
-
-    // Create new token
-    const fcmToken = new FcmToken({
-      userId,
-      userType,
-      token,
-      deviceInfo,
-      isActive: true
-    });
-
-    await fcmToken.save();
-    console.log('Saved new FCM token for user:', userId);
-    
-    res.json({ success: true, message: 'Token saved successfully' });
   } catch (error) {
     console.error('Error saving FCM token:', {
       message: error.message,
@@ -102,14 +122,14 @@ const deleteFcmToken = async (req, res) => {
 const sendNotification = async (req, res) => {
   try {
     const { title, body, targetType } = req.body;
-    const sentBy = req.user?.id || req.user?._id;
+    const sentBy = req.user?.id || req.user?._id || req.student?._id;
 
     console.log('=== NOTIFICATION SEND REQUEST ===');
     console.log('Request body:', { title, body, targetType });
     console.log('Sent by user:', sentBy);
     console.log('Environment:', process.env.NODE_ENV);
     console.log('FRONTEND_URL env:', process.env.FRONTEND_URL);
-    console.log('User object:', req.user);
+    console.log('Has user:', !!req.user, 'Has student:', !!req.student);
 
     if (!title || !body) {
       return res.status(400).json({

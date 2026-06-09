@@ -3,10 +3,13 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import EmployeePermission from "../models/EmployeePermission.js";
 import Registration from "../models/regsitration.js";
+import crypto from "crypto";
 
 export const auth = async (req, res, next) => {
   try {
     const token = req.header("Authorization")?.replace("Bearer ", "") || req.cookies.accessToken;
+
+    console.log('🔍 Auth middleware - Token present:', !!token);
 
     if (!token) {
       return res.status(401).json({
@@ -16,6 +19,7 @@ export const auth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('🔍 Auth middleware - Token decoded:', { id: decoded.id, role: decoded.role });
 
     // Find user without password field
     const user = await User.findById(decoded.id)
@@ -24,6 +28,7 @@ export const auth = async (req, res, next) => {
 
     let student = null;
     if (!user) {
+      console.log('🔍 Auth middleware - No admin user, checking student...');
       student = await Registration.findById(decoded.id)
         .select("-password -otp -otpExpire")
         .populate("training", "name duration")
@@ -35,9 +40,10 @@ export const auth = async (req, res, next) => {
         .populate("batch", "batchName startDate endDate")
         .populate("tag", "name");
         
+      console.log('🔍 Auth middleware - Student found:', !!student);
+        
       // Validate student session - enforce single device login
       if (student) {
-        const crypto = require('crypto');
         const currentTokenHash = crypto.createHash('sha256').update(token).digest('hex');
         
         // If student has a session token and it doesn't match current token
@@ -63,6 +69,7 @@ export const auth = async (req, res, next) => {
     }
 
     if (!user && !student) {
+      console.log('🔍 Auth middleware - Neither admin user nor student found');
       return res.status(401).json({ success: false, message: "User not found" });
     }
 
@@ -93,6 +100,8 @@ export const auth = async (req, res, next) => {
     // Attach user to request
     req.user = user;
     req.student = student;
+    
+    console.log('🔍 Auth middleware - Final state:', { hasUser: !!user, hasStudent: !!student });
     next();
   } catch (error) {
     console.error("Auth error:", error.message);

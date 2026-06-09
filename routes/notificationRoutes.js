@@ -24,6 +24,15 @@ router.get('/test', auth, (req, res) => {
       role: req.user?.role,
       email: req.user?.email
     },
+    student: {
+      id: req.student?.id || req.student?._id,
+      userid: req.student?.userid,
+      name: req.student?.studentName,
+      email: req.student?.email,
+      mobile: req.student?.mobile
+    },
+    hasUser: !!req.user,
+    hasStudent: !!req.student,
     timestamp: new Date().toISOString()
   });
 });

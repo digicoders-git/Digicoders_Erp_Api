@@ -1325,17 +1325,36 @@ export const verifyOtp = async (req, res) => {
   try {
     const { otp, userid } = req.body;
 
+    console.log('🔍 OTP Verification Request:', { otp, userid });
+
+    if (!otp || !userid) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP and userid are required",
+      });
+    }
+
     const student = await Registration.findById(userid);
 
     if (!student) {
+      console.log('❌ Student not found for userid:', userid);
       return res.status(404).json({
         success: false,
         message: "Invalid user",
       });
     }
 
+    console.log('🔍 Student found:', {
+      userid: student.userid,
+      mobile: student.mobile,
+      storedOtp: student.otp,
+      otpExpire: student.otpExpire,
+      currentTime: new Date()
+    });
+
     // ❌ OTP not generated or already used
     if (!student.otp) {
+      console.log('❌ No OTP found or already used');
       return res.status(400).json({
         success: false,
         message: "OTP expired or already verified",
@@ -1343,7 +1362,8 @@ export const verifyOtp = async (req, res) => {
     }
 
     // ❌ OTP expired
-    if (student.otpExpire < Date.now()) {
+    if (student.otpExpire && new Date(student.otpExpire) < new Date()) {
+      console.log('❌ OTP expired:', { otpExpire: student.otpExpire, now: new Date() });
       student.otp = null;
       student.otpExpire = null;
       await student.save();
@@ -1356,11 +1376,14 @@ export const verifyOtp = async (req, res) => {
 
     // ❌ OTP mismatch
     if (String(student.otp) !== String(otp)) {
+      console.log('❌ OTP mismatch:', { stored: student.otp, provided: otp });
       return res.status(400).json({
         success: false,
         message: "Invalid OTP",
       });
     }
+
+    console.log('✅ OTP verified successfully');
 
     // 🔐 Single device login: Clear any existing session before creating new one
     if (student.currentSessionToken) {
@@ -1399,6 +1422,8 @@ export const verifyOtp = async (req, res) => {
       maxAge: cookieMaxAge,
     });
 
+    console.log('✅ Login successful, token generated');
+
     return res.status(200).json({
       success: true,
       message: "OTP verified successfully",
@@ -1420,6 +1445,7 @@ export const verifyOtp = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error verifying OTP",
+      error: error.message,
     });
   }
 };

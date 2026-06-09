@@ -18,9 +18,6 @@ const durationSchema = new mongoose.Schema(
   }
 );
 
-// Prevent duplicate names
-durationSchema.index({ name: 1 }, { unique: true });
-
 const Duration = mongoose.model("Duration", durationSchema);
 
 export default Duration;

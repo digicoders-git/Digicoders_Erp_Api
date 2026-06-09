@@ -18,8 +18,6 @@ const courseSchema = new mongoose.Schema(
   }
 );
 
-courseSchema.index({ name: 1 }, { unique: true });
-
 const Course = mongoose.model("Course", courseSchema);
 
 export default Course;

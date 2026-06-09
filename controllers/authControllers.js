@@ -80,6 +80,9 @@ export const login = async (req, res) => {
       user.otp = otp;
       user.otpExpire = new Date(Date.now() + 5 * 60 * 1000);
       
+      // Always print OTP in console for easy development/debugging
+      console.log(`🔑 [OTP DEBUG] Generated OTP for ${user.email} (${user.role}): ${otp}`);
+      
       // Get user location and device info
       const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
       const userAgent = req.get('User-Agent');

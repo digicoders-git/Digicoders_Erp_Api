@@ -36,6 +36,8 @@ import studentRoutes from "./routes/studentRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import lmsRoutes from "./routes/lmsRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
+import batchReminderRoutes from "./routes/batchReminderRoutes.js";
+import { scheduleBatchReminders } from "./utils/batchReminderScheduler.js";
 import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
 
 
@@ -162,11 +164,16 @@ app.use("/api/student", studentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/lms", lmsRoutes);
 app.use("/api/referrals", referralRoutes);
+app.use("/api/batch-reminders", batchReminderRoutes);
 
 const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
   connectDB();
+  
+  // Start batch reminder cron job
+  scheduleBatchReminders();
+  
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌐 CORS Origin: ${process.env.CORS_ORIGIN}`);
 });

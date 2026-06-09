@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 const registrationSchema = new mongoose.Schema(
   {
     userid: {
@@ -232,7 +233,7 @@ const registrationSchema = new mongoose.Schema(
     //   default: "pending",
     // },
     otp: String,
-    otpExpire: String,
+    otpExpire: Date,
     image: {
       type: String, // URL or file path
       default: null,
@@ -335,8 +336,6 @@ registrationSchema.pre("save", async function (next) {
 
 // Generate JWT token for student with session tracking
 registrationSchema.methods.generateToken = function () {
-  const crypto = require('crypto');
-  
   const tokenPayload = { 
     id: this._id, 
     email: this.email, 
