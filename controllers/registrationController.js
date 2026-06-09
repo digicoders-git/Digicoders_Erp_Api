@@ -450,21 +450,40 @@ export const login = async (req, res) => {
       });
     }
     
-    // Update login tracking
+    // 🔐 Single device login: Clear any existing session before creating new one
+    // This ensures that if student is logged in on another device, that session becomes invalid
+    if (user.currentSessionToken) {
+      console.log(`Student ${user.userid} logging in from new device - invalidating previous session`);
+    }
+    
+    // Update login tracking and device info
     user.isLogin = true;
     user.loginAt = new Date();
     user.logoutAt = null;
+    
+    // Store device information
+    const userAgent = req.get('User-Agent') || 'Unknown';
+    const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0] || 'Unknown';
+    
+    user.lastLoginDevice = {
+      userAgent: userAgent,
+      ip: userIP,
+      loginTime: new Date()
+    };
+    
+    // 🔐 Generate JWT token (this will automatically update currentSessionToken and invalidate old sessions)
+    const accessToken = await user.generateToken();
+    
+    // Save user with new session token
     await user.save();
 
-    // 🔐 Generate JWT token
-    const accessToken = await user.generateToken();
-
     // Set secure cookie with proper configuration
+    const cookieMaxAge = parseInt(process.env.COOKIE_EXPIRE) || 30 * 24 * 60 * 60 * 1000; // 30 days default
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // true in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // none for cross-origin in production
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      maxAge: cookieMaxAge,
     });
 
     return res.status(200).json({ 
@@ -1343,23 +1362,41 @@ export const verifyOtp = async (req, res) => {
       });
     }
 
+    // 🔐 Single device login: Clear any existing session before creating new one
+    if (student.currentSessionToken) {
+      console.log(`Student ${student.userid} logging in via OTP from new device - invalidating previous session`);
+    }
+    
     // ✅ OTP verified → clear OTP and update login tracking
     student.otp = null;
     student.otpExpire = null;
     student.isLogin = true;
     student.loginAt = new Date();
     student.logoutAt = null;
+    
+    // Store device information  
+    const userAgent = req.get('User-Agent') || 'Unknown';
+    const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0] || 'Unknown';
+    
+    student.lastLoginDevice = {
+      userAgent: userAgent,
+      ip: userIP,
+      loginTime: new Date()
+    };
+    
+    // 🔐 Generate JWT token (this will automatically update currentSessionToken and invalidate old sessions)
+    const accessToken = await student.generateToken();
+    
+    // Save student with new session token
     await student.save();
 
-    // 🔐 Generate JWT token
-    const accessToken = await student.generateToken();
-
     // Set secure cookie with proper configuration
+    const cookieMaxAge = parseInt(process.env.COOKIE_EXPIRE) || 30 * 24 * 60 * 60 * 1000; // 30 days default
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // true in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // none for cross-origin in production
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1 year
+      maxAge: cookieMaxAge,
     });
 
     return res.status(200).json({
@@ -2043,6 +2080,7 @@ export const logout = async (req, res) => {
     if (req.student) {
       req.student.isLogin = false;
       req.student.logoutAt = new Date();
+      req.student.currentSessionToken = null; // Clear current session
       await req.student.save();
     }
 

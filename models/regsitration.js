@@ -257,6 +257,15 @@ const registrationSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    currentSessionToken: {
+      type: String,
+      default: null,
+    },
+    lastLoginDevice: {
+      userAgent: { type: String },
+      ip: { type: String },
+      loginTime: { type: Date }
+    },
     paymentLink: String,
     referralCode: {
       type: String,
@@ -324,19 +333,27 @@ registrationSchema.pre("save", async function (next) {
   next();
 });
 
-// Generate JWT token for student
+// Generate JWT token for student with session tracking
 registrationSchema.methods.generateToken = function () {
-  return jwt.sign(
-    { 
-      id: this._id, 
-      email: this.email, 
-      mobile: this.mobile,
-      role: 'student', // Student का role set करें
-      userid: this.userid
-    },
-    process.env.JWT_SECRET,
-    { expiresIn: '365d' } // 1 year expiration
-  );
+  const crypto = require('crypto');
+  
+  const tokenPayload = { 
+    id: this._id, 
+    email: this.email, 
+    mobile: this.mobile,
+    role: 'student',
+    userid: this.userid,
+    sessionId: Date.now() + Math.random() // Unique session identifier
+  };
+  
+  // Use environment variable for token expiry, fallback to 30 days
+  const expiresIn = process.env.JWT_EXPIRE || '30d';
+  const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn });
+  
+  // Store current session token hash for validation
+  this.currentSessionToken = crypto.createHash('sha256').update(token).digest('hex');
+  
+  return token;
 };
 
 const Registration = mongoose.model("Registration", registrationSchema);

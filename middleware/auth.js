@@ -34,6 +34,32 @@ export const auth = async (req, res, next) => {
         .populate("collegeName", "name district")
         .populate("batch", "batchName startDate endDate")
         .populate("tag", "name");
+        
+      // Validate student session - enforce single device login
+      if (student) {
+        const crypto = require('crypto');
+        const currentTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        
+        // If student has a session token and it doesn't match current token
+        if (student.currentSessionToken && student.currentSessionToken !== currentTokenHash) {
+          return res.status(401).json({
+            success: false,
+            message: "You have been logged out because you logged in from another device.",
+            code: "CONCURRENT_LOGIN",
+            forceLogout: true
+          });
+        }
+        
+        // If no session token stored (old sessions), require re-login
+        if (!student.currentSessionToken) {
+          return res.status(401).json({
+            success: false,
+            message: "Session expired. Please login again.",
+            code: "SESSION_EXPIRED",
+            forceLogout: true
+          });
+        }
+      }
     }
 
     if (!user && !student) {
