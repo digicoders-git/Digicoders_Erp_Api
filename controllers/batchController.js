@@ -25,6 +25,16 @@ export const createBatch = async (req, res) => {
       });
     }
 
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      if (branch.toString() !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "You can only create batches for your own branch",
+        });
+      }
+    }
+
     const batch = new Batch({
       batchName,
       room,
@@ -102,11 +112,11 @@ export const getBatches = async (req, res) => {
     //   filter.branch = branch;
     // }
     // 🔐 Role based branch restriction
-    if (loggedInUser.role === "Employee") {
-      // employee → force own branch
-      filter.branch = loggedInUser.branch;
+    if (loggedInUser.role === "Employee" || loggedInUser.role === "Admin") {
+      // employee and admin → force own branch
+      filter.branch = loggedInUser.branch?._id || loggedInUser.branch;
     } else {
-      // admin / others → query param branch
+      // super admin / others → query param branch
       if (branch && branch !== "All") {
         filter.branch = branch;
       }
@@ -209,6 +219,17 @@ export const getBatchById = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Batch not found" });
 
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. Batch belongs to another branch."
+        });
+      }
+    }
+
     res.json({ success: true, batch });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -247,6 +268,23 @@ export const updateBatch = async (req, res) => {
       });
     }
 
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only update batches in your own branch."
+        });
+      }
+      if (req.body.branch && req.body.branch.toString() !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You cannot change batch branch to another branch."
+        });
+      }
+    }
+
     // Update batch
     batch = await Batch.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -277,13 +315,28 @@ export const assignTeacher = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Teacher not found" });
 
-    const batch = await Batch.findByIdAndUpdate(
-      batchId,
-      { teacher: teacherId },
-      { new: true }
-    ).populate("teacher", "name email");
+    const batch = await Batch.findById(batchId);
+    if (!batch) {
+      return res.status(404).json({ success: false, message: "Batch not found" });
+    }
 
-    res.json({ success: true, message: "Teacher assigned", batch });
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only assign teachers to batches in your own branch."
+        });
+      }
+    }
+
+    batch.teacher = teacherId;
+    await batch.save();
+    
+    const updatedBatch = await Batch.findById(batchId).populate("teacher", "name email");
+
+    res.json({ success: true, message: "Teacher assigned", batch: updatedBatch });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -309,6 +362,17 @@ export const updateBatchStudents = async (req, res) => {
         success: false,
         message: "Batch not found",
       });
+    }
+
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only manage students for batches in your own branch."
+        });
+      }
     }
 
     // Check if all students exist
@@ -372,6 +436,17 @@ export const removeStudentFromBatch = async (req, res) => {
       });
     }
 
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only manage students for batches in your own branch."
+        });
+      }
+    }
+
     // Check if student exists in batch
     if (!batch.students.includes(studentId)) {
       return res.status(400).json({
@@ -400,6 +475,22 @@ export const removeStudentFromBatch = async (req, res) => {
 // ➤ Delete Batch
 export const deleteBatch = async (req, res) => {
   try {
+    const batch = await Batch.findById(req.params.id);
+    if (!batch) {
+      return res.status(404).json({ success: false, message: "Batch not found" });
+    }
+
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only delete batches in your own branch."
+        });
+      }
+    }
+
     await Batch.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: "Batch deleted" });
   } catch (error) {
@@ -413,6 +504,18 @@ export const updateStatus = async (req, res) => {
       return res
         .status(404)
         .json({ message: "batch not found", success: false });
+
+    if (req.user.role !== "Super Admin") {
+      const userBranchId = req.user.branch?._id?.toString() || req.user.branch?.toString();
+      const batchBranchId = batch.branch?._id?.toString() || batch.branch?.toString();
+      if (batchBranchId !== userBranchId) {
+        return res.status(403).json({
+          success: false,
+          message: "Access denied. You can only change status of batches in your own branch."
+        });
+      }
+    }
+
     batch.isActive = !batch.isActive;
     await batch.save();
     return res

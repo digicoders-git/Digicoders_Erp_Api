@@ -778,7 +778,9 @@ export const updateUser = async (req, res) => {
     // Check permissions
     if (loggedInUser.role === "Admin") {
       // Admin can only update users in their branch
-      if (user.branch?.toString() !== loggedInUser.branch?.toString()) {
+      const loggedInBranchId = loggedInUser.branch?._id?.toString() || loggedInUser.branch?.toString();
+      const userBranchId = user.branch?._id?.toString() || user.branch?.toString();
+      if (userBranchId !== loggedInBranchId) {
         return res.status(403).json({
           success: false,
           message: "You can only update users in your branch",
@@ -884,7 +886,9 @@ export const deleteUser = async (req, res) => {
 
     if (loggedInUser.role === "Admin") {
       // Admin can only delete users from their branch
-      if (user.branch?.toString() !== loggedInUser.branch?.toString()) {
+      const loggedInBranchId = loggedInUser.branch?._id?.toString() || loggedInUser.branch?.toString();
+      const userBranchId = user.branch?._id?.toString() || user.branch?.toString();
+      if (userBranchId !== loggedInBranchId) {
         return res.status(403).json({
           success: false,
           message: "You can only delete users from your branch",
