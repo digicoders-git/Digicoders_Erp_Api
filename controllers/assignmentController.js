@@ -1,12 +1,32 @@
 import Assignment from "../models/assignment.js";
 import Submission from "../models/submission.js";
 import Batch from "../models/batchs.js";
+import Teacher from "../models/teachers.js";
 import { getBatchByStudentId } from "./batchController.js";
 
 // Get all assignments
 export const getAllAssignments = async (req, res) => {
   try {
-    const assignments = await Assignment.find()
+    const loggedInUser = req.user;
+    const filter = {};
+
+    if (loggedInUser && loggedInUser.role === "Employee") {
+      // Find if this employee is also a teacher (by phone)
+      const teacherDoc = await Teacher.findOne({ phone: loggedInUser.phone, isActive: true });
+      if (teacherDoc) {
+        // Get batches assigned to this teacher
+        const teacherBatches = await Batch.find({ teacher: teacherDoc._id }).select("_id");
+        const batchIds = teacherBatches.map(b => b._id);
+        
+        // Show assignments created by them or assigned to their batches
+        filter.$or = [
+          { createdBy: loggedInUser.id },
+          { batches: { $in: batchIds } }
+        ];
+      }
+    }
+
+    const assignments = await Assignment.find(filter)
       .populate("batches", "batchName")
       .populate({
         path: "submissions",
@@ -47,6 +67,25 @@ export const getAssignmentById = async (req, res) => {
         success: false,
         message: "Assignment not found",
       });
+    }
+
+    // If Employee is a teacher, verify they own this or it belongs to one of their batches
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const teacherBatches = await Batch.find({ teacher: teacherDoc._id }).select("_id");
+        const batchIds = teacherBatches.map(b => b._id.toString());
+        
+        const isCreator = assignment.createdBy && assignment.createdBy.toString() === req.user._id.toString();
+        const hasAssignedBatch = assignment.batches.some(b => batchIds.includes(b._id.toString()));
+        
+        if (!isCreator && !hasAssignedBatch) {
+          return res.status(403).json({
+            success: false,
+            message: "Access denied to this assignment."
+          });
+        }
+      }
     }
 
     res.status(200).json({
@@ -95,6 +134,20 @@ export const createAssignment = async (req, res) => {
         success: false,
         message: "One or more batches not found",
       });
+    }
+
+    // Verify teacher owns all selected batches
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const unauthorizedBatch = existingBatches.find(b => !b.teacher || b.teacher.toString() !== teacherDoc._id.toString());
+        if (unauthorizedBatch) {
+          return res.status(403).json({
+            success: false,
+            message: `You cannot assign assignments to batch ${unauthorizedBatch.batchName} because you are not its teacher.`,
+          });
+        }
+      }
     }
 
     // Handle file uploads - FIXED
@@ -458,6 +511,29 @@ export const gradeAssignment = async (req, res) => {
         success: false,
         message: "Assignment not found",
       });
+    }
+
+    // Verify if teacher is assigned to this batch
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const hasAccess = assignment.batches.some(b => b.toString() === batchId);
+        if (!hasAccess) {
+          return res.status(403).json({
+            success: false,
+            message: "You do not have access to grade this batch's assignment.",
+          });
+        }
+        
+        // Also ensure the batch has this teacher
+        const targetBatch = await Batch.findById(batchId);
+        if (!targetBatch || !targetBatch.teacher || targetBatch.teacher.toString() !== teacherDoc._id.toString()) {
+          return res.status(403).json({
+            success: false,
+            message: "You are not the assigned teacher for this batch.",
+          });
+        }
+      }
     }
 
     // Process each grade

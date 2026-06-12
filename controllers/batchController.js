@@ -107,14 +107,21 @@ export const getBatches = async (req, res) => {
       filter.$or = [{ batchName: { $regex: search, $options: "i" } }];
     }
 
-    // Branch filter
-    // if (branch && branch !== "All") {
-    //   filter.branch = branch;
-    // }
-    // 🔐 Role based branch restriction
+    // 🔐 Role based branch/teacher restriction
     if (loggedInUser.role === "Employee" || loggedInUser.role === "Admin") {
-      // employee and admin → force own branch
-      filter.branch = loggedInUser.branch?._id || loggedInUser.branch;
+      if (loggedInUser.role === "Employee") {
+        // Find if this employee is also a teacher (by phone)
+        const teacherDoc = await Teacher.findOne({ phone: loggedInUser.phone, isActive: true });
+        if (teacherDoc) {
+          // If they are a teacher, they only see batches assigned to them
+          filter.teacher = teacherDoc._id;
+        } else {
+          // Otherwise they see all batches in their branch
+          filter.branch = loggedInUser.branch?._id || loggedInUser.branch;
+        }
+      } else {
+        filter.branch = loggedInUser.branch?._id || loggedInUser.branch;
+      }
     } else {
       // super admin / others → query param branch
       if (branch && branch !== "All") {
@@ -122,8 +129,8 @@ export const getBatches = async (req, res) => {
       }
     }
 
-    // Teacher filter
-    if (teacher && teacher !== "All") {
+    // Teacher filter (only if not already forced to own batches)
+    if (!filter.teacher && teacher && teacher !== "All") {
       filter.teacher = teacher;
     }
 
@@ -227,6 +234,20 @@ export const getBatchById = async (req, res) => {
           success: false,
           message: "Access denied. Batch belongs to another branch."
         });
+      }
+
+      // If employee is a teacher, ensure this batch is assigned to them
+      if (req.user.role === "Employee") {
+        const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+        if (teacherDoc) {
+          const isAssigned = batch.teacher && batch.teacher._id.toString() === teacherDoc._id.toString();
+          if (!isAssigned) {
+            return res.status(403).json({
+              success: false,
+              message: "Access denied. You are not assigned to this batch."
+            });
+          }
+        }
       }
     }
 

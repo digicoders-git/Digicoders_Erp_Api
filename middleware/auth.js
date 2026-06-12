@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 import EmployeePermission from "../models/EmployeePermission.js";
 import Registration from "../models/regsitration.js";
+import Teacher from "../models/teachers.js";
 import crypto from "crypto";
 
 export const auth = async (req, res, next) => {
@@ -90,6 +91,29 @@ export const auth = async (req, res, next) => {
       // Add permissions to user object
       user.permissions = employeePerm ?
         employeePerm.permissions.map(p => p.name) : [];
+
+      // 🧑‍🏫 Teacher Auto-Permissions Check
+      if (user.role === "Employee") {
+        const teacherDoc = await Teacher.findOne({ phone: user.phone, isActive: true });
+        if (teacherDoc) {
+          // Grant standard teacher permissions automatically
+          const teacherPermissions = [
+            "view_batch",
+            "mark_attendance",
+            "view_attendance",
+            "manage_assignments",
+            "grade_assignment",
+            "manage_lms",
+            "view_lms",
+            "view_dashboard"
+          ];
+          teacherPermissions.forEach(p => {
+            if (!user.permissions.includes(p)) {
+              user.permissions.push(p);
+            }
+          });
+        }
+      }
     }
 
     // Add isSuperAdmin flag

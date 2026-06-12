@@ -30,23 +30,53 @@ export const getAll = async (req, res) => {
     const yearFilter = eduYear && eduYear !== "All" && eduYear !== "" ? { eduYear } : {};
     const combinedFilter = { ...branchFilter, ...yearFilter };
 
+    // Check if Employee is a Teacher (by phone)
+    let isTeacher = false;
+    let teacherDoc = null;
+    let teacherBatchIds = [];
+    let teacherStudentIds = [];
+
+    if (loggedInUser.role === "Employee") {
+      teacherDoc = await Teachers.findOne({ phone: loggedInUser.phone, isActive: true });
+      if (teacherDoc) {
+        isTeacher = true;
+        const teacherBatches = await Batch.find({ teacher: teacherDoc._id });
+        teacherBatchIds = teacherBatches.map(b => b._id);
+        teacherStudentIds = teacherBatches.reduce((acc, b) => {
+          if (b.students) {
+            b.students.forEach(s => {
+              if (!acc.includes(s.toString())) acc.push(s.toString());
+            });
+          }
+          return acc;
+        }, []);
+      }
+    }
+
     // Students (Registrations) - now with year filter
-    const studentsNew = await Registration.countDocuments({ status: "new", ...combinedFilter });
-    const studentsAccepted = await Registration.countDocuments({
-      status: "accepted",
-      ...combinedFilter
-    });
-    const studentsRejected = await Registration.countDocuments({
-      status: "rejected",
-      ...combinedFilter
-    });
-    const studentsPending = await Registration.countDocuments({ tnxStatus: "pending", ...combinedFilter });
-    const studentsAll = await Registration.countDocuments({ ...combinedFilter });
+    let studentsNew, studentsAccepted, studentsRejected, studentsPending, studentsAll;
+    if (isTeacher) {
+      studentsNew = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "new" });
+      studentsAccepted = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted" });
+      studentsRejected = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "rejected" });
+      studentsPending = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, tnxStatus: "pending" });
+      studentsAll = await Registration.countDocuments({ _id: { $in: teacherStudentIds } });
+    } else {
+      studentsNew = await Registration.countDocuments({ status: "new", ...combinedFilter });
+      studentsAccepted = await Registration.countDocuments({
+        status: "accepted",
+        ...combinedFilter
+      });
+      studentsRejected = await Registration.countDocuments({
+        status: "rejected",
+        ...combinedFilter
+      });
+      studentsNew = await Registration.countDocuments({ status: "new", ...combinedFilter });
+      studentsPending = await Registration.countDocuments({ tnxStatus: "pending", ...combinedFilter });
+      studentsAll = await Registration.countDocuments({ ...combinedFilter });
+    }
 
     // Fees (Payments)
-    // const feesNew = await Fee.countDocuments({ status: "new", ...branchFilter });
-
-
     const getFeeCountByStatus = async (status, loggedInUser, eduYear) => {
       const matchStage = {};
 
@@ -54,32 +84,43 @@ export const getAll = async (req, res) => {
         matchStage.status = status;
       }
 
-      // 🔐 Branch restriction via registration
-      if (loggedInUser.role !== "Super Admin") {
-        matchStage["registration.branch"] = new mongoose.Types.ObjectId(
-          loggedInUser.branch
+      if (isTeacher) {
+        matchStage.registrationId = { $in: teacherStudentIds.map(id => new mongoose.Types.ObjectId(id)) };
+      } else {
+        // 🔐 Branch restriction via registration
+        if (loggedInUser.role !== "Super Admin") {
+          matchStage["registration.branch"] = new mongoose.Types.ObjectId(
+            loggedInUser.branch
+          );
+        }
+
+        // Add year filter if provided
+        if (eduYear && eduYear !== "All" && eduYear !== "") {
+          matchStage["registration.eduYear"] = eduYear;
+        }
+      }
+
+      const pipeline = [];
+      if (!isTeacher) {
+        pipeline.push(
+          {
+            $lookup: {
+              from: "registrations",
+              localField: "registrationId",
+              foreignField: "_id",
+              as: "registration",
+            },
+          },
+          { $unwind: "$registration" }
         );
       }
-
-      // Add year filter if provided
-      if (eduYear && eduYear !== "All" && eduYear !== "") {
-        matchStage["registration.eduYear"] = eduYear;
-      }
-
-      const result = await Fee.aggregate([
-        {
-          $lookup: {
-            from: "registrations",
-            localField: "registrationId",
-            foreignField: "_id",
-            as: "registration",
-          },
-        },
-        { $unwind: "$registration" },
+      
+      pipeline.push(
         { $match: matchStage },
-        { $count: "count" },
-      ]);
+        { $count: "count" }
+      );
 
+      const result = await Fee.aggregate(pipeline);
       return result[0]?.count || 0;
     };
 
@@ -89,24 +130,21 @@ export const getAll = async (req, res) => {
     const feesRejected = await getFeeCountByStatus("rejected", loggedInUser, eduYear);
     const feesAll = await getFeeCountByStatus("all", loggedInUser, eduYear);
 
-
-    // const feesAccepted = await Fee.countDocuments({ status: "accepted", ...branchFilter });
-    // const feesRejected = await Fee.countDocuments({ status: "rejected", ...branchFilter });
-    // const feesAll = await Fee.countDocuments({ ...branchFilter });
-
     //  Batch find
-    const batchCount = await Batch.countDocuments({ isActive: true, ...branchFilter });
+    let batchCount;
+    if (isTeacher) {
+      batchCount = teacherBatchIds.length;
+    } else {
+      batchCount = await Batch.countDocuments({ isActive: true, ...branchFilter });
+    }
+
     //  Teachers find
-    const teachersCount = await Teachers.countDocuments({ isActive: true, ...branchFilter });
-    const collegeCount = await College.countDocuments({ isActive: true });
-    const branchesCount = await BranchModal.countDocuments({ isActive: true });
-    const manageHrCount = await manageHr.countDocuments({ isActive: true, ...branchFilter });
-    const technologyCount = await TechnologyModal.countDocuments({
-      isActive: true,
-    });
-    const tranningCount = await TranningModal.countDocuments({
-      isActive: true,
-    });
+    const teachersCount = isTeacher ? 1 : await Teachers.countDocuments({ isActive: true, ...branchFilter });
+    const collegeCount = isTeacher ? 0 : await College.countDocuments({ isActive: true });
+    const branchesCount = isTeacher ? 0 : await BranchModal.countDocuments({ isActive: true });
+    const manageHrCount = isTeacher ? 0 : await manageHr.countDocuments({ isActive: true, ...branchFilter });
+    const technologyCount = isTeacher ? 0 : await TechnologyModal.countDocuments({ isActive: true });
+    const tranningCount = isTeacher ? 0 : await TranningModal.countDocuments({ isActive: true });
 
     // Final response object
     const counts = {

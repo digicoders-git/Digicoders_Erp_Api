@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Attendance from "../models/attendance.js";
 import Batch from "../models/batchs.js";
+import Teacher from "../models/teachers.js";
 
 
 export const createAttendance = async (req, res) => {
@@ -201,6 +202,21 @@ export const checkTodayAttendance = async (req, res) => {
 export const getBatchAttendance = async (req, res) => {
   try {
     const { batchId } = req.params;
+
+    // Verify if teacher is assigned to this batch
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const batch = await Batch.findById(batchId);
+        if (!batch || !batch.teacher || batch.teacher.toString() !== teacherDoc._id.toString()) {
+          return res.status(403).json({
+            success: false,
+            message: "Access denied. You are not assigned to this batch."
+          });
+        }
+      }
+    }
+
     const {
       page = 1,
       limit = 10,
@@ -316,8 +332,22 @@ export const markAttendance = async (req, res) => {
 
 export const getoverallData = async (req, res) => {
   try {
-    // Aggregate attendance data for all batches
-    const overallData = await Attendance.aggregate([
+    const matchStage = {};
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const teacherBatches = await Batch.find({ teacher: teacherDoc._id }).select("_id");
+        const batchIds = teacherBatches.map(b => b._id);
+        matchStage.batchId = { $in: batchIds };
+      }
+    }
+
+    const pipeline = [];
+    if (Object.keys(matchStage).length > 0) {
+      pipeline.push({ $match: matchStage });
+    }
+    
+    pipeline.push(
       {
         $lookup: {
           from: 'batches',
@@ -380,7 +410,9 @@ export const getoverallData = async (req, res) => {
       {
         $sort: { attendance: -1 }
       }
-    ]);
+    );
+
+    const overallData = await Attendance.aggregate(pipeline);
 
     res.status(200).json({
       success: true,
@@ -517,8 +549,32 @@ export const getAbsentReports = async (req, res) => {
     // Build match query
     const matchQuery = {};
 
-    if (batchId) {
-      matchQuery.batchId = new mongoose.Types.ObjectId(batchId);
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const teacherBatches = await Batch.find({ teacher: teacherDoc._id }).select("_id");
+        const batchIds = teacherBatches.map(b => b._id);
+        
+        if (batchId) {
+          if (!batchIds.map(id => id.toString()).includes(batchId.toString())) {
+            return res.status(403).json({
+              success: false,
+              message: "Access denied. You are not assigned to this batch."
+            });
+          }
+          matchQuery.batchId = new mongoose.Types.ObjectId(batchId);
+        } else {
+          matchQuery.batchId = { $in: batchIds };
+        }
+      } else {
+        if (batchId) {
+          matchQuery.batchId = new mongoose.Types.ObjectId(batchId);
+        }
+      }
+    } else {
+      if (batchId) {
+        matchQuery.batchId = new mongoose.Types.ObjectId(batchId);
+      }
     }
 
     // Date range filter
@@ -1116,7 +1172,30 @@ export const getAttendanceReports = async (req, res) => {
     }
 
     // Build batch filter
-    const batchFilter = batchId ? { batchId: new mongoose.Types.ObjectId(batchId) } : {};
+    let batchFilter = {};
+    if (req.user && req.user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true });
+      if (teacherDoc) {
+        const teacherBatches = await Batch.find({ teacher: teacherDoc._id }).select("_id");
+        const batchIds = teacherBatches.map(b => b._id);
+        
+        if (batchId) {
+          if (!batchIds.map(id => id.toString()).includes(batchId.toString())) {
+            return res.status(403).json({
+              success: false,
+              message: "Access denied. You are not assigned to this batch."
+            });
+          }
+          batchFilter = { batchId: new mongoose.Types.ObjectId(batchId) };
+        } else {
+          batchFilter = { batchId: { $in: batchIds } };
+        }
+      } else {
+        batchFilter = batchId ? { batchId: new mongoose.Types.ObjectId(batchId) } : {};
+      }
+    } else {
+      batchFilter = batchId ? { batchId: new mongoose.Types.ObjectId(batchId) } : {};
+    }
 
     // Main aggregation pipeline
     const pipeline = [

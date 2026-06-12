@@ -8,6 +8,8 @@ import cloudinary from "../config/cloudinary.js";
 import EmployeePermission from "../models/EmployeePermission.js";
 import Permission from "../models/Permission.js";
 import Registration from "../models/regsitration.js";
+import Teacher from "../models/teachers.js";
+import Batch from "../models/batchs.js";
 import { sendEmail, sendOTPEmail, sendLoginAlertEmail } from "../utils/sendEmail.js";
 import { sendSmsOtp } from "../utils/sendSMS.js";
 import axios from "axios";
@@ -209,6 +211,9 @@ export const login = async (req, res) => {
 
     // Get employee permissions if employee or admin
     let permissions = [];
+    let isTeacher = false;
+    let teacherInfo = null;
+
     if ((user.role === "Employee" || user.role === "Admin") && user.branch) {
       const employeePerm = await EmployeePermission.findOne({
         employee: user._id,
@@ -218,6 +223,28 @@ export const login = async (req, res) => {
       permissions = employeePerm
         ? employeePerm.permissions.map(p => p.name)
         : [];
+    }
+
+    // 🧑‍🏫 Check if employee is a teacher and inject teacher permissions
+    if (user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: user.phone, isActive: true })
+        .populate("assignedBatches", "batchName subject classTime startDate");
+      if (teacherDoc) {
+        isTeacher = true;
+        teacherInfo = {
+          teacherId: teacherDoc._id,
+          assignedBatches: teacherDoc.assignedBatches || []
+        };
+        // Grant teacher permissions automatically
+        const teacherPermissions = [
+          "view_batch", "mark_attendance", "view_attendance",
+          "manage_assignments", "grade_assignment", "manage_lms",
+          "view_lms", "view_dashboard"
+        ];
+        teacherPermissions.forEach(p => {
+          if (!permissions.includes(p)) permissions.push(p);
+        });
+      }
     }
 
     // Set cookie
@@ -240,7 +267,9 @@ export const login = async (req, res) => {
         role: user.role,
         branch: user.branch,
         permissions,
-        isSuperAdmin: user.role === "Super Admin"
+        isSuperAdmin: user.role === "Super Admin",
+        isTeacher,
+        teacherInfo
       }
     });
 
@@ -351,6 +380,9 @@ export const verifyOtp = async (req, res) => {
 
     // Get employee permissions if employee or admin
     let permissions = [];
+    let isTeacher = false;
+    let teacherInfo = null;
+
     if ((user.role === "Employee" || user.role === "Admin") && user.branch) {
       const employeePerm = await EmployeePermission.findOne({
         employee: user._id,
@@ -360,6 +392,27 @@ export const verifyOtp = async (req, res) => {
       permissions = employeePerm
         ? employeePerm.permissions.map(p => p.name)
         : [];
+    }
+
+    // 🧑‍🏫 Check if employee is a teacher and inject teacher permissions
+    if (user.role === "Employee") {
+      const teacherDoc = await Teacher.findOne({ phone: user.phone, isActive: true })
+        .populate("assignedBatches", "batchName subject classTime startDate");
+      if (teacherDoc) {
+        isTeacher = true;
+        teacherInfo = {
+          teacherId: teacherDoc._id,
+          assignedBatches: teacherDoc.assignedBatches || []
+        };
+        const teacherPermissions = [
+          "view_batch", "mark_attendance", "view_attendance",
+          "manage_assignments", "grade_assignment", "manage_lms",
+          "view_lms", "view_dashboard"
+        ];
+        teacherPermissions.forEach(p => {
+          if (!permissions.includes(p)) permissions.push(p);
+        });
+      }
     }
 
     // Set cookie
@@ -381,7 +434,9 @@ export const verifyOtp = async (req, res) => {
         role: user.role,
         branch: user.branch,
         permissions,
-        isSuperAdmin: user.role === "Super Admin"
+        isSuperAdmin: user.role === "Super Admin",
+        isTeacher,
+        teacherInfo
       }
     });
 

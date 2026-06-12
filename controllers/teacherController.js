@@ -4,13 +4,13 @@ import Batch from "../models/batchs.js";
 // ➤ Create Teacher
 export const createTeacher = async (req, res) => {
   try {
-    const { name, phone, expertise, branch } = req.body;
+    const { name, phone, expertise, branch, assignedBatches } = req.body;
 
     // Basic validation
     if (!name || !phone || !branch) {
       return res.status(400).json({
         success: false,
-        message: "Name, phone, and expertise are required",
+        message: "Name, phone, and branch are required",
       });
     }
 
@@ -19,10 +19,19 @@ export const createTeacher = async (req, res) => {
       phone,
       expertise,
       branch,
+      assignedBatches: assignedBatches || [],
       addBy: req.user._id, // logged-in user who added the teacher
     });
 
     await teacher.save();
+
+    // 🧑‍🏫 Update each assigned batch's teacher field
+    if (assignedBatches && assignedBatches.length > 0) {
+      await Batch.updateMany(
+        { _id: { $in: assignedBatches } },
+        { $set: { teacher: teacher._id } }
+      );
+    }
 
     res.status(201).json({
       success: true,
@@ -188,18 +197,28 @@ export const deleteTeacher = async (req, res) => {
 
 export const updateTeacher = async (req, res) => {
   try {
-    const teacher = await Teacher.findByIdAndUpdate(req.params.id, req.body, {
-      new: true, // Updated document return karega
-      runValidators: true, // Validation apply karega
-    })
+    const { assignedBatches, ...updateData } = req.body;
 
-
+    const teacher = await Teacher.findByIdAndUpdate(
+      req.params.id,
+      { ...updateData, ...(assignedBatches !== undefined ? { assignedBatches } : {}) },
+      { new: true, runValidators: true }
+    );
 
     if (!teacher) {
       return res.status(404).json({
         success: false,
         message: "Teacher not found",
       });
+    }
+
+    // 🧑‍🏫 Sync batch.teacher field for newly assigned batches
+    if (assignedBatches && assignedBatches.length > 0) {
+      // Set teacher on newly assigned batches
+      await Batch.updateMany(
+        { _id: { $in: assignedBatches } },
+        { $set: { teacher: teacher._id } }
+      );
     }
 
     res.status(200).json({
