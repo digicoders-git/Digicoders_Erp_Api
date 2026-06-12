@@ -16,6 +16,6 @@ attendBy:{type:mongoose.Schema.Types.ObjectId,ref:"User"}
 });
 
 // ek hi batch ke liye ek hi date repeat na ho
-attendanceSchema.index({ batch: 1, date: 1 }, { unique: true });
+attendanceSchema.index({ batchId: 1, date: 1 }, { unique: true });
 
 export default mongoose.model("Attendance", attendanceSchema);

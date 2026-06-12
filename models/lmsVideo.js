@@ -20,6 +20,15 @@ const lmsVideoSchema = new mongoose.Schema({
     url: String,
     public_id: String
   },
+  videoType: {
+    type: String,
+    enum: ['upload', 'youtube'],
+    default: 'upload'
+  },
+  youtubeUrl: {
+    type: String,
+    trim: true
+  },
   thumbnail: {
     url: String,
     public_id: String

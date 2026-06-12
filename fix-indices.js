@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Registration from './models/regsitration.js';
 import Fee from './models/fee.js';
+import Attendance from './models/attendance.js';
 
 dotenv.config();
 
@@ -27,9 +28,18 @@ const fixIndices = async () => {
             console.log('tnxId_1 index not found in Fee or error dropping it');
         }
 
+        console.log('Dropping indices for Attendance...');
+        try {
+            await Attendance.collection.dropIndex('batch_1_date_1');
+            console.log('Dropped batch_1_date_1 index from Attendance');
+        } catch (e) {
+            console.log('batch_1_date_1 index not found in Attendance or error dropping it');
+        }
+
         console.log('Re-syncing indexes...');
         await Registration.syncIndexes();
         await Fee.syncIndexes();
+        await Attendance.syncIndexes();
         console.log('Indices re-synced');
 
         process.exit(0);

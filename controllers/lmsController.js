@@ -279,7 +279,7 @@ const getVideosByCourse = async (req, res) => {
 // Upload video
 const uploadVideo = async (req, res) => {
   try {
-    const { title, description, course, order } = req.body;
+    const { title, description, course, order, videoType, youtubeUrl } = req.body;
 
     if (!title || !course) {
       return res.status(400).json({
@@ -288,17 +288,28 @@ const uploadVideo = async (req, res) => {
       });
     }
 
+    const selectedVideoType = videoType || 'upload';
+
+    if (selectedVideoType === 'youtube' && !youtubeUrl) {
+      return res.status(400).json({
+        success: false,
+        message: 'YouTube URL is required'
+      });
+    }
+
     const videoData = {
       title,
       description,
       course,
-      order: parseInt(order) || 0
+      order: parseInt(order) || 0,
+      videoType: selectedVideoType,
+      youtubeUrl: selectedVideoType === 'youtube' ? youtubeUrl : undefined
     };
 
     // Handle file uploads
     if (req.files && req.files.length > 0) {
       for (let file of req.files) {
-        if (file.fieldname === 'video') {
+        if (file.fieldname === 'video' && selectedVideoType === 'upload') {
           videoData.video = {
             url: `/uploads/${file.filename}`,
             public_id: file.filename
@@ -314,7 +325,7 @@ const uploadVideo = async (req, res) => {
       }
     }
 
-    if (!videoData.video) {
+    if (selectedVideoType === 'upload' && !videoData.video) {
       return res.status(400).json({
         success: false,
         message: 'Video file is required'
@@ -347,7 +358,7 @@ const uploadVideo = async (req, res) => {
 const updateVideo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, order } = req.body;
+    const { title, description, order, videoType, youtubeUrl } = req.body;
 
     const video = await LmsVideo.findById(id);
     if (!video) {
@@ -361,6 +372,8 @@ const updateVideo = async (req, res) => {
     if (title) video.title = title;
     if (description !== undefined) video.description = description;
     if (order !== undefined) video.order = parseInt(order) || 0;
+    if (videoType) video.videoType = videoType;
+    if (youtubeUrl !== undefined) video.youtubeUrl = youtubeUrl;
 
     // Handle file updates
     if (req.files && req.files.length > 0) {
@@ -378,6 +391,8 @@ const updateVideo = async (req, res) => {
             url: `/uploads/${file.filename}`,
             public_id: file.filename
           };
+          video.videoType = 'upload';
+          video.youtubeUrl = undefined;
         }
         
         if (file.fieldname === 'thumbnail') {
@@ -395,6 +410,17 @@ const updateVideo = async (req, res) => {
           };
         }
       }
+    }
+
+    // If type is youtube, remove old video file
+    if (video.videoType === 'youtube') {
+      if (video.video?.public_id && video.video.url.startsWith('/uploads/')) {
+        const oldFilePath = `uploads/${video.video.public_id}`;
+        if (fs.existsSync(oldFilePath)) {
+          fs.unlinkSync(oldFilePath);
+        }
+      }
+      video.video = undefined;
     }
 
     await video.save();

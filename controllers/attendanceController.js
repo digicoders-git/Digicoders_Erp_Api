@@ -401,7 +401,7 @@ export const getoverallData = async (req, res) => {
 export const getStudentAttendance = async (req, res) => {
   try {
     const { batchId, studentId } = req.params;
-    const records = await Attendance.find({ batch: batchId, "records.student": studentId })
+    const records = await Attendance.find({ batchId, "records.studentId": studentId })
       .select("date records")
       .sort({ date: -1 });
 
@@ -409,7 +409,7 @@ export const getStudentAttendance = async (req, res) => {
     const studentRecords = records.map((a) => ({
       date: a.date,
       status: a.records.find(
-        (r) => r.student.toString() === studentId
+        (r) => r.studentId.toString() === studentId
       )?.status,
     }));
 
