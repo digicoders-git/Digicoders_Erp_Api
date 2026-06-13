@@ -112,11 +112,12 @@ export const getBatches = async (req, res) => {
       if (loggedInUser.role === "Employee") {
         // Find if this employee is also a teacher (by phone)
         const teacherDoc = await Teacher.findOne({ phone: loggedInUser.phone, isActive: true });
-        if (teacherDoc) {
-          // If they are a teacher, they only see batches assigned to them
+        
+        // If they are a teacher BUT do NOT have 'manage_batch' permission, restrict to their batches
+        if (teacherDoc && (!loggedInUser.permissions || !loggedInUser.permissions.includes("manage_batch"))) {
           filter.teacher = teacherDoc._id;
         } else {
-          // Otherwise they see all batches in their branch
+          // Otherwise (if they are not a teacher OR if they have manage_batch permission), they see all batches in their branch
           filter.branch = loggedInUser.branch?._id || loggedInUser.branch;
         }
       } else {
