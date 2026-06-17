@@ -810,9 +810,22 @@ export const changeStatus = async (req, res) => {
 
     // Update logic based on status transition
     if (status === "accepted" && FeeData.status !== "accepted") {
-      // Apply payment to student registration
-      Student.paidAmount = Number(Student.paidAmount) + Number(FeeData.amount);
-      Student.dueAmount = Math.max(Number(Student.dueAmount) - Number(FeeData.amount), 0);
+      // Fix for double counting: Check if the amount is already included in Student.paidAmount
+      let amountToAdd = Number(FeeData.amount);
+      
+      const otherAcceptedFees = await Fee.aggregate([
+        { $match: { registrationId: Student._id, status: "accepted", _id: { $ne: FeeData._id } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]);
+      const otherTotal = otherAcceptedFees.length > 0 ? otherAcceptedFees[0].total : 0;
+      
+      // If paidAmount already includes this fee (common for registration fees that were pre-applied)
+      if (Number(Student.paidAmount) >= otherTotal + Number(FeeData.amount) && FeeData.paymentType === "registration") {
+        amountToAdd = 0;
+      }
+
+      Student.paidAmount = Number(Student.paidAmount) + amountToAdd;
+      Student.dueAmount = Math.max(Number(Student.dueAmount) - amountToAdd, 0);
       
       // Auto-update training fee status based on due amount
       if (Student.dueAmount === 0) {
@@ -830,21 +843,44 @@ export const changeStatus = async (req, res) => {
       }
       
       await Student.save();
-    } else if (status === "rejected" && FeeData.status === "accepted") {
-      // Reverse payment from student registration
-      Student.paidAmount = Math.max(Number(Student.paidAmount) - Number(FeeData.amount), 0);
-      Student.dueAmount = Number(Student.dueAmount) + Number(FeeData.amount);
+    } else if (status === "rejected" && FeeData.status !== "rejected") {
+      // Fix for reversing pre-applied fees that were rejected before being accepted
+      let amountToSubtract = 0;
+      
+      if (FeeData.status === "accepted") {
+        amountToSubtract = Number(FeeData.amount);
+      } else if (FeeData.status === "new" || !FeeData.status) {
+        const otherAcceptedFees = await Fee.aggregate([
+          { $match: { registrationId: Student._id, status: "accepted", _id: { $ne: FeeData._id } } },
+          { $group: { _id: null, total: { $sum: "$amount" } } }
+        ]);
+        const otherTotal = otherAcceptedFees.length > 0 ? otherAcceptedFees[0].total : 0;
+        
+        if (Number(Student.paidAmount) >= otherTotal + Number(FeeData.amount) && FeeData.paymentType === "registration") {
+          amountToSubtract = Number(FeeData.amount);
+        }
+      }
+
+      if (amountToSubtract > 0) {
+        Student.paidAmount = Math.max(Number(Student.paidAmount) - amountToSubtract, 0);
+        Student.dueAmount = Number(Student.dueAmount) + amountToSubtract;
+      }
 
       if (FeeData.paymentType === "registration") {
         Student.tnxStatus = "failed";
       }
-      Student.trainingFeeStatus = "pending";
+      
+      // Auto-update training fee status
+      if (Student.dueAmount === 0 && Student.paidAmount > 0) {
+        Student.trainingFeeStatus = "full paid";
+      } else if (Student.paidAmount > 0) {
+        Student.trainingFeeStatus = "partial";
+      } else {
+        Student.trainingFeeStatus = "pending";
+      }
 
       FeeData.tnxStatus = "failed";
       await Student.save();
-    } else if (status === "rejected" && (FeeData.status === "new" || !FeeData.status)) {
-      // Just mark as failed, no reversal needed as it wasn't applied
-      FeeData.tnxStatus = "failed";
     }
 
     FeeData.status = status;
