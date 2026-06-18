@@ -1230,13 +1230,6 @@ export const sendOtp = async (req, res) => {
   try {
     const { userid, latitude, longitude } = req.body;
 
-    if (!latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        message: "Location permission is required to send OTP. Please enable location in your browser."
-      });
-    }
-
     const student = await Registration.findById(userid);
 
     if (!student) {
