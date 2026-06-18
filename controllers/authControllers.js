@@ -20,13 +20,6 @@ export const login = async (req, res) => {
   try {
     const { email, password, latitude, longitude } = req.body;
 
-    if (!latitude || !longitude) {
-      return res.status(400).json({
-        success: false,
-        message: "Location permission is required to log in. Please enable location in your browser."
-      });
-    }
-
     // Find user with password
     const user = await User.findOne({ email }).select("+password");
 
