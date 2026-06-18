@@ -10,34 +10,22 @@ import Permission from "../models/Permission.js";
 import Registration from "../models/regsitration.js";
 import Teacher from "../models/teachers.js";
 import Batch from "../models/batchs.js";
-import { sendEmail, sendOTPEmail, sendLoginAlertEmail } from "../utils/sendEmail.js";
+import { sendEmail, sendOTPEmail, sendLoginAlertEmail, getLocationFromIP } from "../utils/sendEmail.js";
 import { sendSmsOtp } from "../utils/sendSMS.js";
 import axios from "axios";
 dotenv.config();
 
-// Helper function to get location from IP
-const getLocationFromIP = async (ip) => {
-  try {
-    // Skip for localhost/private IPs
-    if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
-      return 'Local Network';
-    }
-
-    const response = await axios.get(`http://ip-api.com/json/${ip}`, { timeout: 2000 });
-    if (response.data.status === 'success') {
-      return `${response.data.city}, ${response.data.regionName}, ${response.data.country}`;
-    }
-    return 'Unknown Location';
-  } catch (error) {
-    console.error('Location fetch error:', error.message);
-    return 'Location Unavailable';
-  }
-};
-
 // Login Function
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, latitude, longitude } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: "Location permission is required to log in. Please enable location in your browser."
+      });
+    }
 
     // Find user with password
     const user = await User.findOne({ email }).select("+password");
@@ -89,10 +77,14 @@ export const login = async (req, res) => {
       const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0];
       const userAgent = req.get('User-Agent');
       
-      // 📧 Send Emails and Alerts in the background (non-blocking)
       const handleBackground2FA = async () => {
         try {
           const location = await getLocationFromIP(userIP);
+          if (latitude && longitude) {
+            location.lat = latitude;
+            location.lon = longitude;
+            location.mapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+          }
           
           if (user.role === "Super Admin") {
             // Send OTP to specific emails for Super Admin
@@ -110,7 +102,7 @@ export const login = async (req, res) => {
                   userAgent: userAgent
                 });
                 
-                await sendOTPEmail(email, { otp });
+                await sendOTPEmail(email, { otp, ip: userIP, location, userAgent });
               } catch (err) {
                 console.error(`Error sending Super Admin security email to ${email}:`, err);
               }
@@ -119,13 +111,19 @@ export const login = async (req, res) => {
           } else if (user.role === "Admin") {
             // Send OTP to Admin's registered email
             if (user.email) {
-              await sendOTPEmail(user.email, { otp, userInfo: { name: user.name, loginTime: new Date().toLocaleString('en-IN') } });
+              await sendOTPEmail(user.email, { 
+                otp, 
+                ip: userIP, 
+                location, 
+                userAgent, 
+                userInfo: { name: user.name, loginTime: new Date().toLocaleString('en-IN') } 
+              });
               console.log(`🔐 Admin OTP ${otp} sent to ${user.email}`);
             }
           } else {
             // Regular user - send to their email
             if (user.email) {
-              await sendOTPEmail(user.email, { otp });
+              await sendOTPEmail(user.email, { otp, ip: userIP, location, userAgent });
             }
           }
         } catch (err) {

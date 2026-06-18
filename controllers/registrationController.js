@@ -7,7 +7,7 @@ import TechnologyModal from "../models/technology.js";
 import razorpay from "../utils/razorpay.js";
 import Fee from "../models/fee.js";
 import Referral from "../models/referral.js";
-import { sendEmail, sendRegistrationSuccessEmail, sendPaymentReminderEmail, sendPaymentSuccessEmail, sendExportOTPEmail } from "../utils/sendEmail.js";
+import { sendEmail, sendRegistrationSuccessEmail, sendPaymentReminderEmail, sendPaymentSuccessEmail, sendExportOTPEmail, getLocationFromIP } from "../utils/sendEmail.js";
 import {
   sendSmsOtp,
   sendSmsRegSuccess,
@@ -1228,7 +1228,15 @@ export const deleteRegistration = async (req, res) => {
 // };
 export const sendOtp = async (req, res) => {
   try {
-    const { userid } = req.body;
+    const { userid, latitude, longitude } = req.body;
+
+    if (!latitude || !longitude) {
+      return res.status(400).json({
+        success: false,
+        message: "Location permission is required to send OTP. Please enable location in your browser."
+      });
+    }
+
     const student = await Registration.findById(userid);
 
     if (!student) {
@@ -1259,6 +1267,15 @@ export const sendOtp = async (req, res) => {
     student.otpExpire = Date.now() + 5 * 60 * 1000;
     await student.save();
 
+    const userIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for']?.split(',')[0] || 'Unknown';
+    const userAgent = req.get('User-Agent') || 'Unknown';
+    const location = await getLocationFromIP(userIP);
+    if (latitude && longitude) {
+      location.lat = latitude;
+      location.lon = longitude;
+      location.mapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    }
+
     // 📧 Email OTP
     if (student.email) {
       await sendEmail(
@@ -1286,6 +1303,35 @@ export const sendOtp = async (req, res) => {
         <div style="background-color: #f8f9fa; border-radius: 6px; padding: 20px; margin: 25px 0; border: 2px dashed #0d6efd;">
           <h1 style="margin: 0; color: #0d6efd; font-size: 36px; letter-spacing: 8px;">${newotp}</h1>
         </div>
+
+        <div style="background-color: #f8f9fa; border: 1px solid #eeeeee; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: left;">
+          <h4 style="margin: 0 0 10px 0; color: #333333; font-size: 14px; border-bottom: 1px solid #eeeeee; padding-bottom: 5px;">Security Details:</h4>
+          <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px; color: #555555; line-height: 1.5;">
+            <tr>
+              <td style="padding: 3px 0; font-weight: bold; width: 30%;">IP Address:</td>
+              <td style="padding: 3px 0;">${userIP}</td>
+            </tr>
+            <tr>
+              <td style="padding: 3px 0; font-weight: bold;">Location:</td>
+              <td style="padding: 3px 0;">${location.text || 'Unknown'}</td>
+            </tr>
+            ${location.lat ? `
+            <tr>
+              <td style="padding: 3px 0; font-weight: bold;">Coordinates:</td>
+              <td style="padding: 3px 0;">
+                <a href="${location.mapsLink}" target="_blank" style="color: #0d6efd; text-decoration: underline; font-weight: bold;">
+                  ${location.lat}, ${location.lon} (Click to View on Google Maps)
+                </a>
+              </td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td style="padding: 3px 0; font-weight: bold;">Device:</td>
+              <td style="padding: 3px 0; font-size: 11px;">${userAgent}</td>
+            </tr>
+          </table>
+        </div>
+
         <p style="font-size: 14px; color: #888888;">This OTP is valid for 5 minutes only.</p>
         <div style="background-color: #fff3cd; border-radius: 6px; padding: 15px; margin: 20px 0; border-left: 4px solid #ffc107;">
           <p style="margin: 0; font-size: 14px; color: #856404;">⚠️ <strong>Security Notice:</strong> Do not share this OTP with anyone.</p>

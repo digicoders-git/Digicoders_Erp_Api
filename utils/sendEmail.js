@@ -1,75 +1,60 @@
-import nodemailer from "nodemailer";
+import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
 
-const getEnvString = (val, fallback) => {
-  if (!val) return fallback;
-  const trimmed = val.trim();
-  return trimmed === "" ? fallback : trimmed;
-};
+// Helper function to get location from IP
+export const getLocationFromIP = async (ip) => {
+  try {
+    let url = `http://ip-api.com/json/${ip}`;
+    // If it's a local/loopback/private IP, fetch without specifying the IP to get the server's public IP location
+    if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.')) {
+      url = `http://ip-api.com/json/`;
+    }
 
-// Create transporter helper
-const createTransporter = (port, secure) => {
-  return nodemailer.createTransport({
-    host: getEnvString(process.env.EMAIL_HOST, "mail.digicoders.in"),
-    port: port,
-    secure: secure,
-    auth: {
-      user: getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in"),
-      pass: getEnvString(process.env.EMAIL_PASS, "Zxi{n@^Q;@=Z?tIa")
-    },
-    tls: {
-      rejectUnauthorized: false // bypass SSL verification issues common with custom SMTP domains
-    },
-    connectionTimeout: 4000, // Fail fast (4s) so fallback can be attempted quickly
-    greetingTimeout: 4000,
-    socketTimeout: 4000
-  });
+    const response = await axios.get(url, { timeout: 2000 });
+    if (response.data.status === 'success') {
+      return {
+        text: `${response.data.city}, ${response.data.regionName}, ${response.data.country}`,
+        lat: response.data.lat,
+        lon: response.data.lon,
+        mapsLink: `https://www.google.com/maps/search/?api=1&query=${response.data.lat},${response.data.lon}`
+      };
+    }
+    return {
+      text: 'Unknown Location',
+      lat: null,
+      lon: null,
+      mapsLink: null
+    };
+  } catch (error) {
+    console.error('Location fetch error:', error.message);
+    return {
+      text: 'Location Unavailable',
+      lat: null,
+      lon: null,
+      mapsLink: null
+    };
+  }
 };
-
-// Create secure (port 465) and STARTTLS (port 587) transporters once at module level
-const secureTransporter = createTransporter(465, true);
-const starttlsTransporter = createTransporter(587, false);
 
 export const sendEmail = async (to, subject, html) => {
   // Execute email sending asynchronously in the background so it never blocks HTTP responses
   // and prevents frontend / user client timeout errors.
   Promise.resolve().then(async () => {
-    const envPort = parseInt(process.env.EMAIL_PORT) || 465;
-    const isSecure = process.env.SMTP_SECURE !== 'false';
-
-    let primaryTransporter;
-    let fallbackTransporter;
-
-    if (envPort === 587 || !isSecure) {
-      primaryTransporter = starttlsTransporter;
-      fallbackTransporter = secureTransporter;
-    } else {
-      primaryTransporter = secureTransporter;
-      fallbackTransporter = starttlsTransporter;
-    }
-
     try {
-      await primaryTransporter.sendMail({
-        from: `"DigiCoders Technologies" <${getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in")}>`,
+      const response = await axios.post("https://thedigicoders.com/Apis/V1/send_html_email", {
         to,
         subject,
-        html,
+        html_content: html,
+        from_name: "DigiCoders Team"
       });
-      console.log("✅ Email sent to:", to);
-    } catch (err) {
-      console.warn(`⚠️ [SMTP] Primary connection failed: ${err.message}. Trying fallback transport...`);
-      try {
-        await fallbackTransporter.sendMail({
-          from: `"DigiCoders Technologies" <${getEnvString(process.env.EMAIL_USER, "alerts@digicoders.in")}>`,
-          to,
-          subject,
-          html,
-        });
-        console.log("✅ Email sent via fallback to:", to);
-      } catch (fallbackErr) {
-        console.error("❌ [SMTP] Email sending failed completely (both primary and fallback failed):", fallbackErr);
+      if (response.data && response.data.res === "success") {
+        console.log(`✅ Email sent successfully via API to: ${to}`);
+      } else {
+        console.warn(`⚠️ API email send failed for ${to}:`, response.data);
       }
+    } catch (err) {
+      console.error(`❌ API email send error for ${to}:`, err.message);
     }
   });
 };
@@ -278,6 +263,36 @@ export const sendOTPEmail = async (to, data) => {
       <h2 style="margin: 0; color: #0046b8; font-size: 32px; font-weight: bold; letter-spacing: 4px;">${data.otp}</h2>
     </div>
 
+    <div style="background-color: #f8f9fa; border: 1px solid #eeeeee; padding: 15px; border-radius: 6px; margin: 20px 0; text-align: left;">
+      <h4 style="margin: 0 0 10px 0; color: #333333; font-size: 14px; border-bottom: 1px solid #eeeeee; padding-bottom: 5px;">Security Details:</h4>
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px; color: #555555; line-height: 1.5;">
+        <tr>
+          <td style="padding: 3px 0; font-weight: bold; width: 30%;">IP Address:</td>
+          <td style="padding: 3px 0;">${data.ip || 'Unknown'}</td>
+        </tr>
+        <tr>
+          <td style="padding: 3px 0; font-weight: bold;">Location:</td>
+          <td style="padding: 3px 0;">${data.location && typeof data.location === 'object' ? data.location.text : (data.location || 'Unknown')}</td>
+        </tr>
+        ${data.location && typeof data.location === 'object' && data.location.lat ? `
+        <tr>
+          <td style="padding: 3px 0; font-weight: bold;">Coordinates:</td>
+          <td style="padding: 3px 0;">
+            <a href="${data.location.mapsLink}" target="_blank" style="color: #0d6efd; text-decoration: underline; font-weight: bold;">
+              ${data.location.lat}, ${data.location.lon} (Click to View on Google Maps)
+            </a>
+          </td>
+        </tr>
+        ` : ''}
+        ${data.userAgent ? `
+        <tr>
+          <td style="padding: 3px 0; font-weight: bold;">Device:</td>
+          <td style="padding: 3px 0; font-size: 11px;">${data.userAgent}</td>
+        </tr>
+        ` : ''}
+      </table>
+    </div>
+
     ${isAdmin ? `
     <div style="background-color: #e3f2fd; border: 1px solid #90caf9; padding: 15px; border-radius: 4px; margin: 20px 0;">
       <p style="margin: 0; color: #0d47a1; font-size: 13px;">
@@ -301,41 +316,8 @@ export const sendOTPEmail = async (to, data) => {
 };
 
 export const sendLoginAlertEmail = async (to, data) => {
-  const isAdmin = data.isAdmin || false;
-  
-  const content = `
-    <p style="margin-top: 0;">Dear ${isAdmin ? 'Admin' : 'Security Team'},</p>
-    <p>${isAdmin 
-      ? 'Your Admin account has been successfully accessed. Below are the login details for your records:'
-      : 'A new login attempt has been detected on the DigiCoders ERP System.'}</p>
-    
-    <div style="margin: 25px 0; border: 1px solid #eeeeee; padding: 20px; background-color: #fafafa;">
-      <h3 style="margin: 0 0 15px 0; color: #0046b8; font-size: 14px; text-transform: uppercase;">${isAdmin ? 'Admin Login Confirmation' : 'Login Details'}</h3>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 14px;">
-        <tr><td style="padding: 5px 0; color: #666666; width: 30%;">Account:</td><td style="padding: 5px 0; color: #333333; font-weight: bold;">${data.email}</td></tr>
-        <tr><td style="padding: 5px 0; color: #666666;">Login Time:</td><td style="padding: 5px 0; color: #333333;">${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td></tr>
-        <tr><td style="padding: 5px 0; color: #666666;">IP Address:</td><td style="padding: 5px 0; color: #333333;">${data.ip}</td></tr>
-        ${data.location ? `<tr><td style="padding: 5px 0; color: #666666;">Location:</td><td style="padding: 5px 0; color: #333333;">${data.location}</td></tr>` : ''}
-        ${data.userAgent ? `<tr><td style="padding: 5px 0; color: #666666;">Device Info:</td><td style="padding: 5px 0; color: #333333; font-size: 12px;">${data.userAgent}</td></tr>` : ''}
-      </table>
-    </div>
-
-    ${isAdmin ? `
-    <div style="background-color: #e8f5e8; border: 1px solid #4caf50; padding: 15px; border-radius: 4px; margin: 20px 0;">
-      <p style="margin: 0; color: #2e7d32; font-size: 13px;">
-        <strong>✅ Security Status:</strong> Login successful. If this was not you, please change your password immediately and contact the Super Admin.
-      </p>
-    </div>
-    ` : ''}
-
-    <p>${isAdmin 
-      ? 'This is an automated security confirmation for your Admin account access.'
-      : 'This is an automated security notification. If this login attempt was not authorized, please take immediate action.'}</p>
-
-    <p style="margin: 0;">Regards,</p>
-    <p style="margin: 5px 0 0 0;"><strong>${isAdmin ? 'Admin Security System' : 'Security System'}</strong><br>DigiCoders Technologies Pvt. Ltd.</p>
-  `;
-  await sendEmail(to, `${isAdmin ? '🔓 Admin Login Confirmation' : '🔐 Login Alert'} - DigiCoders ERP`, getBaseTemplate("Security Alert", content));
+  // Disabled as per user request to stop the second confirmation email from going out.
+  return;
 };
 
 export const sendExportOTPEmail = async (to, data) => {
