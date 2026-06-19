@@ -1128,31 +1128,54 @@ export const updateRegistrationStatus = async (req, res) => {
       });
     }
 
+    // Find the existing student
+    const student = await Registration.findById(id);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Registration not found",
+      });
+    }
+
     // Build update object
     const updateData = {};
     if (status) updateData.status = status;
-    // if (acceptStatus) updateData.acceptStatus = acceptStatus;
-    if (status === "accepted") updateData.tnxStatus = "paid";
-    if (status === "rejected") {
-      updateData.tnxStatus = "failed";
-      updateData.trainingFeeStatus = "pending";
-      await Fee.updateMany({ registrationId: id }, { tnxStatus: "failed" });
+    updateData.verifiedBy = user._id;
+
+    if (status === "accepted") {
+      // 1. Automatically accept all registration / initial fee records for this student
+      await Fee.updateMany(
+        { registrationId: id, status: { $in: ["new", "rejected", "pending"] } },
+        { status: "accepted", tnxStatus: "paid", verifiedBy: user._id }
+      );
+
+      // 2. Fetch all accepted fee records for this student and sum them up
+      const acceptedFees = await Fee.find({ registrationId: id, status: "accepted" });
+      const totalPaid = acceptedFees.reduce((sum, f) => sum + (f.amount || 0), 0);
+
+      updateData.paidAmount = totalPaid;
+      updateData.dueAmount = Math.max((student.finalFee || 0) - totalPaid, 0);
+      updateData.trainingFeeStatus = totalPaid >= (student.finalFee || 0) ? "full paid" : (totalPaid > 0 ? "partial" : "pending");
+      updateData.tnxStatus = totalPaid >= (student.finalFee || 0) ? "full paid" : "paid";
     }
 
-    // Set verifiedBy to current user
-    updateData.verifiedBy = user._id;
+    if (status === "rejected") {
+      // Reject related Fee records
+      await Fee.updateMany(
+        { registrationId: id },
+        { status: "rejected", tnxStatus: "failed" }
+      );
+      updateData.tnxStatus = "failed";
+      updateData.trainingFeeStatus = "pending";
+      updateData.paidAmount = 0;
+      updateData.dueAmount = student.finalFee || 0;
+    }
 
     const updatedRegistration = await Registration.findByIdAndUpdate(
       id,
       updateData,
       { new: true, runValidators: true },
     );
-    if (!updatedRegistration) {
-      return res.status(404).json({
-        success: false,
-        message: "Registration not found",
-      });
-    }
 
     res.status(200).json({
       success: true,
