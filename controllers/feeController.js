@@ -472,7 +472,9 @@ export const getallPayments = async (req, res) => {
     let effectiveBranch = null;
 
     if (loggedInUser.role !== "Super Admin") {
-      effectiveBranch = loggedInUser.branch; // force user branch
+      if (loggedInUser.email !== "ankul@gmail.com") {
+        effectiveBranch = loggedInUser.branch; // force user branch
+      }
     } else if (branch) {
       effectiveBranch = branch; // super admin selected branch
     }
@@ -517,7 +519,20 @@ export const getallPayments = async (req, res) => {
       { $unwind: "$registration" },
 
       // 🔐 BRANCH FILTER (APPLIED BEFORE POPULATION)
-      ...(effectiveBranch
+      ...(loggedInUser.email === "ankul@gmail.com"
+        ? [
+          {
+            $match: {
+              "registration.branch": {
+                $in: [
+                  new mongoose.Types.ObjectId("69eb32bc8e8bb1433f7cbc25"),
+                  new mongoose.Types.ObjectId("69eb32d28e8bb1433f7cbc4e")
+                ]
+              },
+            },
+          },
+        ]
+        : effectiveBranch
         ? [
           {
             $match: {
@@ -628,7 +643,20 @@ export const getallPayments = async (req, res) => {
       },
       { $unwind: "$registration" },
 
-      ...(effectiveBranch
+      ...(loggedInUser.email === "ankul@gmail.com"
+        ? [
+          {
+            $match: {
+              "registration.branch": {
+                $in: [
+                  new mongoose.Types.ObjectId("69eb32bc8e8bb1433f7cbc25"),
+                  new mongoose.Types.ObjectId("69eb32d28e8bb1433f7cbc4e")
+                ]
+              },
+            },
+          },
+        ]
+        : effectiveBranch
         ? [
           {
             $match: {

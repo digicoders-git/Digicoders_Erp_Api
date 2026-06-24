@@ -5,6 +5,7 @@ import EmployeePermission from "../models/EmployeePermission.js";
 import Registration from "../models/regsitration.js";
 import Teacher from "../models/teachers.js";
 import crypto from "crypto";
+import mongoose from "mongoose";
 
 export const auth = async (req, res, next) => {
   try {
@@ -79,6 +80,21 @@ export const auth = async (req, res, next) => {
         success: false,
         message: "Account is inactive",
       });
+    }
+
+    // 🛠️ Special Customization for Ankul (email: ankul@gmail.com) to access both Aliganj & Online branches dynamically
+    if (user && user.email === "ankul@gmail.com") {
+      const branchAliganj = "69eb32bc8e8bb1433f7cbc25";
+      const branchOnline = "69eb32d28e8bb1433f7cbc4e";
+      const allowedBranches = [branchAliganj, branchOnline];
+
+      const targetBranchId = req.body?.branch || req.query?.branch || req.params?.branchId || req.params?.branch || req.headers?.['x-target-branch'];
+      if (targetBranchId && allowedBranches.includes(targetBranchId.toString())) {
+        user.branch = {
+          _id: new mongoose.Types.ObjectId(targetBranchId.toString()),
+          toString: function() { return this._id.toString(); }
+        };
+      }
     }
 
     // For Employee and Admin roles, fetch permissions
@@ -195,7 +211,18 @@ export const filterByBranch = (model) => {
     // For Admin and Employee, filter by their branch
     if (user.branch) {
       // For mongoose queries, we can attach this to the request
-      req.branchFilter = { branch: user.branch?._id || user.branch };
+      if (user.email === "ankul@gmail.com") {
+        req.branchFilter = {
+          branch: {
+            $in: [
+              new mongoose.Types.ObjectId("69eb32bc8e8bb1433f7cbc25"),
+              new mongoose.Types.ObjectId("69eb32d28e8bb1433f7cbc4e")
+            ]
+          }
+        };
+      } else {
+        req.branchFilter = { branch: user.branch?._id || user.branch };
+      }
     }
 
     next();

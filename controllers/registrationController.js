@@ -697,7 +697,16 @@ export const getAllRegistrations = async (req, res) => {
     // 🔐 Role based branch restriction (FINAL)
     if (logdInUser.role !== "Super Admin") {
       // Admin & Employee → only their own branch
-      filter.branch = new mongoose.Types.ObjectId(logdInUser.branch);
+      if (logdInUser.email === "ankul@gmail.com") {
+        filter.branch = {
+          $in: [
+            new mongoose.Types.ObjectId("69eb32bc8e8bb1433f7cbc25"),
+            new mongoose.Types.ObjectId("69eb32d28e8bb1433f7cbc4e")
+          ]
+        };
+      } else {
+        filter.branch = new mongoose.Types.ObjectId(logdInUser.branch);
+      }
     } else {
       // Super Admin → can filter by any branch
       if (branch && branch !== "All") {

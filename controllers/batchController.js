@@ -1,6 +1,7 @@
 import Batch from "../models/batchs.js";
 import Teacher from "../models/teachers.js";
 import Registration from "../models/regsitration.js"; // Student Model
+import mongoose from "mongoose";
 
 // ➤ Create Batch
 export const createBatch = async (req, res) => {
@@ -109,7 +110,14 @@ export const getBatches = async (req, res) => {
 
     // 🔐 Role based branch/teacher restriction
     if (loggedInUser.role === "Employee" || loggedInUser.role === "Admin") {
-      if (loggedInUser.role === "Employee") {
+      if (loggedInUser.email === "ankul@gmail.com") {
+        filter.branch = {
+          $in: [
+            new mongoose.Types.ObjectId("69eb32bc8e8bb1433f7cbc25"),
+            new mongoose.Types.ObjectId("69eb32d28e8bb1433f7cbc4e")
+          ]
+        };
+      } else if (loggedInUser.role === "Employee") {
         // Find if this employee is also a teacher (by phone)
         const teacherDoc = await Teacher.findOne({ phone: loggedInUser.phone, isActive: true });
         
