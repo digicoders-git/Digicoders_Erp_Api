@@ -1018,8 +1018,7 @@ export const getPaymentsByEnrollSuffix = async (req, res) => {
     const registrations = await Registration.find({
       userid: { $regex: `-${digits}$`, $options: "i" },
     })
-      .select("studentName userid email mobile fatherName collegeName totalFee finalFee paidAmount dueAmount trainingFeeStatus")
-      .populate("collegeName", "name")
+      .select("studentName userid totalFee finalFee paidAmount dueAmount trainingFeeStatus")
       .populate("training", "name")
       .populate("technology", "name")
       .lean();
