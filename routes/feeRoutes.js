@@ -12,12 +12,16 @@ import {
   verifyFeePaymentLink,
   handleFeePaymentCallback, 
   reminder,
-  editPayment
+  editPayment,
+  getPaymentsByEnrollSuffix
 } from "../controllers/feeController.js";
 import { auth } from '../middleware/auth.js';
 import upload from "../middleware/upload.js";
 const router = express.Router();
 // router.use(auth);
+
+// 🔓 PUBLIC route - no auth needed
+router.get("/public/enroll/:digits", getPaymentsByEnrollSuffix);
 
 router.post("/", upload.single("image"), auth, recordPayment);
 router.get("/verify-payment-link", verifyFeePaymentLink);

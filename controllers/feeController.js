@@ -1,6 +1,7 @@
 // controllers/feeController.js
 import Registration from "../models/regsitration.js";
 import Fee from "../models/fee.js";
+import { syncRegistrationFees } from "../helpers/syncFee.js";
 import mongoose from "mongoose";
 import { sendSmsInstallmentReceived, sendSmsOtp, sendSmsFeeReminder } from "../utils/sendSMS.js";
 import { sendEmail, sendInstallmentReceivedEmail, sendPaymentSuccessEmail, sendFeeReminderEmail } from "../utils/sendEmail.js";
@@ -171,27 +172,12 @@ export const recordPayment = async (req, res) => {
 
     const fee = await Fee.create(feeData);
 
-    // Update registration payment status (sirf non-payment_link aur non-pending modes mein)
-    if (mode !== "payment_link" && finalTnxStatus !== "pending") {
-      registration.paidAmount = paidAmount;
-      registration.dueAmount = dueAmount;
-      
-      // Auto-update training fee status based on due amount
+        if (mode !== "payment_link" && finalTnxStatus !== "pending") {
+      await syncRegistrationFees(registration._id);
       if (dueAmount === 0) {
-        registration.trainingFeeStatus = "full paid";
-        registration.tnxStatus = "full paid";
-        // Update current fee record to show full paid status
         fee.tnxStatus = "full paid";
         await fee.save();
-      } else if (paidAmount > 0) {
-        registration.trainingFeeStatus = "partial";
-        registration.tnxStatus = "paid";
-      } else {
-        registration.trainingFeeStatus = "pending";
-        registration.tnxStatus = "pending";
       }
-      
-      await registration.save();
     }
 
     // Send notifications for successful payment
@@ -257,25 +243,7 @@ export const verifyFeePaymentLink = async (req, res) => {
 
         // Update registration payment status
         if (registration) {
-          registration.paidAmount = Number(registration.paidAmount) + paid;
-          registration.dueAmount = newDue;
-          
-          // Auto-update training fee status based on due amount
-          if (newDue === 0) {
-            registration.trainingFeeStatus = "full paid";
-            registration.tnxStatus = "full paid";
-            // Ensure fee record also shows full paid
-            feeRecord.tnxStatus = "full paid";
-            await feeRecord.save();
-          } else if (registration.paidAmount > 0) {
-            registration.trainingFeeStatus = "partial";
-            registration.tnxStatus = "paid";
-          } else {
-            registration.trainingFeeStatus = "pending";
-            registration.tnxStatus = "pending";
-          }
-          
-          await registration.save();
+          await syncRegistrationFees(registration._id);
 
           // Send confirmation
           try {
@@ -463,6 +431,7 @@ export const getallPayments = async (req, res) => {
       mode,
       status,
       qrcode,
+      paidByRole,
     } = req.query;
 
     const skip = (page - 1) * limit;
@@ -487,6 +456,12 @@ export const getallPayments = async (req, res) => {
     if (paymentType) match.paymentType = paymentType;
     if (mode) match.mode = mode;
     if (qrcode) match.qrcode = new mongoose.Types.ObjectId(qrcode);
+
+    if (paidByRole === "admin") {
+      match.paidBy = { $exists: true, $ne: null };
+    } else if (paidByRole === "student") {
+      match.$or = [{ paidBy: { $exists: false } }, { paidBy: null }];
+    }
 
     // 💰 Paid Amount
     if (minPaid || maxPaid) {
@@ -1027,6 +1002,74 @@ export const reminder = async (req, res) => {
 };
 
 // Add edit payment endpoint
+// PUBLIC: Search payment history by last 4 digits of enrollment number
+export const getPaymentsByEnrollSuffix = async (req, res) => {
+  try {
+    const { digits } = req.params;
+
+    if (!digits || !/^\d{4}$/.test(digits)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide exactly 4 digits of your enrollment number",
+      });
+    }
+
+    // Find registrations whose userid ends with the given 4 digits
+    const registrations = await Registration.find({
+      userid: { $regex: `-${digits}$`, $options: "i" },
+    })
+      .select("studentName userid email mobile fatherName collegeName totalFee finalFee paidAmount dueAmount trainingFeeStatus")
+      .populate("collegeName", "name")
+      .populate("training", "name")
+      .populate("technology", "name")
+      .lean();
+
+    if (!registrations || registrations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No student found with these enrollment digits",
+      });
+    }
+
+    // Fetch fees for all matched registrations
+    const results = await Promise.all(
+      registrations.map(async (reg) => {
+        const fees = await Fee.find({
+          registrationId: reg._id,
+          status: { $ne: "rejected" },
+        })
+          .select("amount paymentType mode tnxStatus receiptNo paymentDate installmentNo remark finalFee totalFee paidAmount dueAmount")
+          .sort({ paymentDate: 1 })
+          .lean();
+
+        return {
+          student: reg,
+          fees,
+          summary: {
+            totalFee: reg.finalFee || reg.totalFee,
+            totalPaid: reg.paidAmount,
+            totalDue: reg.dueAmount,
+            paymentStatus: reg.trainingFeeStatus,
+            paymentCount: fees.length,
+          },
+        };
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    console.error("getPaymentsByEnrollSuffix error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching payment records",
+      error: error.message,
+    });
+  }
+};
+
 export const editPayment = async (req, res) => {
   try {
     const { id } = req.params;
@@ -1077,21 +1120,12 @@ export const editPayment = async (req, res) => {
     
     // Update registration amounts if payment was accepted
     if (feeRecord.status === 'accepted') {
-      registration.paidAmount = Number(registration.paidAmount) + difference;
-      registration.dueAmount = Math.max(Number(registration.dueAmount) - difference, 0);
-      
-      // Update payment status based on new amounts
+      await syncRegistrationFees(registration._id);
       if (registration.dueAmount === 0) {
-        registration.trainingFeeStatus = 'full paid';
-        registration.tnxStatus = 'full paid';
         feeRecord.tnxStatus = 'full paid';
       } else if (registration.paidAmount > 0) {
-        registration.trainingFeeStatus = 'partial';
-        registration.tnxStatus = 'paid';
         feeRecord.tnxStatus = 'paid';
       }
-      
-      await registration.save();
       await feeRecord.save();
     }
     
