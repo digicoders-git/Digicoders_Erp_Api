@@ -458,9 +458,9 @@ export const getallPayments = async (req, res) => {
     if (qrcode) match.qrcode = new mongoose.Types.ObjectId(qrcode);
 
     if (paidByRole === "admin") {
-      match.paidBy = { $exists: true, $ne: null };
-    } else if (paidByRole === "student") {
       match.$or = [{ paidBy: { $exists: false } }, { paidBy: null }];
+    } else if (paidByRole === "student") {
+      match.paidBy = { $exists: true, $ne: null };
     }
 
     // 💰 Paid Amount

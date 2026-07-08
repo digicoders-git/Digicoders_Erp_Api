@@ -51,6 +51,7 @@ export const addRegistration = async (req, res) => {
       offerValue,
       offerDescription,
       offerValidTill,
+      gender,
     } = req.body;
 
     // Get technology price if amount not provided
@@ -198,6 +199,7 @@ export const addRegistration = async (req, res) => {
       hrName,
       branch,
       collegeName,
+      gender,
       totalFee,
       discount,
       discountRemark,
@@ -656,15 +658,40 @@ export const getAllRegistrations = async (req, res) => {
       hrName,
       startDate, // Add start date
       endDate, // Add end date
+      certificateIssued, // Add certificate issued
+      hasDue, // Add has due
+      isJoin,
+      source, // NEW filter for panel vs direct
     } = req.query;
 
     // Build filter object
     const filter = {};
     const logdInUser = req.user;
+    // Source filter (admin vs direct)
+    if (source === "panel") {
+      filter.registeredBy = { $ne: null };
+    } else if (source === "direct") {
+      filter.registeredBy = null;
+    }
+
     // Status filters
     if (status && status !== "All") filter.status = status;
     if (acceptStatus && acceptStatus !== "All")
       filter.acceptStatus = acceptStatus;
+    if (certificateIssued !== undefined && certificateIssued !== "All") {
+      const isIssued = certificateIssued === 'true' || certificateIssued === true;
+      if (isIssued) {
+        filter.certificateIssued = true;
+      } else {
+        filter.certificateIssued = { $ne: true };
+      }
+    }
+    if (hasDue === 'true' || hasDue === true) {
+      filter.dueAmount = { $gt: 0 };
+    }
+    if (isJoin !== undefined && isJoin !== "All") {
+      filter.isJoin = isJoin === 'true' || isJoin === true;
+    }
     // Date range filter - FIXED
     if (startDate || endDate) {
       filter.createdAt = {};
@@ -878,6 +905,7 @@ export const updateRegistration = async (req, res) => {
       amount,
       paidFee,
       dueFee,
+      registeredBy,
     } = body;
 
     if (!id) {
@@ -972,6 +1000,7 @@ export const updateRegistration = async (req, res) => {
     if (batch) student.batch = batch;
     if (qrcode) student.qrcode = qrcode;
     if (typeof isStatus !== "undefined") student.isStatus = isStatus;
+    if (registeredBy) student.registeredBy = registeredBy;
     
     // ✅ Transaction ID uniqueness validation
     if (tnxId && tnxId !== student.tnxId) {
@@ -1017,8 +1046,18 @@ export const updateRegistration = async (req, res) => {
       }
     }
     if (typeof discount !== "undefined" && discount !== "") {
-      student.discount = Number(discount);
-      student.finalFee = student.totalFee - Number(discount);
+      const parsedDiscount = Number(discount);
+      const possibleFinalFee = student.totalFee - parsedDiscount;
+      const currentPaid = student.paidAmount || 0;
+      
+      // Prevent discount from making finalFee less than what is already paid
+      if (possibleFinalFee < currentPaid) {
+         student.discount = student.totalFee - currentPaid;
+         student.finalFee = currentPaid;
+      } else {
+         student.discount = parsedDiscount;
+         student.finalFee = possibleFinalFee;
+      }
       student.dueAmount = Math.max(student.finalFee - student.paidAmount, 0);
       
       // Auto-update training fee status after discount change
@@ -1195,6 +1234,124 @@ export const updateRegistrationStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating registration status",
+      error: error.message,
+    });
+  }
+};
+
+// Update certificate status
+
+// Update join status
+export const updateJoinStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isJoin } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Registration ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID format",
+      });
+    }
+
+    const student = await Registration.findById(id);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Registration not found",
+      });
+    }
+
+    const updateData = {
+      isJoin: !!isJoin,
+    };
+
+    if (isJoin && !student.joiningData) {
+      updateData.joiningData = Date.now();
+    }
+
+    const updatedRegistration = await Registration.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Training join status updated successfully",
+      data: updatedRegistration,
+    });
+  } catch (error) {
+    console.error("Update join status error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating join status",
+      error: error.message,
+    });
+  }
+};
+
+export const updateCertificateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { certificateIssued } = req.body;
+    const user = req.user;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Registration ID is required",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ID format",
+      });
+    }
+
+    // Find the existing student
+    const student = await Registration.findById(id);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Registration not found",
+      });
+    }
+
+    // Build update object
+    const updateData = {
+      certificateIssued: !!certificateIssued
+    };
+
+    if (certificateIssued) {
+      updateData.isJoin = true;
+      updateData.joiningData = Date.now();
+    }
+
+    const updatedRegistration = await Registration.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Certificate status updated successfully",
+      data: updatedRegistration,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating certificate status",
       error: error.message,
     });
   }
@@ -1938,6 +2095,11 @@ export const RegistrationByWebDirect = async (req, res) => {
       branch,
       collegeName,
       paymentType,
+      gender,
+      hrName,
+      amount,
+      tnxId,
+      paymentMethod,
     } = req.body;
 
     const files = req.files || {};
@@ -1984,7 +2146,8 @@ export const RegistrationByWebDirect = async (req, res) => {
       collegeName,
       totalFee,
       finalFee,
-      // amount is left undefined
+      amount: amount ? Number(amount) : undefined,
+      tnxId,
       image: imageUrl,
       status: "new",
       paidAmount: 0,
@@ -1992,7 +2155,9 @@ export const RegistrationByWebDirect = async (req, res) => {
       tnxStatus: "pending",
       trainingFeeStatus: "pending",
       paymentType: safePaymentType,
-      paymentMethod: "cash",
+      paymentMethod: paymentMethod || "cash",
+      gender,
+      hrName,
     });
 
     const savedRegistration = await newRegistration.save();
@@ -2204,8 +2369,8 @@ export const logout = async (req, res) => {
 
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
-    const { otp, branch, technologies, status, educations, colleges } = req.body;
-    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations, colleges });
+    const { otp, branch, technologies, status, educations, colleges, hasDue, certificateIssued } = req.body;
+    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations, colleges, hasDue, certificateIssued });
     console.log("🔍 [DEBUG verify] Logged-in user from token:", req.user?._id);
 
     if (!otp) {
@@ -2261,6 +2426,18 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
       }
     } else {
       filter.status = "accepted"; // Default to accepted for backward compatibility
+    }
+
+    if (hasDue === true || hasDue === 'true') {
+      filter.dueAmount = { $gt: 0 };
+    }
+    
+    if (certificateIssued !== undefined) {
+      if (certificateIssued === true || certificateIssued === 'true') {
+        filter.certificateIssued = true;
+      } else if (certificateIssued === false || certificateIssued === 'false') {
+        filter.certificateIssued = { $ne: true };
+      }
     }
 
     // Branch restriction logic (just like in getAllRegistrations)

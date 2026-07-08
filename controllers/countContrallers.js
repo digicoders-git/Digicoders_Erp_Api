@@ -11,13 +11,14 @@ import Attendance from "../models/attendance.js";
 import Assignment from "../models/assignment.js";
 import Submission from "../models/submission.js";
 import Application from "../models/jobApplication.js";
+import Certification from "../models/certification.js";
 import mongoose from "mongoose";
 
 
 export const getAll = async (req, res) => {
   try {
     const loggedInUser = req.user;
-    const { eduYear } = req.query; // Add eduYear filter from query params
+    const { eduYear, sessionYear } = req.query; // Add eduYear and sessionYear filter from query params
 
     // 🔐 Branch filter logic - Super Admin and Admin see all data
     const isGlobalUser = ["Super Admin"].includes(loggedInUser.role);
@@ -28,7 +29,18 @@ export const getAll = async (req, res) => {
 
     // Add year filter if provided
     const yearFilter = eduYear && eduYear !== "All" && eduYear !== "" ? { eduYear } : {};
-    const combinedFilter = { ...branchFilter, ...yearFilter };
+    
+    let sessionFilter = {};
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+      const yearInt = parseInt(sessionYear);
+      sessionFilter = {
+        createdAt: {
+          $gte: new Date(`${yearInt}-01-01T00:00:00.000Z`),
+          $lte: new Date(`${yearInt}-12-31T23:59:59.999Z`)
+        }
+      };
+    }
+    const combinedFilter = { ...branchFilter, ...yearFilter, ...sessionFilter };
 
     // Check if Employee is a Teacher (by phone)
     let isTeacher = false;
@@ -54,34 +66,58 @@ export const getAll = async (req, res) => {
     }
 
     // Students (Registrations) - now with year filter
-    let studentsNew, studentsAccepted, studentsRejected, studentsPending, studentsAll;
+    let studentsNew, studentsAccepted, studentsRejected, studentsPending, studentsAll, studentsCertificateIssued, studentsDueFees, studentsTrainingJoined;
     if (isTeacher) {
       studentsNew = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "new" });
-      studentsAccepted = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted" });
+      studentsAccepted = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", certificateIssued: { $ne: true } });
       studentsRejected = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "rejected" });
       studentsPending = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, tnxStatus: "pending" });
       studentsAll = await Registration.countDocuments({ _id: { $in: teacherStudentIds } });
+      studentsCertificateIssued = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", certificateIssued: true });
+      studentsTrainingJoined = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", isJoin: true });
+      studentsDueFees = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", dueAmount: { $gt: 0 } });
     } else {
       studentsNew = await Registration.countDocuments({ status: "new", ...combinedFilter });
       studentsAccepted = await Registration.countDocuments({
         status: "accepted",
+        certificateIssued: { $ne: true },
         ...combinedFilter
       });
       studentsRejected = await Registration.countDocuments({
         status: "rejected",
         ...combinedFilter
       });
-      studentsNew = await Registration.countDocuments({ status: "new", ...combinedFilter });
       studentsPending = await Registration.countDocuments({ tnxStatus: "pending", ...combinedFilter });
       studentsAll = await Registration.countDocuments({ ...combinedFilter });
+      studentsCertificateIssued = await Registration.countDocuments({
+        status: "accepted",
+        certificateIssued: true,
+        ...combinedFilter
+      });
+      studentsTrainingJoined = await Registration.countDocuments({
+        status: "accepted",
+        isJoin: true,
+        ...combinedFilter
+      });
+      studentsDueFees = await Registration.countDocuments({
+        status: "accepted",
+        dueAmount: { $gt: 0 },
+        ...combinedFilter
+      });
     }
 
     // Fees (Payments)
-    const getFeeCountByStatus = async (status, loggedInUser, eduYear) => {
+    const getFeeCountByStatus = async (status, loggedInUser, eduYear, paidByRole, sessionYearParam) => {
       const matchStage = {};
 
       if (status !== "all") {
         matchStage.status = status;
+      }
+
+      if (paidByRole === "admin") {
+        matchStage.$or = [{ paidBy: { $exists: false } }, { paidBy: null }];
+      } else if (paidByRole === "student") {
+        matchStage.paidBy = { $exists: true, $ne: null };
       }
 
       if (isTeacher) {
@@ -97,6 +133,14 @@ export const getAll = async (req, res) => {
         // Add year filter if provided
         if (eduYear && eduYear !== "All" && eduYear !== "") {
           matchStage["registration.eduYear"] = eduYear;
+        }
+
+        if (sessionYearParam && sessionYearParam !== "All" && sessionYearParam !== "") {
+          const yearInt = parseInt(sessionYearParam);
+          matchStage["registration.createdAt"] = {
+            $gte: new Date(`${yearInt}-01-01T00:00:00.000Z`),
+            $lte: new Date(`${yearInt}-12-31T23:59:59.999Z`)
+          };
         }
       }
 
@@ -125,10 +169,12 @@ export const getAll = async (req, res) => {
     };
 
     // Fees (Payments) ✅ CORRECT - now with year filter
-    const feesNew = await getFeeCountByStatus("new", loggedInUser, eduYear);
-    const feesAccepted = await getFeeCountByStatus("accepted", loggedInUser, eduYear);
-    const feesRejected = await getFeeCountByStatus("rejected", loggedInUser, eduYear);
-    const feesAll = await getFeeCountByStatus("all", loggedInUser, eduYear);
+    const feesNew = await getFeeCountByStatus("new", loggedInUser, eduYear, null, sessionYear);
+    const feesNewAdmin = await getFeeCountByStatus("new", loggedInUser, eduYear, "admin", sessionYear);
+    const feesNewStudent = await getFeeCountByStatus("new", loggedInUser, eduYear, "student", sessionYear);
+    const feesAccepted = await getFeeCountByStatus("accepted", loggedInUser, eduYear, null, sessionYear);
+    const feesRejected = await getFeeCountByStatus("rejected", loggedInUser, eduYear, null, sessionYear);
+    const feesAll = await getFeeCountByStatus("all", loggedInUser, eduYear, null, sessionYear);
 
     //  Batch find
     let batchCount;
@@ -146,6 +192,11 @@ export const getAll = async (req, res) => {
     const technologyCount = isTeacher ? 0 : await TechnologyModal.countDocuments({ isActive: true });
     const tranningCount = isTeacher ? 0 : await TranningModal.countDocuments({ isActive: true });
 
+    // Certifications
+    const pendingCertification = await Certification.countDocuments({ status: "Pending", ...branchFilter });
+    const acceptedCertification = await Certification.countDocuments({ status: "Accepted", ...branchFilter });
+    const rejectedCertification = await Certification.countDocuments({ status: "Rejected", ...branchFilter });
+
     // Final response object
     const counts = {
       students: {
@@ -154,9 +205,14 @@ export const getAll = async (req, res) => {
         rejected: studentsRejected,
         pending: studentsPending,
         all: studentsAll,
+        certificateIssued: studentsCertificateIssued,
+        trainingJoined: studentsTrainingJoined,
+        dueFees: studentsDueFees,
       },
       fees: {
         new: feesNew,
+        newAdmin: feesNewAdmin,
+        newStudent: feesNewStudent,
         accepted: feesAccepted,
         rejected: feesRejected,
         all: feesAll,
@@ -168,6 +224,12 @@ export const getAll = async (req, res) => {
       manageHrCount,
       technologyCount,
       tranningCount,
+      certifications: {
+        pendingCertification,
+        acceptedCertification,
+        rejectedCertification,
+        all: pendingCertification + acceptedCertification + rejectedCertification, // Show total on main menu
+      }
     };
 
     res.status(200).json(counts);

@@ -37,6 +37,8 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import lmsRoutes from "./routes/lmsRoutes.js";
 import referralRoutes from "./routes/referralRoutes.js";
 import batchReminderRoutes from "./routes/batchReminderRoutes.js";
+import reportRoutes from "./routes/reportRoutes.js";
+import certificationRoutes from "./routes/certificationRoutes.js";
 import { scheduleBatchReminders } from "./utils/batchReminderScheduler.js";
 import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
 
@@ -106,14 +108,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({
-    message: "Something went wrong!",
-    ...(process.env.NODE_ENV === "development" && { error: err.message }),
-  });
-});
+// Error handling middleware moved to bottom
 
 // 404 handler
 // app.use('*', (req, res) => {
@@ -165,6 +160,17 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/lms", lmsRoutes);
 app.use("/api/referrals", referralRoutes);
 app.use("/api/batch-reminders", batchReminderRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/certification", certificationRoutes);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    success: false,
+    message: err.message || "Something went wrong!",
+    ...(process.env.NODE_ENV === "development" && { error: err.message, stack: err.stack }),
+  });
+});
 
 const PORT = process.env.PORT || 3002;
 

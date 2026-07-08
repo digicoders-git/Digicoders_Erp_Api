@@ -163,3 +163,27 @@ export const sendSmsReminder = async (mobile, message) => {
     throw error;
   }
 };
+
+export const sendSmsCertificateForm = async (mobile, studentName) => {
+  const url = "http://sms.digicoders.in/api/sendhttp.php";
+
+  const params = {
+    authkey: "370038Amo3cZx0h696a3f7dP1",
+    mobiles: `91${mobile}`,
+    message: `Dear ${studentName}, Complete your Certification Form from your Student Portal: https://student.thedigicoders.com - Team DigiCoders`,
+    sender: "DIGICO",
+    route: 4,
+    country: 91,
+    DLT_TE_ID: "1707178317186116743",
+  };
+
+  try {
+    const response = await axios.get(url, { params });
+
+    return response.data;
+  } catch (error) {
+    console.error("SMS Error:", error.message);
+    throw error;
+  }
+};
+

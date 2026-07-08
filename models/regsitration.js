@@ -22,6 +22,11 @@ const registrationSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    registrationType: {
+      type: String,
+      enum: ["Training", "Certificate Only", "Certificate + Project Report"],
+      default: "Training"
+    },
     training: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Tranning",

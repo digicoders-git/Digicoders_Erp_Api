@@ -26,8 +26,8 @@ const videoTypes = /mp4|avi|mov|wmv|flv|webm|mkv/;
 const audioTypes = /mp3|wav|ogg|mpeg/;
 
 // Fields where different file types are allowed
-const pdfAllowedFields = ["assignmentFiles", "cv", "aadharCard", "submittedFile"];
-const imageAllowedFields = ["profilePhoto", "image", "assignmentFiles", "submittedFile", "aadharCard", "thumbnail"];
+const pdfAllowedFields = ["assignmentFiles", "cv", "aadharCard", "submittedFile", "feeReceipt", "aadharFront", "aadharBack"];
+const imageAllowedFields = ["profilePhoto", "image", "assignmentFiles", "submittedFile", "aadharCard", "thumbnail", "feeReceipt", "aadharFront", "aadharBack"];
 const xlsxAllowedFields = ["importFile"];
 const videoAllowedFields = ["video"];
 const audioAllowedFields = ["sound"];

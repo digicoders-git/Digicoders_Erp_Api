@@ -17,6 +17,8 @@ import {
   getUserData,
   sendExportOtp,
   verifyExportOtpAndFetchData,
+  updateCertificateStatus,
+  updateJoinStatus,
 } from "../controllers/registrationController.js";
 import { bulkImportRegistrations } from "../controllers/bulkImportController.js";
 import { auth } from "../middleware/auth.js";
@@ -47,6 +49,9 @@ router.get("/user", auth, getRegistration);
 router.patch("/update/:id", auth, upload.fields([{ name: "profilePhoto", maxCount: 1 }, { name: "aadharCard", maxCount: 1 }, { name: "cv", maxCount: 1 },]), updateRegistration);
 
 router.patch("/status/:id", auth, updateRegistrationStatus);
+
+router.patch("/certificate/:id", auth, updateCertificateStatus);
+router.patch("/join/:id", auth, updateJoinStatus);
 
 router.delete("/user/:id", auth, deleteRegistration);
 
