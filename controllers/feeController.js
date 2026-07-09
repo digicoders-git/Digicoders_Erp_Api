@@ -555,12 +555,6 @@ export const getallPayments = async (req, res) => {
           as: "registration.batch",
         },
       },
-      {
-        $unwind: {
-          path: "$registration.batch",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
 
       // 🔍 SEARCH
       ...(search
