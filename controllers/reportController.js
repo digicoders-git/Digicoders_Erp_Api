@@ -46,7 +46,7 @@ export const getReportData = async (req, res) => {
 
     // 2. Get Fees
     // For fees, branch filter is slightly tricky. Fee schema might not have 'branch', so we lookup from Registration.
-    const feeMatchStage = { ...dateFilter, status: "accepted" };
+    const feeMatchStage = { ...dateFilter, status: { $in: ["accepted", "pending"] } };
     
     const feePipeline = [
       { $match: feeMatchStage },
@@ -145,6 +145,17 @@ export const getReportData = async (req, res) => {
         cashCollection,
         upiCollection,
         branchWise: branchDataArray,
+        transactions: fees.map(f => ({
+          _id: f._id,
+          amount: f.amount,
+          mode: f.mode,
+          feeType: f.feeType,
+          status: f.status,
+          date: f.createdAt,
+          studentName: f.registration?.studentName,
+          mobile: f.registration?.mobile,
+          branchName: f.branchDetails?.name,
+        })),
       }
     });
 
