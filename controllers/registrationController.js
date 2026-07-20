@@ -6,6 +6,7 @@ import College from "../models/college.js";
 import TechnologyModal from "../models/technology.js";
 import razorpay from "../utils/razorpay.js";
 import Fee from "../models/fee.js";
+import { syncRegistrationFees } from "../helpers/syncFee.js";
 import Referral from "../models/referral.js";
 import { sendEmail, sendRegistrationSuccessEmail, sendPaymentReminderEmail, sendPaymentSuccessEmail, sendExportOTPEmail, getLocationFromIP } from "../utils/sendEmail.js";
 import {
@@ -245,6 +246,8 @@ export const addRegistration = async (req, res) => {
 
       await feePayment.save();
     }
+
+    await syncRegistrationFees(savedRegistration._id);
 
     // Process referral rewards if applicable
     if (referredBy && referralCode) {
@@ -1130,6 +1133,7 @@ export const updateRegistration = async (req, res) => {
 
     // Save the updated student
     await student.save();
+    await syncRegistrationFees(student._id);
 
     res.status(200).json({
       success: true,

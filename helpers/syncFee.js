@@ -14,17 +14,22 @@ export const syncRegistrationFees = async (registrationId) => {
     const registration = await Registration.findById(registrationId);
     if (!registration) return;
 
-    const finalFee = Number(registration.finalFee || 0);
+    let finalFee = Number(registration.finalFee || 0);
+    if (totalPaidAmount > finalFee) {
+      finalFee = totalPaidAmount;
+    }
+
     const totalDueAmount = Math.max(finalFee - totalPaidAmount, 0);
 
     let newTrainingFeeStatus = "pending";
-    if (totalPaidAmount >= finalFee) newTrainingFeeStatus = "full paid";
+    if (totalPaidAmount >= finalFee && finalFee > 0) newTrainingFeeStatus = "full paid";
     else if (totalPaidAmount > 0) newTrainingFeeStatus = "partial";
 
     let newTnxStatus = "pending";
-    if (totalPaidAmount >= finalFee) newTnxStatus = "full paid";
+    if (totalPaidAmount >= finalFee && finalFee > 0) newTnxStatus = "full paid";
     else if (totalPaidAmount > 0) newTnxStatus = "paid";
 
+    registration.finalFee = finalFee;
     registration.paidAmount = totalPaidAmount;
     registration.dueAmount = totalDueAmount;
     registration.trainingFeeStatus = newTrainingFeeStatus;

@@ -8,6 +8,7 @@ import TranningModal from "../models/tranning.js";
 import Branch from "../models/branch.js";
 import College from "../models/college.js";
 import Fee from "../models/fee.js";
+import { syncRegistrationFees } from "../helpers/syncFee.js";
 
 export const bulkImportRegistrations = async (req, res) => {
   const filePath = req.file?.path;
@@ -229,6 +230,8 @@ export const bulkImportRegistrations = async (req, res) => {
             tnxId: tnxId || undefined,
           });
         }
+
+        await syncRegistrationFees(newReg._id);
 
         results.success.push({ row: rowNum, studentName, mobile, registrationId: newReg._id, userid: newReg.userid });
         insertedThisSession.add(mobile);

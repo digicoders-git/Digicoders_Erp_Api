@@ -39,6 +39,7 @@ import referralRoutes from "./routes/referralRoutes.js";
 import batchReminderRoutes from "./routes/batchReminderRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import certificationRoutes from "./routes/certificationRoutes.js";
+import settingRoutes from "./routes/settingRoutes.js";
 import { scheduleBatchReminders } from "./utils/batchReminderScheduler.js";
 import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
 
@@ -162,6 +163,7 @@ app.use("/api/referrals", referralRoutes);
 app.use("/api/batch-reminders", batchReminderRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/certification", certificationRoutes);
+app.use("/api/settings", settingRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
