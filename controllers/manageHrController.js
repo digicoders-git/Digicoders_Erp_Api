@@ -162,8 +162,9 @@ export const getHrPerformance = async (req, res) => {
       .populate("training", "name")
       .populate("technology", "name")
       .populate("branch", "name")
+      .populate("hrName", "name")
       .select(
-        "studentName mobile training technology branch status createdAt registrationType paidAmount finalFee trainingFeeStatus"
+        "studentName mobile training technology branch hrName status createdAt registrationType paidAmount finalFee trainingFeeStatus"
       )
       .sort({ createdAt: -1 });
 
