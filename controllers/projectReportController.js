@@ -99,7 +99,7 @@ export const getMyReportStatus = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      report: reports.length > 0 ? reports[0] : null,
+      reports: reports,
     });
   } catch (error) {
     return forwardError(res, error);
