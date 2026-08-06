@@ -82,7 +82,6 @@ export const getProjectReportDashboardCounts = async (req, res) => {
   }
 };
 
-// 7. Get logged-in student's project report status (Student)
 export const getMyReportStatus = async (req, res) => {
   try {
     if (!req.student) {
@@ -92,27 +91,17 @@ export const getMyReportStatus = async (req, res) => {
       });
     }
 
-    // Try finding by student's userid (e.g. DCT-xxxx)
-    let response;
-    try {
-      response = await axios.get(`${PROJECT_REPORT_API}/api/students/form?userId=${req.student.userid}`);
-    } catch (e) {
-      // If not found, fallback to phone number
-      response = await axios.get(`${PROJECT_REPORT_API}/api/students/form?userId=${req.student.mobile}`);
-    }
+    // Search by student's mobile number, email, or userid using general students endpoint
+    const searchVal = req.student.mobile || req.student.email || req.student.userid;
+    const response = await axios.get(`${PROJECT_REPORT_API}/api/students?search=${searchVal}`);
+    
+    const reports = response.data.students || [];
 
     return res.status(200).json({
       success: true,
-      report: response.data.form || null,
+      report: reports.length > 0 ? reports[0] : null,
     });
   } catch (error) {
-    // If both fail and return 404, we return null report indicating form is not filled
-    if (error.response && error.response.status === 404) {
-      return res.status(200).json({
-        success: true,
-        report: null,
-      });
-    }
     return forwardError(res, error);
   }
 };
