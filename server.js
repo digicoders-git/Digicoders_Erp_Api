@@ -41,6 +41,7 @@ import reportRoutes from "./routes/reportRoutes.js";
 import certificationRoutes from "./routes/certificationRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 import projectReportRoutes from "./routes/projectReportRoutes.js";
+import certificateDataRoutes from "./routes/certificateDataRoutes.js";
 
 import { scheduleBatchReminders } from "./utils/batchReminderScheduler.js";
 import { razorpayWebhook } from "./controllers/razorpayWebhook.js";
@@ -167,6 +168,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/certification", certificationRoutes);
 app.use("/api/settings", settingRoutes);
 app.use("/api/project-reports", projectReportRoutes);
+app.use("/api/certificate-data", certificateDataRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
