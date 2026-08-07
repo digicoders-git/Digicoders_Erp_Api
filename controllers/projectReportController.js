@@ -41,8 +41,7 @@ export const getProjectReportById = async (req, res) => {
 export const updateProjectReportStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-    const response = await axios.put(`${PROJECT_REPORT_API}/api/students/${id}/status`, { status });
+    const response = await axios.put(`${PROJECT_REPORT_API}/api/students/${id}/status`, req.body);
     return res.status(response.status).json(response.data);
   } catch (error) {
     return forwardError(res, error);
