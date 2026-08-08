@@ -43,7 +43,7 @@ export const applyCertification = async (req, res) => {
     const existingCert = await Certification.findOne({
       student,
       trainingName,
-      status: { $in: ["Pending", "Accepted"] }
+      status: { $in: ["Pending", "Accepted", "Send to Print", "Printed", "Issued"] }
     });
 
     if (existingCert) {

@@ -282,6 +282,10 @@ const registrationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Registration"
     },
+    isCancelled: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true, // Automatically adds createdAt and updatedAt

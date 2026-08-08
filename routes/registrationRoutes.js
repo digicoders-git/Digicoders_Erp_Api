@@ -19,6 +19,7 @@ import {
   verifyExportOtpAndFetchData,
   updateCertificateStatus,
   updateJoinStatus,
+  toggleCancelRegistration,
 } from "../controllers/registrationController.js";
 import { bulkImportRegistrations } from "../controllers/bulkImportController.js";
 import { auth } from "../middleware/auth.js";
@@ -52,6 +53,7 @@ router.patch("/status/:id", auth, updateRegistrationStatus);
 
 router.patch("/certificate/:id", auth, updateCertificateStatus);
 router.patch("/join/:id", auth, updateJoinStatus);
+router.patch("/cancel/:id", auth, toggleCancelRegistration);
 
 router.delete("/user/:id", auth, deleteRegistration);
 

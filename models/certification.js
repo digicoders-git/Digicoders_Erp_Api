@@ -24,7 +24,7 @@ const certificationSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Accepted", "Rejected"],
+      enum: ["Pending", "Accepted", "Rejected", "Send to Print", "Printed", "Issued"],
       default: "Pending",
     },
     rejectReason: {

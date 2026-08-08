@@ -670,6 +670,14 @@ export const getAllRegistrations = async (req, res) => {
     // Build filter object
     const filter = {};
     const logdInUser = req.user;
+    
+    // Cancelled filter support
+    if (req.query.isCancelled === 'true' || req.query.isCancelled === true) {
+      filter.isCancelled = true;
+    } else {
+      filter.isCancelled = { $ne: true };
+    }
+
     // Source filter (admin vs direct)
     if (source === "panel") {
       filter.registeredBy = { $ne: null };
@@ -1238,6 +1246,44 @@ export const updateRegistrationStatus = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating registration status",
+      error: error.message,
+    });
+  }
+};
+
+// Toggle Cancel Registration Status
+export const toggleCancelRegistration = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isCancelled } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Registration ID is required",
+      });
+    }
+
+    const student = await Registration.findById(id);
+    if (!student) {
+      return res.status(404).json({
+        success: false,
+        message: "Registration not found",
+      });
+    }
+
+    student.isCancelled = isCancelled === true || isCancelled === "true";
+    await student.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Registration ${student.isCancelled ? "cancelled" : "activated"} successfully`,
+      data: student,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error toggling cancel registration",
       error: error.message,
     });
   }
