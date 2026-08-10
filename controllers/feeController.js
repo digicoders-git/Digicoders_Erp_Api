@@ -807,77 +807,36 @@ export const changeStatus = async (req, res) => {
 
     // Update logic based on status transition
     if (status === "accepted" && FeeData.status !== "accepted") {
-      // Fix for double counting: Check if the amount is already included in Student.paidAmount
-      let amountToAdd = Number(FeeData.amount);
-      
-      const otherAcceptedFees = await Fee.aggregate([
-        { $match: { registrationId: Student._id, status: "accepted", _id: { $ne: FeeData._id } } },
-        { $group: { _id: null, total: { $sum: "$amount" } } }
-      ]);
-      const otherTotal = otherAcceptedFees.length > 0 ? otherAcceptedFees[0].total : 0;
-      
-      // If paidAmount already includes this fee (common for registration fees that were pre-applied)
-      if (Number(Student.paidAmount) >= otherTotal + Number(FeeData.amount) && FeeData.paymentType === "registration") {
-        amountToAdd = 0;
-      }
+      FeeData.status = "accepted";
+      await FeeData.save();
 
-      Student.paidAmount = Number(Student.paidAmount) + amountToAdd;
-      Student.dueAmount = Math.max(Number(Student.dueAmount) - amountToAdd, 0);
+      // Sync student's payment totals from database
+      await syncRegistrationFees(Student._id);
       
-      // Auto-update training fee status based on due amount
-      if (Student.dueAmount === 0) {
-        Student.trainingFeeStatus = "full paid";
-        Student.tnxStatus = "full paid";
-        FeeData.tnxStatus = "full paid";
-      } else if (Student.paidAmount > 0) {
-        Student.trainingFeeStatus = "partial";
-        Student.tnxStatus = "paid";
-        FeeData.tnxStatus = "paid";
-      } else {
-        Student.trainingFeeStatus = "pending";
-        Student.tnxStatus = "pending";
-        FeeData.tnxStatus = "pending";
-      }
-      
-      await Student.save();
+      // Fetch updated student dues to decide if it is full paid
+      const updatedStudent = await Registration.findById(Student._id);
+      FeeData.tnxStatus = updatedStudent.dueAmount === 0 ? "full paid" : "paid";
+      await FeeData.save();
     } else if (status === "rejected" && FeeData.status !== "rejected") {
-      // Fix for reversing pre-applied fees that were rejected before being accepted
-      let amountToSubtract = 0;
-      
-      if (FeeData.status === "accepted") {
-        amountToSubtract = Number(FeeData.amount);
-      } else if (FeeData.status === "new" || !FeeData.status) {
-        const otherAcceptedFees = await Fee.aggregate([
-          { $match: { registrationId: Student._id, status: "accepted", _id: { $ne: FeeData._id } } },
-          { $group: { _id: null, total: { $sum: "$amount" } } }
-        ]);
-        const otherTotal = otherAcceptedFees.length > 0 ? otherAcceptedFees[0].total : 0;
-        
-        if (Number(Student.paidAmount) >= otherTotal + Number(FeeData.amount) && FeeData.paymentType === "registration") {
-          amountToSubtract = Number(FeeData.amount);
-        }
-      }
+      FeeData.status = "rejected";
+      FeeData.tnxStatus = "failed";
+      await FeeData.save();
 
-      if (amountToSubtract > 0) {
-        Student.paidAmount = Math.max(Number(Student.paidAmount) - amountToSubtract, 0);
-        Student.dueAmount = Number(Student.dueAmount) + amountToSubtract;
-      }
+      // Sync student's payment totals from database
+      await syncRegistrationFees(Student._id);
 
       if (FeeData.paymentType === "registration") {
-        Student.tnxStatus = "failed";
+        const updatedStudent = await Registration.findById(Student._id);
+        updatedStudent.tnxStatus = "failed";
+        await updatedStudent.save();
       }
-      
-      // Auto-update training fee status
-      if (Student.dueAmount === 0 && Student.paidAmount > 0) {
-        Student.trainingFeeStatus = "full paid";
-      } else if (Student.paidAmount > 0) {
-        Student.trainingFeeStatus = "partial";
-      } else {
-        Student.trainingFeeStatus = "pending";
-      }
+    } else if (status === "new" && FeeData.status !== "new") {
+      FeeData.status = "new";
+      FeeData.tnxStatus = "pending";
+      await FeeData.save();
 
-      FeeData.tnxStatus = "failed";
-      await Student.save();
+      // Sync student's payment totals from database
+      await syncRegistrationFees(Student._id);
     }
 
     FeeData.status = status;

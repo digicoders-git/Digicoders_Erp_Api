@@ -74,7 +74,7 @@ export const getAll = async (req, res) => {
       studentsPending = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, tnxStatus: "pending", isCancelled: { $ne: true } });
       studentsAll = await Registration.countDocuments({ _id: { $in: teacherStudentIds } }); // Keep absolute total
       studentsCertificateIssued = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", certificateIssued: true, isCancelled: { $ne: true } });
-      studentsTrainingJoined = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", isJoin: true, isCancelled: { $ne: true } });
+      studentsTrainingJoined = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", isJoin: true, certificateIssued: { $ne: true }, isCancelled: { $ne: true } });
       studentsDueFees = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", dueAmount: { $gt: 0 }, isCancelled: { $ne: true } });
       studentsCancelled = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, isCancelled: true });
     } else {
@@ -101,6 +101,7 @@ export const getAll = async (req, res) => {
       studentsTrainingJoined = await Registration.countDocuments({
         status: "accepted",
         isJoin: true,
+        certificateIssued: { $ne: true },
         isCancelled: { $ne: true },
         ...combinedFilter
       });

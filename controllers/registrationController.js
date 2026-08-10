@@ -2419,8 +2419,8 @@ export const logout = async (req, res) => {
 
 export const verifyExportOtpAndFetchData = async (req, res) => {
   try {
-    const { otp, branch, technologies, status, educations, colleges, hasDue, certificateIssued } = req.body;
-    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations, colleges, hasDue, certificateIssued });
+    const { otp, branch, technologies, status, educations, colleges, hasDue, certificateIssued, isJoin, isCancelled } = req.body;
+    console.log("🔍 [DEBUG verify] Body received:", { otp, branch, technologies, status, educations, colleges, hasDue, certificateIssued, isJoin, isCancelled });
     console.log("🔍 [DEBUG verify] Logged-in user from token:", req.user?._id);
 
     if (!otp) {
@@ -2470,6 +2470,14 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
 
     // Now fetch the data
     const filter = {};
+
+    // Cancelled filter support
+    if (isCancelled === 'true' || isCancelled === true) {
+      filter.isCancelled = true;
+    } else {
+      filter.isCancelled = { $ne: true };
+    }
+
     if (status) {
       if (status !== "all") {
         filter.status = status;
@@ -2487,6 +2495,14 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
         filter.certificateIssued = true;
       } else if (certificateIssued === false || certificateIssued === 'false') {
         filter.certificateIssued = { $ne: true };
+      }
+    }
+
+    if (isJoin !== undefined) {
+      if (isJoin === true || isJoin === 'true') {
+        filter.isJoin = true;
+      } else if (isJoin === false || isJoin === 'false') {
+        filter.isJoin = { $ne: true };
       }
     }
 
