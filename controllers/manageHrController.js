@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Hr from "../models/manageHr.js";
 import Registration from "../models/regsitration.js";
 
@@ -267,9 +268,93 @@ export const deletaHr = async (req, res) => {
         .status(404)
         .json({ message: "Hr deleting faild!", success: false });
     return res
-      .status(200)
-      .json({ message: "Hr deleted successfull ", success: true });
+        .status(200)
+        .json({ message: "Hr deleted successfull ", success: true });
   } catch (error) {
     res.status(500).json({ message: "internal server error", success: false });
   }
 };
+
+export const getHrRegistrationsSummary = async (req, res) => {
+  try {
+    const { email, branch } = req.method === "POST" ? req.body : req.query;
+
+    if (email !== "digicodersdevelopement@gmail.com") {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized access. Invalid email provided.",
+      });
+    }
+
+    const filter = {};
+    if (branch && branch !== "All") {
+      filter.branch = new mongoose.Types.ObjectId(branch);
+    }
+
+    const hrReport = await Hr.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "registrations",
+          localField: "_id",
+          foreignField: "hrName",
+          as: "registrations",
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          personalNo: 1,
+          officeNo: 1,
+          isActive: 1,
+          totalCount: { $size: "$registrations" },
+          categories: {
+            training: {
+              $size: {
+                $filter: {
+                  input: "$registrations",
+                  as: "reg",
+                  cond: { $eq: ["$$reg.registrationType", "Training"] },
+                },
+              },
+            },
+            certificateOnly: {
+              $size: {
+                $filter: {
+                  input: "$registrations",
+                  as: "reg",
+                  cond: { $eq: ["$$reg.registrationType", "Certificate Only"] },
+                },
+              },
+            },
+            certificateProjectReport: {
+              $size: {
+                $filter: {
+                  input: "$registrations",
+                  as: "reg",
+                  cond: { $eq: ["$$reg.registrationType", "Certificate + Project Report"] },
+                },
+              },
+            },
+          },
+        },
+      },
+      { $sort: { name: 1 } }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "HR registrations summary fetched successfully",
+      data: hrReport,
+    });
+  } catch (error) {
+    console.error("Error in getHrRegistrationsSummary:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+
