@@ -295,10 +295,20 @@ export const getStudentCounts = async (req, res) => {
     const paidAmount = studentReg?.paidAmount || 0;
 
     // 3. Assignment Counts
-    const studentBatches = studentReg?.batch || [];
+    const studentBatchIds = studentReg?.batch
+      ? (Array.isArray(studentReg.batch) ? studentReg.batch : [studentReg.batch])
+      : [];
+
+    const dbBatches = await Batch.find({
+      $or: [
+        { students: studentId },
+        { _id: { $in: studentBatchIds } }
+      ]
+    }).select("_id");
+    const allBatchIds = dbBatches.map(b => b._id);
 
     const totalAssignments = await Assignment.countDocuments({
-      batches: { $in: studentBatches },
+      batches: { $in: allBatchIds },
     });
 
     const submittedAssignments = await Submission.countDocuments({
@@ -309,7 +319,7 @@ export const getStudentCounts = async (req, res) => {
     const totalJobsApplied = await Application.countDocuments({ student: studentId });
 
     // 5. Batch Count
-    const totalBatches = studentBatches.length;
+    const totalBatches = allBatchIds.length;
 
 
     res.status(200).json({

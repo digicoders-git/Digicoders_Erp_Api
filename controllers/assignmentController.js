@@ -2,6 +2,7 @@ import Assignment from "../models/assignment.js";
 import Submission from "../models/submission.js";
 import Batch from "../models/batchs.js";
 import Teacher from "../models/teachers.js";
+import Registration from "../models/regsitration.js";
 import { getBatchByStudentId } from "./batchController.js";
 
 // Get all assignments
@@ -355,14 +356,20 @@ export const studentGetAllAssignments = async (req, res) => {
     }
 
     const student = req.student;
-    console.log('Student ID:', student._id);
     
-    // Student ke saare batches find karo
-    const batches = await Batch.find({ students: student._id }).select(
-      "_id batchName"
-    );
+    // Find student document to get batches stored directly on Registration
+    const studentDoc = await Registration.findById(student._id).select("batch");
+    const studentBatchIds = studentDoc?.batch
+      ? (Array.isArray(studentDoc.batch) ? studentDoc.batch : [studentDoc.batch])
+      : [];
 
-    console.log('Student batches:', batches);
+    // Find all batches associated with this student
+    const batches = await Batch.find({
+      $or: [
+        { students: student._id },
+        { _id: { $in: studentBatchIds } }
+      ]
+    }).select("_id batchName");
 
     if (!batches || batches.length === 0) {
       return res.status(200).json({
@@ -375,18 +382,24 @@ export const studentGetAllAssignments = async (req, res) => {
     
     // Batch IDs extract karo
     const batchIds = batches.map((batch) => batch._id);
-    console.log('Batch IDs:', batchIds);
 
     // Assignments find karo jo in batches me hain
     const assignments = await Assignment.find({
       batches: { $in: batchIds },
-    }).populate("batches", "batchName").populate("submissions");
-
-    console.log('Found assignments:', assignments.length);
+    })
+      .populate("batches", "batchName")
+      .populate({
+        path: "submissions",
+        populate: [
+          { path: "student", select: "_id studentName email" },
+          { path: "batch", select: "_id batchName" }
+        ]
+      })
+      .sort({ createdAt: -1 });
 
     return res.status(200).json({
       success: true,
-      batches: batches.map((b) => b),
+      batches: batches,
       assignments,
     });
   } catch (error) {
@@ -397,23 +410,21 @@ export const studentGetAllAssignments = async (req, res) => {
     });
   }
 };
+
 // Submit assignment
 export const submitAssignment = async (req, res) => {
   try {
     const { assignmentId, batchId, description, submissionUrl } = req.body;
     const student = req.student;
 
-    console.log("Submit request body:", req.body);
-    console.log("Logged in student:", student);
-
-    if (!assignmentId || !batchId) {
+    if (!assignmentId) {
       return res.status(400).json({
         success: false,
-        message: "Assignment ID and Batch ID are required",
+        message: "Assignment ID is required",
       });
     }
 
-    if (!req.file && !submissionUrl) {
+    if (!req.file && (!submissionUrl || !submissionUrl.trim())) {
       return res.status(400).json({
         success: false,
         message: "Please upload a file or provide a submission URL",
@@ -428,8 +439,19 @@ export const submitAssignment = async (req, res) => {
       });
     }
 
-    // Check if valid batch
-    if (!assignment.batches.some(b => b.toString() === batchId)) {
+    // Determine target batch (either provided batchId or auto-match student's batch in assignment)
+    let targetBatchId = batchId;
+    if (!targetBatchId) {
+      const studentDoc = await Registration.findById(student._id).select("batch");
+      const studentBatchIds = studentDoc?.batch ? (Array.isArray(studentDoc.batch) ? studentDoc.batch : [studentDoc.batch]) : [];
+      const studentBatches = await Batch.find({
+        $or: [{ students: student._id }, { _id: { $in: studentBatchIds } }]
+      }).select("_id");
+      const sBatchIds = studentBatches.map(b => b._id.toString());
+      targetBatchId = assignment.batches.find(b => sBatchIds.includes(b.toString()))?.toString();
+    }
+
+    if (!targetBatchId || !assignment.batches.some(b => b.toString() === targetBatchId.toString())) {
       return res.status(400).json({
         success: false,
         message: "Invalid batch for this assignment",
@@ -452,9 +474,9 @@ export const submitAssignment = async (req, res) => {
     const submissionData = {
       assignment: assignmentId,
       student: student._id,
-      batch: batchId,
-      description,
-      submissionUrl,
+      batch: targetBatchId,
+      description: description || "",
+      submissionUrl: submissionUrl ? submissionUrl.trim() : "",
       submittedAt: new Date(),
     };
 
@@ -471,8 +493,10 @@ export const submitAssignment = async (req, res) => {
     await submission.save();
 
     // Add submission to assignment
-    assignment.submissions.push(submission._id);
-    await assignment.save();
+    if (!assignment.submissions.includes(submission._id)) {
+      assignment.submissions.push(submission._id);
+      await assignment.save();
+    }
 
     res.status(201).json({
       success: true,
@@ -480,7 +504,7 @@ export const submitAssignment = async (req, res) => {
       submission,
     });
   } catch (error) {
-    console.error("Submit assignment error DETAILS:", error);
+    console.error("Submit assignment error:", error);
     res.status(500).json({
       success: false,
       message: error.message,
