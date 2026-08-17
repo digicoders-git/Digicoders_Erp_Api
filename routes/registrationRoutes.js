@@ -20,6 +20,7 @@ import {
   updateCertificateStatus,
   updateJoinStatus,
   toggleCancelRegistration,
+  checkOldStudentStatus,
 } from "../controllers/registrationController.js";
 import { bulkImportRegistrations } from "../controllers/bulkImportController.js";
 import { auth } from "../middleware/auth.js";
@@ -41,6 +42,7 @@ router.get("/get/user/:username", getOneRegistrations);
 
 // New API - Get user data by mobile or student ID
 router.get("/user-data/:identifier", getUserData);
+router.get("/check-old-student/:mobile", checkOldStudentStatus);
 
 // Admin routes (admin authentication required)
 router.get("/all", auth, getAllRegistrations);

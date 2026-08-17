@@ -21,6 +21,8 @@ export const recordPayment = async (req, res) => {
       qrcode,
       tnxId,
       remark,
+      nextDueDate,
+      dueRemark,
     } = req.body;
 
     // Validate payment
@@ -191,6 +193,20 @@ export const recordPayment = async (req, res) => {
         });
       } catch (error) {
         console.error("Notification failed:", error);
+      }
+    }
+
+    // Save nextDueDate and dueRemark to registration if provided
+    if (nextDueDate !== undefined || dueRemark !== undefined) {
+      const regToUpdate = await Registration.findById(registrationId);
+      if (regToUpdate) {
+        if (nextDueDate !== undefined) {
+          regToUpdate.nextDueDate = nextDueDate ? new Date(nextDueDate) : null;
+        }
+        if (dueRemark !== undefined) {
+          regToUpdate.dueRemark = dueRemark;
+        }
+        await regToUpdate.save();
       }
     }
 

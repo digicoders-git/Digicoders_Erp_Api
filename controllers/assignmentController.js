@@ -229,12 +229,8 @@ export const updateAssignment = async (req, res) => {
     }
 
     // Handle file uploads
-    if (req.files && req.files.assignmentFiles) {
-      const files = Array.isArray(req.files.assignmentFiles)
-        ? req.files.assignmentFiles
-        : [req.files.assignmentFiles];
-
-      files.forEach((file) => {
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
         assignment.assignmentFiles.push({
           name: file.originalname,
           url: `/uploads/${file.filename}`,

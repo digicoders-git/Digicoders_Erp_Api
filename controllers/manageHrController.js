@@ -358,3 +358,26 @@ export const getHrRegistrationsSummary = async (req, res) => {
   }
 };
 
+export const getHrPublic = async (req, res) => {
+  try {
+    const hr = await Hr.findById(req.params.id).select("name personalNo officeNo isActive");
+    if (!hr) {
+      return res.status(404).json({
+        success: false,
+        message: "HR not found",
+      });
+    }
+    return res.status(200).json({
+      success: true,
+      data: hr,
+    });
+  } catch (error) {
+    console.error("Error in getHrPublic:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
+    });
+  }
+};
+

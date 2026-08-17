@@ -53,6 +53,8 @@ export const addRegistration = async (req, res) => {
       offerDescription,
       offerValidTill,
       gender,
+      nextDueDate,
+      dueRemark,
     } = req.body;
 
     // Get technology price if amount not provided
@@ -223,6 +225,8 @@ export const addRegistration = async (req, res) => {
       paymentLink: paymentLink?.short_url || null,
       referralCode: referralCode?.trim().toUpperCase() || null,
       referredBy: referredBy,
+      nextDueDate: nextDueDate ? new Date(nextDueDate) : null,
+      dueRemark: dueRemark || "",
     });
 
     const savedRegistration = await newRegistration.save();
@@ -550,15 +554,23 @@ export const getOneRegistrations = async (req, res) => {
     }
 
     // Normalize isPasswordSet for legacy accounts and remove sensitive password
-    const data = registration.map(reg => {
+    const data = await Promise.all(registration.map(async (reg) => {
       const obj = reg.toObject();
       // If isPasswordSet is explicitly false/undefined but they have a password set (different from mobile)
       if (!obj.isPasswordSet && obj.password && obj.password !== obj.mobile) {
         obj.isPasswordSet = true;
       }
       delete obj.password;
+
+      // Find last payment date
+      const lastFee = await Fee.findOne({
+        registrationId: reg._id,
+      }).sort({ createdAt: -1 });
+
+      obj.lastPaymentDate = lastFee ? lastFee.paymentDate || lastFee.createdAt : null;
+
       return obj;
-    });
+    }));
 
     return res.status(200).json({
       success: true,
@@ -917,6 +929,8 @@ export const updateRegistration = async (req, res) => {
       paidFee,
       dueFee,
       registeredBy,
+      nextDueDate,
+      dueRemark,
     } = body;
 
     if (!id) {
@@ -1137,6 +1151,13 @@ export const updateRegistration = async (req, res) => {
         student.trainingFeeStatus = "pending";
         student.tnxStatus = "pending";
       }
+    }
+
+    if (nextDueDate !== undefined) {
+      student.nextDueDate = nextDueDate ? new Date(nextDueDate) : null;
+    }
+    if (dueRemark !== undefined) {
+      student.dueRemark = dueRemark;
     }
 
     // Save the updated student
@@ -2200,8 +2221,8 @@ export const RegistrationByWebDirect = async (req, res) => {
       tnxId,
       image: imageUrl,
       status: "new",
-      paidAmount: 0,
-      dueAmount: finalFee,
+      paidAmount: paymentMethod === "online" ? 0 : (amount ? Number(amount) : 0),
+      dueAmount: finalFee - (paymentMethod === "online" ? 0 : (amount ? Number(amount) : 0)),
       tnxStatus: "pending",
       trainingFeeStatus: "pending",
       paymentType: safePaymentType,
@@ -2211,6 +2232,41 @@ export const RegistrationByWebDirect = async (req, res) => {
     });
 
     const savedRegistration = await newRegistration.save();
+
+    let razorpayOrder = null;
+    if (paymentMethod === "online" && razorpay) {
+      razorpayOrder = await razorpay.orders.create({
+        amount: Number(amount) * 100, // paise
+        currency: "INR",
+        receipt: `WEB-REG-${savedRegistration._id}`,
+        notes: {
+          registrationId: savedRegistration._id.toString(),
+        },
+      });
+      
+      // Save order id to registration
+      savedRegistration.paymentLink = razorpayOrder.id; // Using paymentLink field as temp storage or add a new one
+      await savedRegistration.save();
+    }
+
+    let feeId = null;
+    if (amount > 0) {
+      const feePayment = await Fee.create({
+        registrationId: savedRegistration._id,
+        totalFee,
+        finalFee,
+        paidAmount: paymentMethod === "online" ? 0 : Number(amount),
+        dueAmount: finalFee - (paymentMethod === "online" ? 0 : Number(amount)),
+        amount: Number(amount),
+        paymentType: safePaymentType,
+        mode: paymentMethod, // Pass mode to Fee
+        status: "new",
+        tnxStatus: "pending",
+      });
+
+      const savedFee = await feePayment.save();
+      feeId = savedFee._id;
+    }
 
     const populatedRegistration = await Registration.findById(
       savedRegistration._id,
@@ -2225,28 +2281,30 @@ export const RegistrationByWebDirect = async (req, res) => {
     const { password: _, ...userResponse } = savedRegistration.toObject();
 
     // Send confirmations for direct/offline registration
-    try {
-      await sendSmsRegSuccess(
-        populatedRegistration.mobile,
-        populatedRegistration.studentName,
-        populatedRegistration.training.name,
-        populatedRegistration.technology.name,
-      );
-      if (email) {
-        await sendRegistrationSuccessEmail(email, {
-          studentName: populatedRegistration.studentName,
-          training: populatedRegistration.training?.name,
-          technology: populatedRegistration.technology?.name,
-          totalFee: populatedRegistration.totalFee,
-          discount: populatedRegistration.discount || 0,
-          finalFee: populatedRegistration.finalFee,
-          paidAmount: 0,
-          dueAmount: populatedRegistration.dueAmount,
-          mobile: populatedRegistration.mobile,
-        });
+    if (paymentMethod !== "online") {
+      try {
+        await sendSmsRegSuccess(
+          populatedRegistration.mobile,
+          populatedRegistration.studentName,
+          populatedRegistration.training.name,
+          populatedRegistration.technology.name,
+        );
+        if (email) {
+          await sendRegistrationSuccessEmail(email, {
+            studentName: populatedRegistration.studentName,
+            training: populatedRegistration.training?.name,
+            technology: populatedRegistration.technology?.name,
+            totalFee: populatedRegistration.totalFee,
+            discount: populatedRegistration.discount || 0,
+            finalFee: populatedRegistration.finalFee,
+            paidAmount: populatedRegistration.paidAmount,
+            dueAmount: populatedRegistration.dueAmount,
+            mobile: populatedRegistration.mobile,
+          });
+        }
+      } catch (notifyErr) {
+        console.error("Failed to send notification for direct registration:", notifyErr);
       }
-    } catch (notifyErr) {
-      console.error("Failed to send notification for direct registration:", notifyErr);
     }
 
     return res.status(201).json({
@@ -2254,8 +2312,9 @@ export const RegistrationByWebDirect = async (req, res) => {
       message: "Registration successful",
       data: userResponse,
       populatedRegistration,
-      razorpayOrder: null,
-      feeId: null
+      razorpayOrder,
+      razorpayKey: process.env.RAZORPAY_KEY_ID,
+      feeId
     });
   } catch (error) {
     if (error.code === 11000) {
@@ -2561,6 +2620,45 @@ export const verifyExportOtpAndFetchData = async (req, res) => {
       success: false,
       message: "Server error",
       error: error.message
+    });
+  }
+};
+
+export const checkOldStudentStatus = async (req, res) => {
+  try {
+    const { mobile } = req.params;
+    if (!mobile) {
+      return res.status(400).json({
+        success: false,
+        message: "Mobile number is required",
+      });
+    }
+
+    const student = await Registration.findOne({
+      mobile: mobile.trim(),
+      status: "accepted",
+      isCancelled: { $ne: true },
+      trainingFeeStatus: "full paid",
+    });
+
+    if (student) {
+      return res.status(200).json({
+        success: true,
+        isOldStudent: true,
+        studentName: student.studentName,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      isOldStudent: false,
+    });
+  } catch (error) {
+    console.error("Error in checkOldStudentStatus:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: error.message,
     });
   }
 };

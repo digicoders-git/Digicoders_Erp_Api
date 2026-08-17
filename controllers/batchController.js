@@ -193,7 +193,7 @@ export const getBatches = async (req, res) => {
       .populate({
         path: "students",
         select:
-          "studentName email mobile fatherName technology status dueAmount",
+          "studentName email mobile fatherName technology status totalFee finalFee paidAmount dueAmount nextDueDate dueRemark createdAt",
         populate: {
           path: "technology",
           select: "name",
@@ -228,7 +228,7 @@ export const getBatchById = async (req, res) => {
       .populate("teacher", "name email")
       .populate({
         path: "students",
-        select: "studentName email mobile technology training branch fatherName status dueAmount createdAt",
+        select: "studentName email mobile technology training branch fatherName status totalFee finalFee paidAmount dueAmount nextDueDate dueRemark createdAt",
         populate: [
           {
             path: "technology",

@@ -52,6 +52,7 @@ const registrationSchema = new mongoose.Schema(
     },
     email: {
       type: String,
+      required: [true, "Email ID is required"],
       lowercase: true,
       match: [
         /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
@@ -180,6 +181,8 @@ const registrationSchema = new mongoose.Schema(
     amount: { type: Number, min: 500 },
     paidAmount: { type: Number, default: 0 },
     dueAmount: { type: Number, default: 0 },
+    nextDueDate: { type: Date },
+    dueRemark: { type: String },
     paymentType: {
       type: String,
       enum: ["registration", "full", "installment"],

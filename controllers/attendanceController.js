@@ -255,7 +255,7 @@ export const getBatchAttendance = async (req, res) => {
       Attendance.find(query)
         .populate({
           path: 'records.studentId',
-          select: 'studentName fatherName'
+          select: 'studentName fatherName totalFee finalFee paidAmount dueAmount nextDueDate dueRemark'
         })
         .populate("attendBy", "name")
         .sort(sort)

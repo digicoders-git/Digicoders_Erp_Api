@@ -194,3 +194,20 @@ export const updataQrCode = async (req, res) => {
     res.status(500).json({ message: "Error updateing qrCode detels" });
   }
 };
+
+export const getActiveQrCodesPublic = async (req, res) => {
+  try {
+    const qrCodes = await QrCode.find({ isActive: true });
+    return res.status(200).json({
+      success: true,
+      data: qrCodes,
+    });
+  } catch (error) {
+    console.error("Error fetching active QR Codes:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching QR Codes",
+      error: error.message,
+    });
+  }
+};
