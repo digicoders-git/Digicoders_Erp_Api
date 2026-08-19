@@ -187,6 +187,13 @@ export const addRegistration = async (req, res) => {
       }
     }
 
+    // Ensure email is valid or auto-generated if missing
+    let finalEmail = email ? email.trim().toLowerCase() : "";
+    if (!finalEmail || !finalEmail.includes("@")) {
+      const cleanName = (studentName || "student").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+      finalEmail = `${cleanName || "student"}${mobile ? mobile.slice(-4) : ""}@gmail.com`;
+    }
+
     // Create new registration
     const newRegistration = await Registration.create({
       mobile,
@@ -197,7 +204,7 @@ export const addRegistration = async (req, res) => {
       education,
       eduYear,
       fatherName,
-      email,
+      email: finalEmail,
       alternateMobile,
       hrName,
       branch,
@@ -981,7 +988,12 @@ export const updateRegistration = async (req, res) => {
 
     if (whatshapp) student.whatshapp = whatshapp;
     if (studentName) student.studentName = studentName;
-    if (email) student.email = email;
+    if (email) {
+      student.email = email.trim().toLowerCase();
+    } else if (!student.email || !student.email.includes("@")) {
+      const cleanName = (student.studentName || studentName || "student").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+      student.email = `${cleanName || "student"}${student.mobile ? student.mobile.slice(-4) : ""}@gmail.com`;
+    }
     if (mobile) student.mobile = mobile;
     if (eduYear) student.eduYear = eduYear;
     if (fatherName) student.fatherName = fatherName;
