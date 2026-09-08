@@ -1,6 +1,7 @@
 // controllers/feeController.js
 import Registration from "../models/regsitration.js";
 import Fee from "../models/fee.js";
+import QrCode from "../models/qrCode.js";
 import { syncRegistrationFees } from "../helpers/syncFee.js";
 import mongoose from "mongoose";
 import { sendSmsInstallmentReceived, sendSmsOtp, sendSmsFeeReminder } from "../utils/sendSMS.js";
@@ -1109,6 +1110,327 @@ export const editPayment = async (req, res) => {
       success: false,
       message: 'Error updating payment amount',
       error: error.message
+    });
+  }
+};
+
+// SuperAdmin Payment Method & QR Code Analysis Report
+export const getPaymentAnalysisReport = async (req, res) => {
+  try {
+    const {
+      startDate,
+      endDate,
+      datePreset,
+      mode,
+      qrcode,
+      status = "accepted",
+      branch,
+      search,
+      page = 1,
+      limit = 25,
+    } = req.query;
+
+    const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+    const limitNum = Math.max(parseInt(limit, 10) || 25, 1);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build Date Filter
+    let dateFilter = null;
+    const now = new Date();
+
+    if (datePreset) {
+      if (datePreset === "today") {
+        const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        dateFilter = { $gte: start, $lte: end };
+      } else if (datePreset === "yesterday") {
+        const yesterday = new Date(now);
+        yesterday.setDate(now.getDate() - 1);
+        const start = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0, 0);
+        const end = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59, 999);
+        dateFilter = { $gte: start, $lte: end };
+      } else if (datePreset === "this_week") {
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+        const start = new Date(now.getFullYear(), now.getMonth(), diff, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+        dateFilter = { $gte: start, $lte: end };
+      } else if (datePreset === "this_month") {
+        const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+        dateFilter = { $gte: start, $lte: end };
+      } else if (datePreset === "last_month") {
+        const start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        const end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+        dateFilter = { $gte: start, $lte: end };
+      } else if (datePreset === "all") {
+        dateFilter = null;
+      }
+    } else if (startDate || endDate) {
+      dateFilter = {};
+      if (startDate) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        dateFilter.$gte = start;
+      }
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        dateFilter.$lte = end;
+      }
+    }
+
+    // Base match query for overall summary & breakdowns
+    const baseMatch = {};
+
+    if (status && status !== "all") {
+      baseMatch.status = status;
+    }
+
+    if (dateFilter) {
+      baseMatch.paymentDate = dateFilter;
+    }
+
+    // Branch filter handling
+    if (branch && branch !== "all") {
+      const branchRegs = await Registration.find({ branch }).select("_id");
+      const regIds = branchRegs.map((r) => r._id);
+      baseMatch.registrationId = { $in: regIds };
+    }
+
+    // 1. Mode-wise Aggregation
+    const modeAgg = await Fee.aggregate([
+      { $match: baseMatch },
+      {
+        $group: {
+          _id: "$mode",
+          totalAmount: { $sum: "$amount" },
+          totalCount: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Known standard modes definition
+    const knownModes = [
+      { key: "cash", label: "Cash", color: "#10B981" },
+      { key: "upi_qr", label: "UPI QR Code", color: "#6366F1" },
+      { key: "online", label: "Online / Gateway", color: "#3B82F6" },
+      { key: "payment_link", label: "Payment Link", color: "#8B5CF6" },
+      { key: "pos", label: "POS / Card Machine", color: "#EC4899" },
+      { key: "emi", label: "EMI", color: "#F59E0B" },
+    ];
+
+    let grandTotalAmount = 0;
+    let grandTotalCount = 0;
+    const modeMap = {};
+
+    modeAgg.forEach((item) => {
+      const modeKey = item._id || "other";
+      modeMap[modeKey] = {
+        amount: item.totalAmount || 0,
+        count: item.totalCount || 0,
+      };
+      grandTotalAmount += item.totalAmount || 0;
+      grandTotalCount += item.totalCount || 0;
+    });
+
+    const modeBreakdown = knownModes.map((m) => {
+      const data = modeMap[m.key] || { amount: 0, count: 0 };
+      const percentage = grandTotalAmount > 0 ? ((data.amount / grandTotalAmount) * 100).toFixed(1) : 0;
+      return {
+        mode: m.key,
+        label: m.label,
+        color: m.color,
+        amount: data.amount,
+        count: data.count,
+        percentage: Number(percentage),
+      };
+    });
+
+    // Check if any other unlisted modes exist
+    Object.keys(modeMap).forEach((k) => {
+      if (!knownModes.some((m) => m.key === k)) {
+        const data = modeMap[k];
+        const percentage = grandTotalAmount > 0 ? ((data.amount / grandTotalAmount) * 100).toFixed(1) : 0;
+        modeBreakdown.push({
+          mode: k,
+          label: k ? k.toUpperCase() : "Other",
+          color: "#64748B",
+          amount: data.amount,
+          count: data.count,
+          percentage: Number(percentage),
+        });
+      }
+    });
+
+    // 2. QR Code-wise Aggregation
+    const qrMatch = { ...baseMatch, mode: "upi_qr" };
+    const qrAgg = await Fee.aggregate([
+      { $match: qrMatch },
+      {
+        $group: {
+          _id: "$qrcode",
+          totalAmount: { $sum: "$amount" },
+          totalCount: { $sum: 1 },
+          lastPaymentDate: { $max: "$paymentDate" },
+        },
+      },
+    ]);
+
+    const qrMap = {};
+    let totalQrCollection = 0;
+    let totalQrCount = 0;
+
+    qrAgg.forEach((item) => {
+      const key = item._id ? item._id.toString() : "unassigned";
+      qrMap[key] = {
+        amount: item.totalAmount || 0,
+        count: item.totalCount || 0,
+        lastPaymentDate: item.lastPaymentDate,
+      };
+      totalQrCollection += item.totalAmount || 0;
+      totalQrCount += item.totalCount || 0;
+    });
+
+    // Fetch all registered QR Codes
+    const allQrCodes = await QrCode.find().sort({ createdAt: -1 });
+
+    const qrBreakdown = allQrCodes.map((qr) => {
+      const qrIdStr = qr._id.toString();
+      const qrStats = qrMap[qrIdStr] || { amount: 0, count: 0, lastPaymentDate: null };
+      const shareOfQr = totalQrCollection > 0 ? ((qrStats.amount / totalQrCollection) * 100).toFixed(1) : 0;
+      const shareOfTotal = grandTotalAmount > 0 ? ((qrStats.amount / grandTotalAmount) * 100).toFixed(1) : 0;
+
+      return {
+        _id: qr._id,
+        name: qr.name,
+        upi: qr.upi,
+        bankName: qr.bankName,
+        isActive: qr.isActive,
+        image: qr.image,
+        totalAmount: qrStats.amount,
+        totalCount: qrStats.count,
+        shareOfQr: Number(shareOfQr),
+        shareOfTotal: Number(shareOfTotal),
+        lastPaymentDate: qrStats.lastPaymentDate,
+      };
+    });
+
+    // If there are unassigned UPI payments
+    if (qrMap["unassigned"]) {
+      const unassigned = qrMap["unassigned"];
+      const shareOfQr = totalQrCollection > 0 ? ((unassigned.amount / totalQrCollection) * 100).toFixed(1) : 0;
+      const shareOfTotal = grandTotalAmount > 0 ? ((unassigned.amount / grandTotalAmount) * 100).toFixed(1) : 0;
+
+      qrBreakdown.push({
+        _id: "unassigned",
+        name: "Unassigned / Direct QR",
+        upi: "N/A",
+        bankName: "Unspecified",
+        isActive: false,
+        image: null,
+        totalAmount: unassigned.amount,
+        totalCount: unassigned.count,
+        shareOfQr: Number(shareOfQr),
+        shareOfTotal: Number(shareOfTotal),
+        lastPaymentDate: unassigned.lastPaymentDate,
+      });
+    }
+
+    // 3. Drill-down Transactions (Filtered & Paginated)
+    const drillMatch = { ...baseMatch };
+
+    if (mode && mode !== "all") {
+      drillMatch.mode = mode;
+    }
+
+    if (qrcode && qrcode !== "all") {
+      if (qrcode === "unassigned") {
+        drillMatch.qrcode = null;
+        drillMatch.mode = "upi_qr";
+      } else {
+        drillMatch.qrcode = new mongoose.Types.ObjectId(qrcode);
+      }
+    }
+
+    // Handle Search filter on student details or transaction/receipt IDs
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search.trim(), "i");
+      const matchedStudents = await Registration.find({
+        $or: [
+          { studentName: searchRegex },
+          { userid: searchRegex },
+          { mobile: searchRegex },
+          { email: searchRegex },
+        ],
+      }).select("_id");
+
+      const studentIds = matchedStudents.map((s) => s._id);
+
+      drillMatch.$or = [
+        { registrationId: { $in: studentIds } },
+        { receiptNo: searchRegex },
+        { tnxId: searchRegex },
+        { remark: searchRegex },
+      ];
+    }
+
+    const [transactions, totalDrillRecords] = await Promise.all([
+      Fee.find(drillMatch)
+        .populate({
+          path: "registrationId",
+          select: "studentName userid mobile email branch technology course",
+          populate: [
+            { path: "branch", select: "name" },
+            { path: "technology", select: "name" },
+            { path: "course", select: "name" },
+          ],
+        })
+        .populate("qrcode", "name upi bankName image isActive")
+        .populate("verifiedBy", "name")
+        .populate("paidBy", "name")
+        .populate("hrName", "name")
+        .sort({ paymentDate: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Fee.countDocuments(drillMatch),
+    ]);
+
+    // Summary statistics
+    const stats = {
+      grandTotalAmount,
+      grandTotalCount,
+      totalQrCollection,
+      totalQrCount,
+      cashAmount: modeMap["cash"]?.amount || 0,
+      cashCount: modeMap["cash"]?.count || 0,
+      onlineAmount: (modeMap["online"]?.amount || 0) + (modeMap["payment_link"]?.amount || 0),
+      onlineCount: (modeMap["online"]?.count || 0) + (modeMap["payment_link"]?.count || 0),
+      posAmount: modeMap["pos"]?.amount || 0,
+      posCount: modeMap["pos"]?.count || 0,
+      emiAmount: modeMap["emi"]?.amount || 0,
+      emiCount: modeMap["emi"]?.count || 0,
+    };
+
+    res.status(200).json({
+      success: true,
+      stats,
+      modeBreakdown,
+      qrBreakdown,
+      transactions,
+      pagination: {
+        total: totalDrillRecords,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalDrillRecords / limitNum),
+      },
+    });
+  } catch (error) {
+    console.error("Payment analysis report error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate payment analysis report",
+      error: error.message,
     });
   }
 };

@@ -13,12 +13,15 @@ import {
   handleFeePaymentCallback, 
   reminder,
   editPayment,
-  getPaymentsByEnrollSuffix
+  getPaymentsByEnrollSuffix,
+  getPaymentAnalysisReport,
 } from "../controllers/feeController.js";
-import { auth } from '../middleware/auth.js';
+import { auth, authorize } from '../middleware/auth.js';
 import upload from "../middleware/upload.js";
 const router = express.Router();
-// router.use(auth);
+
+// 👑 Super Admin Only - Payment & QR Code Analysis Report
+router.get("/payment-analysis", auth, authorize(["Super Admin"]), getPaymentAnalysisReport);
 
 // 🔓 PUBLIC route - no auth needed
 router.get("/public/enroll/:digits", getPaymentsByEnrollSuffix);
