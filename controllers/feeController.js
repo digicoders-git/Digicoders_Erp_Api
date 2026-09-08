@@ -2,6 +2,11 @@
 import Registration from "../models/regsitration.js";
 import Fee from "../models/fee.js";
 import QrCode from "../models/qrCode.js";
+import Branch from "../models/branch.js";
+import User from "../models/User.js";
+import Hr from "../models/manageHr.js";
+import Technology from "../models/technology.js";
+import Tranning from "../models/tranning.js";
 import { syncRegistrationFees } from "../helpers/syncFee.js";
 import mongoose from "mongoose";
 import { sendSmsInstallmentReceived, sendSmsOtp, sendSmsFeeReminder } from "../utils/sendSMS.js";
@@ -1180,23 +1185,30 @@ export const getPaymentAnalysisReport = async (req, res) => {
       }
     }
 
-    // Base match query for overall summary & breakdowns
-    const baseMatch = {};
+    // Base match query using array of conditions for safe merging
+    const andConditions = [];
 
     if (status && status !== "all") {
-      baseMatch.status = status;
+      andConditions.push({ status });
     }
 
     if (dateFilter) {
-      baseMatch.paymentDate = dateFilter;
+      andConditions.push({
+        $or: [
+          { paymentDate: dateFilter },
+          { paymentDate: { $exists: false }, createdAt: dateFilter },
+        ],
+      });
     }
 
     // Branch filter handling
     if (branch && branch !== "all") {
       const branchRegs = await Registration.find({ branch }).select("_id");
       const regIds = branchRegs.map((r) => r._id);
-      baseMatch.registrationId = { $in: regIds };
+      andConditions.push({ registrationId: { $in: regIds } });
     }
+
+    const baseMatch = andConditions.length > 0 ? { $and: andConditions } : {};
 
     // 1. Mode-wise Aggregation
     const modeAgg = await Fee.aggregate([
@@ -1264,7 +1276,9 @@ export const getPaymentAnalysisReport = async (req, res) => {
     });
 
     // 2. QR Code-wise Aggregation
-    const qrMatch = { ...baseMatch, mode: "upi_qr" };
+    const qrConditions = [...andConditions, { mode: "upi_qr" }];
+    const qrMatch = { $and: qrConditions };
+
     const qrAgg = await Fee.aggregate([
       { $match: qrMatch },
       {
@@ -1338,18 +1352,17 @@ export const getPaymentAnalysisReport = async (req, res) => {
     }
 
     // 3. Drill-down Transactions (Filtered & Paginated)
-    const drillMatch = { ...baseMatch };
+    const drillConditions = [...andConditions];
 
     if (mode && mode !== "all") {
-      drillMatch.mode = mode;
+      drillConditions.push({ mode });
     }
 
     if (qrcode && qrcode !== "all") {
       if (qrcode === "unassigned") {
-        drillMatch.qrcode = null;
-        drillMatch.mode = "upi_qr";
+        drillConditions.push({ qrcode: null, mode: "upi_qr" });
       } else {
-        drillMatch.qrcode = new mongoose.Types.ObjectId(qrcode);
+        drillConditions.push({ qrcode: new mongoose.Types.ObjectId(qrcode) });
       }
     }
 
@@ -1367,23 +1380,26 @@ export const getPaymentAnalysisReport = async (req, res) => {
 
       const studentIds = matchedStudents.map((s) => s._id);
 
-      drillMatch.$or = [
-        { registrationId: { $in: studentIds } },
-        { receiptNo: searchRegex },
-        { tnxId: searchRegex },
-        { remark: searchRegex },
-      ];
+      drillConditions.push({
+        $or: [
+          { registrationId: { $in: studentIds } },
+          { receiptNo: searchRegex },
+          { tnxId: searchRegex },
+          { remark: searchRegex },
+        ],
+      });
     }
+
+    const drillMatch = drillConditions.length > 0 ? { $and: drillConditions } : {};
 
     const [transactions, totalDrillRecords] = await Promise.all([
       Fee.find(drillMatch)
         .populate({
           path: "registrationId",
-          select: "studentName userid mobile email branch technology course",
+          select: "studentName userid mobile email branch technology",
           populate: [
             { path: "branch", select: "name" },
             { path: "technology", select: "name" },
-            { path: "course", select: "name" },
           ],
         })
         .populate("qrcode", "name upi bankName image isActive")
