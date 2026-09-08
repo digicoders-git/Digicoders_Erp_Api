@@ -8,7 +8,7 @@ import { sendRegistrationSuccessEmail } from "../utils/sendEmail.js";
 export const createOrder = async (req, res) => {
   try {
     const studentId = req.student._id;
-    const { amount } = req.body;
+    const { amount, purpose, type, reportId } = req.body;
     const payAmount = Number(amount);
     const student = await Registration.findById(studentId);
     if (!student)
@@ -16,20 +16,33 @@ export const createOrder = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Student not found" });
 
-    if (payAmount <= 0 || payAmount > student.dueAmount) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid payment amount",
-      });
+    const isProjectReport = type === "project_report" || purpose === "project_report";
+
+    if (!isProjectReport) {
+      if (payAmount <= 0 || payAmount > student.dueAmount) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid payment amount",
+        });
+      }
+    } else {
+      if (payAmount <= 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid payment amount",
+        });
+      }
     }
 
     const order = await razorpay.orders.create({
-      amount: payAmount * 100, // paise
+      amount: Math.round(payAmount * 100), // paise
       currency: "INR",
       receipt: `DCT-${Date.now()}`,
       notes: {
         registrationId: student._id.toString(),
         userid: student.userid,
+        type: isProjectReport ? "project_report" : "fee",
+        reportId: reportId || "",
       },
     });
 
@@ -50,6 +63,8 @@ export const verifyPayment = async (req, res) => {
       razorpay_payment_id,
       razorpay_signature,
       amount,
+      type,
+      purpose,
     } = req.body;
     const studentId = req.student._id;
 
@@ -66,7 +81,20 @@ export const verifyPayment = async (req, res) => {
         .json({ success: false, message: "Invalid signature" });
     }
 
+    const isProjectReport = type === "project_report" || purpose === "project_report";
+    if (isProjectReport) {
+      return res.status(200).json({
+        success: true,
+        message: "Payment verified successfully",
+        paymentId: razorpay_payment_id,
+        orderId: razorpay_order_id,
+      });
+    }
+
     const student = await Registration.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ success: false, message: "Student not found" });
+    }
 
     const paidAmount = student.paidAmount + amount;
 

@@ -94,7 +94,10 @@ export const getMyReportStatus = async (req, res) => {
     const searchVal = req.student.mobile || req.student.email || req.student.userid;
     const response = await axios.get(`${PROJECT_REPORT_API}/api/students?search=${searchVal}`);
     
-    const reports = response.data.students || [];
+    // Only return completed project reports that have a generated projectId and are not in draft status
+    const reports = (response.data.students || []).filter(
+      (report) => report.projectId && report.status !== "draft"
+    );
 
     return res.status(200).json({
       success: true,
