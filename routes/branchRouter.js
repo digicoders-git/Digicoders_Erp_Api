@@ -4,7 +4,8 @@ import {
   getBranch,
   getAllBranches,
   updateBranch,
-  deleteBranch
+  deleteBranch,
+  getBranchPerformanceReport
 } from "../controllers/branchController.js"; // apne file ka actual naam yaha lagana
 import { auth } from "../middleware/auth.js";
 const router = express.Router();
@@ -24,5 +25,8 @@ router.put("/:id",updateBranch);
 
 // Delete branch by ID
 router.delete("/:id", deleteBranch);
+
+// 📊 Branch Performance Report
+router.get("/reports/performance", getBranchPerformanceReport);
 
 export default router;

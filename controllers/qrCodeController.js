@@ -172,26 +172,37 @@ export const updataQrCode = async (req, res) => {
   try {
     const { id } = req.params;
     const { isActive, name, upi, bankName } = req.body;
-    const img = req?.file
-    if (!id) return res.status(400).json({ message: "id is requrid", success: false });
+    const img = req?.file;
+    if (!id) return res.status(400).json({ message: "ID is required", success: false });
+    
     const qrCode = await QrCode.findById(id);
     if (!qrCode)
-      return res.status(404).json({ message: "qrCode data is not found", success: false });
+      return res.status(404).json({ message: "QR Code data not found", success: false });
+
     if (name) qrCode.name = name;
     if (bankName) qrCode.bankName = bankName;
     if (upi) qrCode.upi = upi;
-    if (typeof isActive !== "undefined") qrCode.isActive = isActive;
+    
+    if (typeof isActive !== "undefined" && isActive !== null) {
+      qrCode.isActive = isActive === true || isActive === "true";
+    }
+
     if (img) {
-      qrCode.image.url = `/uploads/${img.filename}`
-      qrCode.image.public_id = img.filename
+      qrCode.image = {
+        url: `/uploads/${img.filename}`,
+        public_id: img.filename
+      };
     }
 
     await qrCode.save();
-    return res
-      .status(200)
-      .json({ message: "updata succesfull", success: true });
+    return res.status(200).json({ 
+      message: "QR Code updated successfully", 
+      success: true,
+      data: qrCode
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error updateing qrCode detels" });
+    console.error("Error updating QR Code:", error);
+    res.status(500).json({ message: "Error updating QR Code details", error: error.message, success: false });
   }
 };
 

@@ -298,3 +298,148 @@ export const deleteBranch = async (req, res) => {
     });
   }
 };
+
+// 📊 Branch Performance & Month-to-Month Progress Comparison Report
+export const getBranchPerformanceReport = async (req, res) => {
+  try {
+    const { branchId, monthsCount = 4 } = req.query;
+    const numMonths = Math.max(1, Math.min(12, parseInt(monthsCount) || 4));
+
+    const allBranches = await Branch.find({ isActive: true });
+    
+    // Determine target branches
+    let targetBranches = allBranches;
+    if (branchId && branchId !== "all") {
+      targetBranches = allBranches.filter(b => b._id.toString() === branchId);
+    }
+
+    // Build last N months array (e.g., current month back N months)
+    const monthList = [];
+    const now = new Date();
+    for (let i = numMonths - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthStart = new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
+      const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+      const monthLabel = d.toLocaleString('en-IN', { month: 'short', year: 'numeric' });
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      
+      monthList.push({
+        key: monthKey,
+        label: monthLabel,
+        start: monthStart,
+        end: monthEnd
+      });
+    }
+
+    // Import Fee & Registration models dynamically if needed
+    const Registration = (await import("../models/regsitration.js")).default;
+    const Fee = (await import("../models/fee.js")).default;
+
+    const reportData = [];
+
+    for (const b of targetBranches) {
+      const branchStats = {
+        branchId: b._id,
+        branchName: b.name,
+        location: b.location,
+        totalStudentsAllTime: 0,
+        totalCollectionAllTime: 0,
+        monthlyBreakdown: []
+      };
+
+      // All time totals for branch
+      const totalStudents = await Registration.countDocuments({ 
+        branch: b._id, 
+        status: { $in: ["accepted", "new", "pending"] } 
+      });
+      branchStats.totalStudentsAllTime = totalStudents;
+
+      // Fees for branch registrations
+      const branchRegistrations = await Registration.find({ branch: b._id }).select("_id");
+      const branchRegIds = branchRegistrations.map(r => r._id);
+
+      const feeAggregate = await Fee.aggregate([
+        {
+          $match: {
+            registrationId: { $in: branchRegIds },
+            $or: [{ status: "accepted" }, { tnxStatus: "paid" }, { tnxStatus: "full paid" }]
+          }
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: { $toDouble: { $ifNull: ["$amount", 0] } } }
+          }
+        }
+      ]);
+      branchStats.totalCollectionAllTime = feeAggregate[0]?.total || 0;
+
+      // Monthly breakdown
+      for (let idx = 0; idx < monthList.length; idx++) {
+        const m = monthList[idx];
+
+        // Registrations in month
+        const mStudentCount = await Registration.countDocuments({
+          branch: b._id,
+          createdAt: { $gte: m.start, $lte: m.end },
+          status: { $in: ["accepted", "new", "pending"] }
+        });
+
+        // Fee collections in month
+        const mFeeAggregate = await Fee.aggregate([
+          {
+            $match: {
+              registrationId: { $in: branchRegIds },
+              createdAt: { $gte: m.start, $lte: m.end },
+              $or: [{ status: "accepted" }, { tnxStatus: "paid" }, { tnxStatus: "full paid" }]
+            }
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: { $toDouble: { $ifNull: ["$amount", 0] } } }
+            }
+          }
+        ]);
+        const mCollection = mFeeAggregate[0]?.total || 0;
+
+        // Calculate progress % compared to previous month in monthList
+        let growthPercent = 0;
+        if (idx > 0) {
+          const prevCollection = branchStats.monthlyBreakdown[idx - 1].collection;
+          if (prevCollection > 0) {
+            growthPercent = (((mCollection - prevCollection) / prevCollection) * 100).toFixed(1);
+          } else if (mCollection > 0) {
+            growthPercent = 100;
+          }
+        }
+
+        branchStats.monthlyBreakdown.push({
+          monthKey: m.key,
+          monthLabel: m.label,
+          admissions: mStudentCount,
+          collection: mCollection,
+          growthPercent: Number(growthPercent)
+        });
+      }
+
+      reportData.push(branchStats);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Branch performance report generated successfully",
+      monthList: monthList.map(m => ({ key: m.key, label: m.label })),
+      branches: allBranches.map(b => ({ _id: b._id, name: b.name })),
+      data: reportData
+    });
+
+  } catch (error) {
+    console.error("Error generating branch performance report:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error generating branch performance report",
+      error: error.message
+    });
+  }
+};

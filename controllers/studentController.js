@@ -79,6 +79,8 @@ export const updateProfile = async (req, res) => {
       gender,
       district,
       pincode,
+      guardianMobile,
+      guardianRelation,
     } = req.body;
 
     const student = await Registration.findById(studentId);
@@ -102,6 +104,8 @@ export const updateProfile = async (req, res) => {
     if (gender) student.gender = gender;
     if (district) student.district = district;
     if (pincode) student.pincode = pincode;
+    if (guardianMobile) student.guardianMobile = guardianMobile;
+    if (guardianRelation) student.guardianRelation = guardianRelation;
 
     await student.save();
 
