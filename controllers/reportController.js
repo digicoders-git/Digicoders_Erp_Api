@@ -1,6 +1,7 @@
 import Registration from "../models/regsitration.js";
 import Fee from "../models/fee.js";
 import BranchModal from "../models/branch.js";
+import QrCode from "../models/qrCode.js";
 import mongoose from "mongoose";
 
 // Helper function to build the date range filter
@@ -38,6 +39,9 @@ export const getReportData = async (req, res) => {
       branchFilter = { branch: new mongoose.Types.ObjectId(branchId) };
     }
 
+    // Fetch all active QR codes so dropdown & cards show all QRs
+    const allQrs = await QrCode.find({ isActive: true }).select("_id name bankName upi");
+
     // 1. Get Registrations
     const registrations = await Registration.find({
       ...dateFilter,
@@ -45,7 +49,6 @@ export const getReportData = async (req, res) => {
     }).populate("branch", "name");
 
     // 2. Get Fees
-    // For fees, branch filter is slightly tricky. Fee schema might not have 'branch', so we lookup from Registration.
     const feeMatchStage = { ...dateFilter, status: { $in: ["accepted", "pending"] } };
     
     const feePipeline = [
@@ -69,14 +72,35 @@ export const getReportData = async (req, res) => {
       });
     }
 
-    feePipeline.push({
-      $lookup: {
-        from: "branches",
-        localField: "registration.branch",
-        foreignField: "_id",
-        as: "branchDetails",
-      }
-    }, { $unwind: { path: "$branchDetails", preserveNullAndEmptyArrays: true } });
+    feePipeline.push(
+      {
+        $lookup: {
+          from: "branches",
+          localField: "registration.branch",
+          foreignField: "_id",
+          as: "branchDetails",
+        }
+      },
+      { $unwind: { path: "$branchDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "qrcodes",
+          localField: "qrcode",
+          foreignField: "_id",
+          as: "qrcodeDetails",
+        }
+      },
+      { $unwind: { path: "$qrcodeDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: "qrcodes",
+          localField: "registration.qrcode",
+          foreignField: "_id",
+          as: "regQrcodeDetails",
+        }
+      },
+      { $unwind: { path: "$regQrcodeDetails", preserveNullAndEmptyArrays: true } }
+    );
 
     const fees = await Fee.aggregate(feePipeline);
 
@@ -93,7 +117,21 @@ export const getReportData = async (req, res) => {
     let upiCollection = 0;
 
     // Branch-wise aggregations
-    const branchStats = {}; // { [branchName]: { registrations: 0, fees: 0 } }
+    const branchStats = {};
+    
+    // QR-wise aggregations - initialize with all active QRs
+    const qrStatsMap = {};
+    allQrs.forEach((q) => {
+      const idStr = q._id.toString();
+      qrStatsMap[idStr] = {
+        qrcodeId: idStr,
+        name: q.name,
+        bankName: q.bankName || "",
+        upi: q.upi || "",
+        totalAmount: 0,
+        count: 0,
+      };
+    });
 
     registrations.forEach(reg => {
       const bName = reg.branch?.name || "Unknown";
@@ -112,12 +150,18 @@ export const getReportData = async (req, res) => {
       const amount = Number(fee.amount) || 0;
       totalFeeCollected += amount;
 
-      if (fee.feeType === "registration") totalRegistrationFees += amount;
+      const feeTypeResolved =
+        fee.paymentType ||
+        fee.feeType ||
+        fee.registration?.paymentType ||
+        (fee.installmentNo > 0 ? "installment" : "registration");
+
+      if (feeTypeResolved === "registration") totalRegistrationFees += amount;
 
       const mode = fee.mode?.toLowerCase() || "";
       if (mode.includes("cash")) cashCollection += amount;
       else if (mode.includes("upi_qr") || mode.includes("upi")) upiCollection += amount;
-      else onlineCollection += amount; // everything else as online
+      else onlineCollection += amount;
 
       const bName = fee.branchDetails?.name || "Unknown";
       if (!branchStats[bName]) branchStats[bName] = { 
@@ -131,9 +175,28 @@ export const getReportData = async (req, res) => {
       if (mode.includes("cash")) branchStats[bName].paymentBreakdown.cash += amount;
       else if (mode.includes("upi_qr") || mode.includes("upi")) branchStats[bName].paymentBreakdown.upi += amount;
       else branchStats[bName].paymentBreakdown.online += amount;
+
+      // QR Code Tracking (Check fee.qrcodeDetails then registration.qrcodeDetails)
+      const effectiveQr = fee.qrcodeDetails || fee.regQrcodeDetails;
+      if (effectiveQr) {
+        const qrId = effectiveQr._id.toString();
+        if (!qrStatsMap[qrId]) {
+          qrStatsMap[qrId] = {
+            qrcodeId: qrId,
+            name: effectiveQr.name || "QR Account",
+            bankName: effectiveQr.bankName || "",
+            upi: effectiveQr.upi || "",
+            totalAmount: 0,
+            count: 0,
+          };
+        }
+        qrStatsMap[qrId].totalAmount += amount;
+        qrStatsMap[qrId].count += 1;
+      }
     });
 
     const branchDataArray = Object.values(branchStats);
+    const qrDataArray = Object.values(qrStatsMap);
 
     return res.status(200).json({
       success: true,
@@ -145,17 +208,36 @@ export const getReportData = async (req, res) => {
         cashCollection,
         upiCollection,
         branchWise: branchDataArray,
-        transactions: fees.map(f => ({
-          _id: f._id,
-          amount: f.amount,
-          mode: f.mode,
-          feeType: f.feeType,
-          status: f.status,
-          date: f.createdAt,
-          studentName: f.registration?.studentName,
-          mobile: f.registration?.mobile,
-          branchName: f.branchDetails?.name,
-        })),
+        qrWise: qrDataArray,
+        transactions: fees.map(f => {
+          const effectiveQr = f.qrcodeDetails || f.regQrcodeDetails;
+          const resolvedFeeType =
+            f.paymentType ||
+            f.feeType ||
+            f.registration?.paymentType ||
+            (f.installmentNo > 0 ? "installment" : "registration");
+
+          return {
+            _id: f._id,
+            amount: f.amount,
+            mode: f.mode,
+            feeType: resolvedFeeType,
+            status: f.status,
+            date: f.createdAt,
+            tnxId: f.tnxId,
+            receiptNo: f.receiptNo,
+            studentName: f.registration?.studentName,
+            mobile: f.registration?.mobile,
+            userid: f.registration?.userid,
+            branchName: f.branchDetails?.name,
+            qrcode: effectiveQr ? {
+              _id: effectiveQr._id,
+              name: effectiveQr.name,
+              bankName: effectiveQr.bankName,
+              upi: effectiveQr.upi,
+            } : null,
+          };
+        }),
       }
     });
 
