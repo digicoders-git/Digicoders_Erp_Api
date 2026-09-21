@@ -15,13 +15,17 @@ import {
   editPayment,
   getPaymentsByEnrollSuffix,
   getPaymentAnalysisReport,
+  getCashReportAnalysis,
 } from "../controllers/feeController.js";
 import { auth, authorize } from '../middleware/auth.js';
 import upload from "../middleware/upload.js";
 const router = express.Router();
 
-// 👑 Super Admin Only - Payment & QR Code Analysis Report
+// 👑 Super Admin & Admin - Payment & QR Code Analysis Report
 router.get("/payment-analysis", auth, authorize(["Super Admin"]), getPaymentAnalysisReport);
+
+// 💵 Super Admin & Admin - Cash Collection & Analysis Report
+router.get("/cash-analysis", auth, authorize(["Super Admin", "Admin"]), getCashReportAnalysis);
 
 // 🔓 PUBLIC route - no auth needed
 router.get("/public/enroll/:digits", getPaymentsByEnrollSuffix);

@@ -1450,3 +1450,423 @@ export const getPaymentAnalysisReport = async (req, res) => {
     });
   }
 };
+
+// 💵 Super Admin & Admin - Cash Collection & Analysis Report
+export const getCashReportAnalysis = async (req, res) => {
+  try {
+    const {
+      datePreset = "this_month",
+      startDate,
+      endDate,
+      branch,
+      status = "accepted",
+      search,
+      selectedDate,
+      selectedBranch,
+      selectedTraining,
+      selectedHr,
+      selectedMinAmount,
+      hrName,
+      training,
+      month,
+      minAmount,
+      page = 1,
+      limit = 25,
+    } = req.query;
+
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 25;
+    const skip = (pageNum - 1) * limitNum;
+
+    const andConditions = [{ mode: "cash" }];
+
+    // Status filter
+    if (status && status !== "all") {
+      andConditions.push({ status });
+    }
+
+    // Min Amount filter (e.g. 4500)
+    if (minAmount && Number(minAmount) > 0) {
+      andConditions.push({ amount: { $gte: Number(minAmount) } });
+    }
+
+    // Month filter (YYYY-MM)
+    if (month && month !== "all" && month !== "All") {
+      const [yStr, mStr] = month.split("-");
+      if (yStr && mStr) {
+        const mStart = new Date(parseInt(yStr), parseInt(mStr) - 1, 1, 0, 0, 0, 0);
+        const mEnd = new Date(parseInt(yStr), parseInt(mStr), 0, 23, 59, 59, 999);
+        andConditions.push({ paymentDate: { $gte: mStart, $lte: mEnd } });
+      }
+    } else {
+      // Date range filter
+      const now = new Date();
+      let start, end;
+
+      if (datePreset === "today") {
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      } else if (datePreset === "yesterday") {
+        const y = new Date();
+        y.setDate(y.getDate() - 1);
+        start = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 0, 0, 0, 0);
+        end = new Date(y.getFullYear(), y.getMonth(), y.getDate(), 23, 59, 59, 999);
+      } else if (datePreset === "this_week") {
+        const dayOfWeek = now.getDay(); // 0 is Sunday
+        const firstDay = new Date(now);
+        firstDay.setDate(now.getDate() - dayOfWeek);
+        start = new Date(firstDay.getFullYear(), firstDay.getMonth(), firstDay.getDate(), 0, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+      } else if (datePreset === "this_month") {
+        start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      } else if (datePreset === "last_month") {
+        start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+        end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+      } else if (datePreset === "custom") {
+        if (startDate) start = new Date(startDate);
+        if (endDate) {
+          end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+        }
+      }
+
+      if (start && end) {
+        andConditions.push({ paymentDate: { $gte: start, $lte: end } });
+      }
+    }
+
+    // Filter by Branch (main filter)
+    if (branch && branch !== "all" && branch !== "All") {
+      const branchRegs = await Registration.find({ branch }).select("_id");
+      const regIds = branchRegs.map((r) => r._id);
+      andConditions.push({ registrationId: { $in: regIds } });
+    }
+
+    // Filter by Training
+    if (training && training !== "all" && training !== "All") {
+      const trainingRegs = await Registration.find({ training }).select("_id");
+      const regIds = trainingRegs.map((r) => r._id);
+      andConditions.push({ registrationId: { $in: regIds } });
+    }
+
+    // Filter by HR
+    if (hrName && hrName !== "all" && hrName !== "All") {
+      andConditions.push({
+        $or: [
+          { hrName: new mongoose.Types.ObjectId(hrName) },
+          { paidBy: new mongoose.Types.ObjectId(hrName) },
+        ],
+      });
+    }
+
+    const baseMatch = { $and: andConditions };
+
+    // Fetch all branches
+    const allBranches = await Branch.find().sort({ name: 1 });
+
+    // Fetch all matching cash fees
+    const feesWithReg = await Fee.find(baseMatch)
+      .populate({
+        path: "registrationId",
+        select: "branch studentName userid mobile training hrName",
+        populate: [
+          { path: "branch", select: "name" },
+          { path: "training", select: "name duration" },
+          { path: "hrName", select: "name" },
+        ],
+      })
+      .populate("verifiedBy", "name")
+      .populate("paidBy", "name")
+      .populate("hrName", "name")
+      .sort({ paymentDate: -1 });
+
+    let totalCashAmount = 0;
+    let totalCashCount = feesWithReg.length;
+
+    // Branch map
+    const branchMap = {};
+    allBranches.forEach((b) => {
+      branchMap[b._id.toString()] = {
+        _id: b._id.toString(),
+        name: b.name,
+        amount: 0,
+        count: 0,
+        lastPaymentDate: null,
+      };
+    });
+    branchMap["unassigned"] = {
+      _id: "unassigned",
+      name: "Unassigned / Direct",
+      amount: 0,
+      count: 0,
+      lastPaymentDate: null,
+    };
+
+    // Date map
+    const dateMap = {};
+    // Training map
+    const trainingMap = {};
+    // HR map
+    const hrMap = {};
+
+    let above4500Amount = 0;
+    let above4500Count = 0;
+
+    feesWithReg.forEach((fee) => {
+      const amt = fee.amount || 0;
+      totalCashAmount += amt;
+
+      if (amt >= 4500) {
+        above4500Amount += amt;
+        above4500Count += 1;
+      }
+
+      // Branch Map
+      const branchObj = fee.registrationId?.branch;
+      const branchIdStr = branchObj?._id ? branchObj._id.toString() : "unassigned";
+
+      if (!branchMap[branchIdStr]) {
+        branchMap[branchIdStr] = {
+          _id: branchIdStr,
+          name: branchObj?.name || "Unassigned",
+          amount: 0,
+          count: 0,
+          lastPaymentDate: null,
+        };
+      }
+      branchMap[branchIdStr].amount += amt;
+      branchMap[branchIdStr].count += 1;
+      if (!branchMap[branchIdStr].lastPaymentDate || new Date(fee.paymentDate) > new Date(branchMap[branchIdStr].lastPaymentDate)) {
+        branchMap[branchIdStr].lastPaymentDate = fee.paymentDate;
+      }
+
+      // Training Map
+      const trainingObj = fee.registrationId?.training;
+      const trainingIdStr = trainingObj?._id ? trainingObj._id.toString() : "unassigned";
+      const trainingName = trainingObj?.name || "Other Training";
+
+      if (!trainingMap[trainingIdStr]) {
+        trainingMap[trainingIdStr] = {
+          _id: trainingIdStr,
+          name: trainingName,
+          amount: 0,
+          count: 0,
+        };
+      }
+      trainingMap[trainingIdStr].amount += amt;
+      trainingMap[trainingIdStr].count += 1;
+
+      // HR Map
+      const hrObj = fee.hrName || fee.paidBy || fee.registrationId?.hrName;
+      const hrIdStr = hrObj?._id ? hrObj._id.toString() : "unassigned";
+      const hrPersonName = hrObj?.name || "Direct / Admin";
+
+      if (!hrMap[hrIdStr]) {
+        hrMap[hrIdStr] = {
+          _id: hrIdStr,
+          name: hrPersonName,
+          amount: 0,
+          count: 0,
+        };
+      }
+      hrMap[hrIdStr].amount += amt;
+      hrMap[hrIdStr].count += 1;
+
+      // Group by Date (YYYY-MM-DD in local time)
+      const dateObj = fee.paymentDate ? new Date(fee.paymentDate) : new Date();
+      const year = dateObj.getFullYear();
+      const monthNum = String(dateObj.getMonth() + 1).padStart(2, "0");
+      const day = String(dateObj.getDate()).padStart(2, "0");
+      const dateStr = `${year}-${monthNum}-${day}`;
+
+      if (!dateMap[dateStr]) {
+        dateMap[dateStr] = {
+          date: dateStr,
+          totalAmount: 0,
+          totalCount: 0,
+          branchBreakdown: {},
+        };
+      }
+      dateMap[dateStr].totalAmount += amt;
+      dateMap[dateStr].totalCount += 1;
+
+      const bName = branchObj?.name || "Unassigned";
+      if (!dateMap[dateStr].branchBreakdown[bName]) {
+        dateMap[dateStr].branchBreakdown[bName] = { amount: 0, count: 0 };
+      }
+      dateMap[dateStr].branchBreakdown[bName].amount += amt;
+      dateMap[dateStr].branchBreakdown[bName].count += 1;
+    });
+
+    // Format Branch Breakdown
+    const branchBreakdown = Object.values(branchMap)
+      .filter((b) => b._id !== "unassigned" || b.count > 0)
+      .map((b) => {
+        const percentage = totalCashAmount > 0 ? ((b.amount / totalCashAmount) * 100).toFixed(1) : 0;
+        return {
+          ...b,
+          percentage: Number(percentage),
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+
+    // Format Training Breakdown
+    const trainingBreakdown = Object.values(trainingMap)
+      .filter((t) => t.count > 0)
+      .map((t) => {
+        const percentage = totalCashAmount > 0 ? ((t.amount / totalCashAmount) * 100).toFixed(1) : 0;
+        return {
+          ...t,
+          percentage: Number(percentage),
+        };
+      })
+      .sort((a, b) => b.count - a.count);
+
+    // Format HR Breakdown
+    const hrBreakdown = Object.values(hrMap)
+      .filter((h) => h.count > 0)
+      .map((h) => {
+        const percentage = totalCashAmount > 0 ? ((h.amount / totalCashAmount) * 100).toFixed(1) : 0;
+        return {
+          ...h,
+          percentage: Number(percentage),
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+
+    // Format Date Breakdown
+    const dateBreakdown = Object.values(dateMap)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map((d) => ({
+        ...d,
+        branchSummary: Object.entries(d.branchBreakdown).map(([bName, val]) => ({
+          branchName: bName,
+          amount: val.amount,
+          count: val.count,
+        })),
+      }));
+
+    // Today's cash stats
+    const todayObj = new Date();
+    const todayStr = `${todayObj.getFullYear()}-${String(todayObj.getMonth() + 1).padStart(2, "0")}-${String(todayObj.getDate()).padStart(2, "0")}`;
+    const todayData = dateMap[todayStr] || { totalAmount: 0, totalCount: 0 };
+
+    // Drill-down filtering
+    const drillConditions = [...andConditions];
+
+    if (selectedBranch && selectedBranch !== "all") {
+      const branchRegs = await Registration.find({ branch: selectedBranch }).select("_id");
+      const regIds = branchRegs.map((r) => r._id);
+      drillConditions.push({ registrationId: { $in: regIds } });
+    }
+
+    if (selectedTraining && selectedTraining !== "all") {
+      const trainingRegs = await Registration.find({ training: selectedTraining }).select("_id");
+      const regIds = trainingRegs.map((r) => r._id);
+      drillConditions.push({ registrationId: { $in: regIds } });
+    }
+
+    if (selectedHr && selectedHr !== "all") {
+      drillConditions.push({
+        $or: [
+          { hrName: new mongoose.Types.ObjectId(selectedHr) },
+          { paidBy: new mongoose.Types.ObjectId(selectedHr) },
+        ],
+      });
+    }
+
+    if (selectedMinAmount && Number(selectedMinAmount) > 0) {
+      drillConditions.push({ amount: { $gte: Number(selectedMinAmount) } });
+    }
+
+    if (selectedDate && selectedDate !== "all") {
+      const [yStr, mStr, dStr] = selectedDate.split("-");
+      if (yStr && mStr && dStr) {
+        const dStart = new Date(parseInt(yStr), parseInt(mStr) - 1, parseInt(dStr), 0, 0, 0, 0);
+        const dEnd = new Date(parseInt(yStr), parseInt(mStr) - 1, parseInt(dStr), 23, 59, 59, 999);
+        drillConditions.push({ paymentDate: { $gte: dStart, $lte: dEnd } });
+      }
+    }
+
+    if (search && search.trim() !== "") {
+      const searchRegex = new RegExp(search.trim(), "i");
+      const matchedStudents = await Registration.find({
+        $or: [
+          { studentName: searchRegex },
+          { userid: searchRegex },
+          { mobile: searchRegex },
+          { email: searchRegex },
+        ],
+      }).select("_id");
+
+      const studentIds = matchedStudents.map((s) => s._id);
+
+      drillConditions.push({
+        $or: [
+          { registrationId: { $in: studentIds } },
+          { receiptNo: searchRegex },
+          { tnxId: searchRegex },
+          { remark: searchRegex },
+        ],
+      });
+    }
+
+    const drillMatch = { $and: drillConditions };
+
+    const [transactions, totalDrillRecords] = await Promise.all([
+      Fee.find(drillMatch)
+        .populate({
+          path: "registrationId",
+          select: "studentName userid mobile email branch technology training",
+          populate: [
+            { path: "branch", select: "name" },
+            { path: "technology", select: "name" },
+            { path: "training", select: "name" },
+          ],
+        })
+        .populate("verifiedBy", "name")
+        .populate("paidBy", "name")
+        .populate("hrName", "name")
+        .sort({ paymentDate: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Fee.countDocuments(drillMatch),
+    ]);
+
+    const stats = {
+      totalCashAmount,
+      totalCashCount,
+      todayCashAmount: todayData.totalAmount,
+      todayCashCount: todayData.totalCount,
+      uniqueDaysCount: dateBreakdown.length,
+      avgDailyCash: dateBreakdown.length > 0 ? Math.round(totalCashAmount / dateBreakdown.length) : 0,
+      topBranch: branchBreakdown.length > 0 ? branchBreakdown[0].name : "N/A",
+      above4500Amount,
+      above4500Count,
+    };
+
+    res.status(200).json({
+      success: true,
+      stats,
+      branchBreakdown,
+      trainingBreakdown,
+      hrBreakdown,
+      dateBreakdown,
+      transactions,
+      pagination: {
+        total: totalDrillRecords,
+        page: pageNum,
+        limit: limitNum,
+        totalPages: Math.ceil(totalDrillRecords / limitNum),
+      },
+    });
+  } catch (error) {
+    console.error("Cash report error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate cash analysis report",
+      error: error.message,
+    });
+  }
+};

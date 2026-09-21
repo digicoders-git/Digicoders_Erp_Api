@@ -722,9 +722,38 @@ export const getAllRegistrations = async (req, res) => {
     if (isJoin !== undefined && isJoin !== "All") {
       filter.isJoin = isJoin === 'true' || isJoin === true;
     }
+    // Min Amount filter (e.g. >= 4500)
+    if (req.query.minAmount) {
+      const minAmt = Number(req.query.minAmount);
+      if (!isNaN(minAmt)) {
+        filter.$and = filter.$and || [];
+        filter.$and.push({
+          $or: [
+            { amount: { $gte: minAmt } },
+            { paidAmount: { $gte: minAmt } },
+            { finalFee: { $gte: minAmt } },
+          ],
+        });
+      }
+    }
+
+    // Month filter (YYYY-MM)
+    if (req.query.month && req.query.month !== "All") {
+      const [yStr, mStr] = req.query.month.split("-");
+      if (yStr && mStr) {
+        const year = parseInt(yStr, 10);
+        const monthNum = parseInt(mStr, 10);
+        const start = new Date(year, monthNum - 1, 1, 0, 0, 0, 0);
+        const end = new Date(year, monthNum, 0, 23, 59, 59, 999);
+        filter.createdAt = filter.createdAt || {};
+        filter.createdAt.$gte = start;
+        filter.createdAt.$lte = end;
+      }
+    }
+
     // Date range filter - FIXED
     if (startDate || endDate) {
-      filter.createdAt = {};
+      filter.createdAt = filter.createdAt || {};
       if (startDate) {
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
