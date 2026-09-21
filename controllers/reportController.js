@@ -176,8 +176,11 @@ export const getReportData = async (req, res) => {
       else if (mode.includes("upi_qr") || mode.includes("upi")) branchStats[bName].paymentBreakdown.upi += amount;
       else branchStats[bName].paymentBreakdown.online += amount;
 
-      // QR Code Tracking (Check fee.qrcodeDetails then registration.qrcodeDetails)
-      const effectiveQr = fee.qrcodeDetails || fee.regQrcodeDetails;
+      // QR Code Tracking: strictly for UPI / QR / Bank payments (NEVER for cash)
+      const isCash = mode.includes("cash");
+      const effectiveQr = isCash
+        ? null
+        : (fee.qrcodeDetails || (feeTypeResolved === "registration" ? fee.regQrcodeDetails : null));
       if (effectiveQr) {
         const qrId = effectiveQr._id.toString();
         if (!qrStatsMap[qrId]) {
@@ -210,12 +213,16 @@ export const getReportData = async (req, res) => {
         branchWise: branchDataArray,
         qrWise: qrDataArray,
         transactions: fees.map(f => {
-          const effectiveQr = f.qrcodeDetails || f.regQrcodeDetails;
+          const fMode = (f.mode || "").toLowerCase();
+          const isFCash = fMode.includes("cash");
           const resolvedFeeType =
             f.paymentType ||
             f.feeType ||
             f.registration?.paymentType ||
             (f.installmentNo > 0 ? "installment" : "registration");
+          const effectiveQr = isFCash
+            ? null
+            : (f.qrcodeDetails || (resolvedFeeType === "registration" ? f.regQrcodeDetails : null));
 
           return {
             _id: f._id,

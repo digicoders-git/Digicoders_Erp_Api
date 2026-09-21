@@ -223,7 +223,7 @@ export const addRegistration = async (req, res) => {
       paymentType,
       paymentMethod,
       password,
-      qrcode,
+      qrcode: paymentMethod === "upi_qr" ? qrcode : null,
       remark,
       tnxId: cleanTnxId,
       registeredBy: registeredBy || null,
@@ -248,7 +248,7 @@ export const addRegistration = async (req, res) => {
         amount: Number(amount),
         paymentType: paymentType,
         mode: paymentMethod,
-        qrcode,
+        qrcode: paymentMethod === "upi_qr" ? qrcode : null,
         tnxId: cleanTnxId,
         status: paymentMethod === "payment_link" ? "accepted" : "new",
         tnxStatus: finalTnxStatus,
@@ -2430,18 +2430,29 @@ export const getMe = async (req, res) => {
       });
     }
 
+    const studentData = req.student.toObject ? req.student.toObject() : req.student;
+
     return res.status(200).json({
       success: true,
       message: "Student session verified",
       user: {
+        ...studentData,
         id: req.student._id,
+        _id: req.student._id,
         userid: req.student.userid,
         name: req.student.studentName,
+        studentName: req.student.studentName,
         email: req.student.email,
         mobile: req.student.mobile,
         role: 'student',
         branch: req.student.branch,
-        isPasswordSet: req.student.isPasswordSet
+        isPasswordSet: req.student.isPasswordSet,
+        photoSummited: req.student.photoSummited,
+        profilePhoto: req.student.profilePhoto,
+        aadharCardUploded: req.student.aadharCardUploded,
+        aadharCard: req.student.aadharCard,
+        cvUploded: req.student.cvUploded,
+        cv: req.student.cv,
       },
     });
   } catch (error) {
