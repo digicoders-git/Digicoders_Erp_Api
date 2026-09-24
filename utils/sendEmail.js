@@ -204,6 +204,20 @@ export const sendPaymentSuccessEmail = async (to, data) => {
   await sendEmail(to, "Payment Receipt Confirmed - DigiCoders", getBaseTemplate("Payment Receipt", content));
 };
 
+export const sendPaymentConfirmationEmail = async (registration, payment) => {
+  if (!registration || !registration.email) return;
+  const amount = payment?.amount ? (payment.amount / 100) : (payment?.paidAmount || registration.paidAmount || 0);
+  const paymentId = payment?.id || payment?.tnxId || 'N/A';
+  return sendPaymentSuccessEmail(registration.email, {
+    studentName: registration.studentName || registration.name || 'Student',
+    paymentId: paymentId,
+    amount: amount,
+    training: registration.training || 'Training Program',
+    technology: registration.technology || '',
+    mobile: registration.mobile || ''
+  });
+};
+
 export const sendInstallmentReceivedEmail = async (to, data) => {
   const content = `
     <p style="margin-top: 0;">Dear <strong>${data.studentName}</strong>,</p>
@@ -287,7 +301,7 @@ export const sendOTPEmail = async (to, data) => {
         ${data.userAgent ? `
         <tr>
           <td style="padding: 3px 0; font-weight: bold;">Device:</td>
-          <td style="padding: 3px 0; font-size: 11px;">${data.userAgent}</td>
+          <td style="padding: 3px 0;">${data.userAgent}</td>
         </tr>
         ` : ''}
       </table>
@@ -341,4 +355,3 @@ export const sendExportOTPEmail = async (to, data) => {
   `;
   await sendEmail(to, "Student Data Export OTP - DigiCoders Technologies", getBaseTemplate("Data Export Verification", content));
 };
-
