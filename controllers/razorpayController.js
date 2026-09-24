@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import axios from "axios";
 import razorpay from "../utils/razorpay.js";
 import Registration from "../models/regsitration.js";
 import Fee from "../models/fee.js";
@@ -65,8 +66,9 @@ export const verifyPayment = async (req, res) => {
       amount,
       type,
       purpose,
+      reportId,
     } = req.body;
-    const studentId = req.student._id;
+    const studentId = req.student?._id;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -83,11 +85,66 @@ export const verifyPayment = async (req, res) => {
 
     const isProjectReport = type === "project_report" || purpose === "project_report";
     if (isProjectReport) {
+      let targetReportId = reportId;
+
+      // 1. Try to get reportId from razorpay order notes if not provided directly
+      if (!targetReportId && razorpay_order_id) {
+        try {
+          const rzpOrder = await razorpay.orders.fetch(razorpay_order_id);
+          targetReportId = rzpOrder?.notes?.reportId;
+        } catch (fetchErr) {
+          console.error("Error fetching order notes from Razorpay:", fetchErr.message);
+        }
+      }
+
+      // 2. If still not found, search by student phone/email/userid
+      const PROJECT_REPORT_API = process.env.PROJECT_REPORT_API || "https://apiprojectreport.thedigicoders.com";
+      if (!targetReportId && req.student) {
+        try {
+          const searchVal = req.student.mobile || req.student.email || req.student.userid;
+          if (searchVal) {
+            const searchRes = await axios.get(`${PROJECT_REPORT_API}/api/students?search=${searchVal}`);
+            const foundReport = (searchRes.data?.students || []).find(
+              (r) => r.projectId && r.status !== "draft"
+            );
+            if (foundReport) {
+              targetReportId = foundReport._id;
+            }
+          }
+        } catch (searchErr) {
+          console.error("Error finding student report by search:", searchErr.message);
+        }
+      }
+
+      // 3. Automatically update the project report status to requestForPrint in database
+      let statusUpdated = false;
+      if (targetReportId) {
+        try {
+          const updateRes = await axios.put(`${PROJECT_REPORT_API}/api/students/${targetReportId}/status`, {
+            status: "requestForPrint",
+            paymentDetails: {
+              transactionId: razorpay_payment_id,
+              amount: Number(amount) || 250,
+              status: "success",
+              paidAt: new Date(),
+            },
+          });
+          if (updateRes.data && updateRes.data.success) {
+            statusUpdated = true;
+            console.log(`✅ [verifyPayment] Project report ${targetReportId} updated to requestForPrint`);
+          }
+        } catch (prErr) {
+          console.error("❌ [verifyPayment] Failed to update project report status:", prErr.message);
+        }
+      }
+
       return res.status(200).json({
         success: true,
         message: "Payment verified successfully",
         paymentId: razorpay_payment_id,
         orderId: razorpay_order_id,
+        statusUpdated,
+        reportId: targetReportId,
       });
     }
 
