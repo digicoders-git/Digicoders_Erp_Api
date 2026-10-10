@@ -379,7 +379,7 @@ export const assignTeacher = async (req, res) => {
 export const updateBatchStudents = async (req, res) => {
   try {
     const { batchId } = req.params;
-    const { studentIds } = req.body;
+    let { studentIds } = req.body;
 
     // Validate input
     if (!studentIds || !Array.isArray(studentIds)) {
@@ -388,6 +388,15 @@ export const updateBatchStudents = async (req, res) => {
         message: "studentIds array is required",
       });
     }
+
+    // Deduplicate and sanitize studentIds
+    studentIds = [
+      ...new Set(
+        studentIds
+          .map((id) => (id?._id ? id._id.toString() : id?.toString()))
+          .filter(Boolean)
+      ),
+    ];
 
     const batch = await Batch.findById(batchId);
     if (!batch) {
@@ -400,42 +409,75 @@ export const updateBatchStudents = async (req, res) => {
     if (!isBranchAllowed(req.user, batch.branch)) {
       return res.status(403).json({
         success: false,
-        message: "Access denied. You can only manage students for batches in your own branch."
+        message: "Access denied. You can only manage students for batches in your own branch.",
       });
     }
 
-    // Check if all students exist
-    const students = await Registration.find({
-      _id: { $in: studentIds },
-      status: "accepted", // Only allow accepted students
-    });
+    // Previous student IDs currently in the batch
+    const previousStudentIds = (batch.students || [])
+      .map((id) => (id?._id ? id._id.toString() : id?.toString()))
+      .filter(Boolean);
 
-    if (students.length !== studentIds.length) {
-      const foundIds = students.map((s) => s._id.toString());
-      const missingIds = studentIds.filter((id) => !foundIds.includes(id));
+    // Identify newly added and removed students
+    const addedStudentIds = studentIds.filter((id) => !previousStudentIds.includes(id));
+    const removedStudentIds = previousStudentIds.filter((id) => !studentIds.includes(id));
 
-      return res.status(404).json({
-        success: false,
-        message: "Some students not found or not accepted",
-        missingStudents: missingIds,
+    // For newly added students, verify they exist
+    if (addedStudentIds.length > 0) {
+      const addedStudents = await Registration.find({
+        _id: { $in: addedStudentIds },
       });
-    }
-    await Registration.updateMany(
-      { _id: { $in: studentIds } },
-      {
-        $addToSet: {
-          batch: batchId, // ek batch add hoga, duplicate nahi
-        },
+
+      if (addedStudents.length !== addedStudentIds.length) {
+        const foundIds = addedStudents.map((s) => s._id.toString());
+        const missingIds = addedStudentIds.filter((id) => !foundIds.includes(id));
+
+        return res.status(404).json({
+          success: false,
+          message: "Some newly added students were not found",
+          missingStudents: missingIds,
+        });
       }
-    );
+
+      // Add batchId to newly added students' Registration profiles
+      await Registration.updateMany(
+        { _id: { $in: addedStudentIds } },
+        {
+          $addToSet: {
+            batch: batchId,
+          },
+        }
+      );
+    }
+
+    // Remove batchId from removed students' Registration profiles
+    if (removedStudentIds.length > 0) {
+      await Registration.updateMany(
+        { _id: { $in: removedStudentIds } },
+        {
+          $pull: {
+            batch: batchId,
+          },
+        }
+      );
+    }
 
     // Replace the students array with the new selection
     batch.students = studentIds;
     await batch.save();
-    // Populate the updated batch with student details
+
+    // Populate the updated batch with full student details
     const updatedBatch = await Batch.findById(batchId)
       .populate("teacher", "name email")
-      .populate("students", "studentName email mobile technology status");
+      .populate({
+        path: "students",
+        select: "studentName email mobile technology training branch fatherName status totalFee finalFee paidAmount dueAmount nextDueDate dueRemark createdAt",
+        populate: [
+          { path: "technology", select: "name" },
+          { path: "training", select: "name" },
+          { path: "branch", select: "name" },
+        ],
+      });
 
     res.json({
       success: true,
@@ -455,7 +497,15 @@ export const updateBatchStudents = async (req, res) => {
 // ➤ Remove Student from Batch (Single)
 export const removeStudentFromBatch = async (req, res) => {
   try {
-    const { batchId, studentId } = req.body;
+    const batchId = req.body?.batchId || req.query?.batchId || req.params?.batchId;
+    const studentId = req.body?.studentId || req.query?.studentId || req.params?.studentId;
+
+    if (!batchId || !studentId) {
+      return res.status(400).json({
+        success: false,
+        message: "batchId and studentId are required",
+      });
+    }
 
     const batch = await Batch.findById(batchId);
     if (!batch) {
@@ -468,12 +518,18 @@ export const removeStudentFromBatch = async (req, res) => {
     if (!isBranchAllowed(req.user, batch.branch)) {
       return res.status(403).json({
         success: false,
-        message: "Access denied. You can only manage students for batches in your own branch."
+        message: "Access denied. You can only manage students for batches in your own branch.",
       });
     }
 
-    // Check if student exists in batch
-    if (!batch.students.includes(studentId)) {
+    const studentIdStr = studentId.toString();
+
+    // Check if student exists in batch (compare ObjectIds as strings)
+    const isInBatch = (batch.students || []).some(
+      (id) => (id?._id ? id._id.toString() : id?.toString()) === studentIdStr
+    );
+
+    if (!isInBatch) {
       return res.status(400).json({
         success: false,
         message: "Student not in this batch",
@@ -481,15 +537,35 @@ export const removeStudentFromBatch = async (req, res) => {
     }
 
     // Remove student from batch
-    batch.students = batch.students.filter((id) => id.toString() !== studentId);
+    batch.students = (batch.students || []).filter(
+      (id) => (id?._id ? id._id.toString() : id?.toString()) !== studentIdStr
+    );
     await batch.save();
+
+    // Remove batch from student's Registration profile
+    await Registration.findByIdAndUpdate(studentId, {
+      $pull: { batch: batchId },
+    });
+
+    const updatedBatch = await Batch.findById(batchId)
+      .populate("teacher", "name email")
+      .populate({
+        path: "students",
+        select: "studentName email mobile technology training branch fatherName status totalFee finalFee paidAmount dueAmount nextDueDate dueRemark createdAt",
+        populate: [
+          { path: "technology", select: "name" },
+          { path: "training", select: "name" },
+          { path: "branch", select: "name" },
+        ],
+      });
 
     res.json({
       success: true,
-      message: "Student removed from batch",
-      batch,
+      message: "Student removed from batch successfully",
+      batch: updatedBatch,
     });
   } catch (error) {
+    console.error("Error removing student from batch:", error);
     res.status(500).json({
       success: false,
       error: error.message,
@@ -560,7 +636,11 @@ export const fixBatchInconsistencies = async (req, res) => {
       for (const student of batch.students) {
         const studentDoc = await Registration.findById(student._id);
         
-        if (studentDoc && !studentDoc.batch.includes(batch._id)) {
+        const hasBatch = studentDoc && (studentDoc.batch || []).some(
+          (b) => (b?._id ? b._id.toString() : b?.toString()) === batch._id.toString()
+        );
+
+        if (studentDoc && !hasBatch) {
           console.log(`🔧 Adding batch ${batch.batchName} to student ${studentDoc.studentName}`);
           
           await Registration.findByIdAndUpdate(
@@ -580,7 +660,12 @@ export const fixBatchInconsistencies = async (req, res) => {
     
     for (const student of studentsWithBatches) {
       for (const batch of student.batch) {
-        if (batch && !batch.students.includes(student._id)) {
+        const studentIdStr = student._id.toString();
+        const isInBatch = batch && (batch.students || []).some(
+          (s) => (s?._id ? s._id.toString() : s?.toString()) === studentIdStr
+        );
+
+        if (batch && !isInBatch) {
           console.log(`🔧 Adding student ${student.studentName} to batch ${batch.batchName}`);
           
           await Batch.findByIdAndUpdate(

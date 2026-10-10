@@ -114,3 +114,47 @@ export const getAllCertificateData = async (req, res) => {
     });
   }
 };
+
+// ─────────────────────────────────────────────
+// POST /api/certificate-data/
+// Create / Upsert Certificate Record
+// ─────────────────────────────────────────────
+export const createCertificateData = async (req, res) => {
+  try {
+    const { dctNumber, refNo } = req.body;
+    const certificateNumber = dctNumber || refNo;
+
+    if (!certificateNumber) {
+      return res.status(400).json({
+        success: false,
+        message: "dctNumber ya refNo required hai",
+      });
+    }
+
+    const payload = {
+      ...req.body,
+      dctNumber: (dctNumber || refNo).trim().toUpperCase(),
+      refNo: (refNo || dctNumber).trim().toUpperCase(),
+    };
+
+    const record = await CertificateData.findOneAndUpdate(
+      { dctNumber: payload.dctNumber },
+      payload,
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Certificate data successfully save ho gaya",
+      data: record,
+    });
+  } catch (error) {
+    console.error("createCertificateData error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+

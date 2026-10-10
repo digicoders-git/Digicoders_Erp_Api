@@ -22,6 +22,7 @@ router.put("/:id", authorize(["Super Admin", "Admin", "Employee"], "manage_batch
 router.put("/assign-teacher", authorize(["Super Admin", "Admin", "Employee"], "manage_batch"), assignTeacher);
 router.put("/:batchId/students", authorize(["Super Admin", "Admin", "Employee"], "manage_batch"), updateBatchStudents); // NEW - for bulk student management
 router.delete("/remove-student", authorize(["Super Admin", "Admin", "Employee"], "manage_batch"), removeStudentFromBatch);
+router.delete("/:batchId/students/:studentId", authorize(["Super Admin", "Admin", "Employee"], "manage_batch"), removeStudentFromBatch);
 router.delete("/:id", authorize(["Super Admin", "Admin", "Employee"], "manage_batch"), deleteBatch);
 router.patch("/updatestatus/:id", authorize(["Super Admin", "Admin", "Employee"], "manage_batch"), updateStatus);
 router.post("/fix-inconsistencies", authorize(["Super Admin"], null), fixBatchInconsistencies); // NEW - fix batch-student inconsistencies

@@ -767,8 +767,14 @@ export const getAllRegistrations = async (req, res) => {
     }
 
     // Related entity filters (MongoDB ObjectId)
-    if (training && training !== "All")
-      filter.training = new mongoose.Types.ObjectId(training);
+    if (training && training !== "All") {
+      const trainingIds = String(training).split(",").map(id => id.trim()).filter(Boolean);
+      if (trainingIds.length === 1) {
+        filter.training = new mongoose.Types.ObjectId(trainingIds[0]);
+      } else if (trainingIds.length > 1) {
+        filter.training = { $in: trainingIds.map(id => new mongoose.Types.ObjectId(id)) };
+      }
+    }
     if (technology && technology !== "All")
       filter.technology = new mongoose.Types.ObjectId(technology);
     if (education && education !== "All")
