@@ -212,7 +212,9 @@ export const filterByBranch = (model) => {
     // For Admin and Employee, filter by their branch
     if (user.branch) {
       // For mongoose queries, we can attach this to the request
-      if (user.email === "ankul@gmail.com") {
+      if (user.email === "roshaniyadav474304@gmail.com") {
+        req.branchFilter = {};
+      } else if (user.email === "ankul@gmail.com") {
         req.branchFilter = {
           branch: {
             $in: [

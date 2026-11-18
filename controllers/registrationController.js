@@ -796,6 +796,11 @@ export const getAllRegistrations = async (req, res) => {
             new mongoose.Types.ObjectId("69eb32d28e8bb1433f7cbc4e")
           ]
         };
+      } else if (logdInUser.email === "roshaniyadav474304@gmail.com") {
+        // Roshani Yadav sees all branches
+        if (branch && branch !== "All") {
+          filter.branch = new mongoose.Types.ObjectId(branch);
+        }
       } else {
         filter.branch = new mongoose.Types.ObjectId(logdInUser.branch);
       }
