@@ -458,6 +458,7 @@ export const getallPayments = async (req, res) => {
 
     const skip = (page - 1) * limit;
     const loggedInUser = req.user;
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
 
     // 🔐 ROLE BASED BRANCH CONTROL (ONLY ONE SOURCE OF TRUTH)
     let effectiveBranch = null;
@@ -501,6 +502,18 @@ export const getallPayments = async (req, res) => {
       match.paymentDate = {};
       if (startDate) match.paymentDate.$gte = new Date(startDate);
       if (endDate) match.paymentDate.$lte = new Date(endDate);
+    }
+
+    // 🗓️ Session Year Filter
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+      const yearInt = parseInt(sessionYear, 10);
+      if (!isNaN(yearInt)) {
+        const start = new Date(`${yearInt}-01-01T00:00:00.000Z`);
+        const end = new Date(`${yearInt}-12-31T23:59:59.999Z`);
+        match.paymentDate = match.paymentDate || {};
+        if (!match.paymentDate.$gte) match.paymentDate.$gte = start;
+        if (!match.paymentDate.$lte) match.paymentDate.$lte = end;
+      }
     }
 
     // 🚀 AGGREGATION PIPELINE

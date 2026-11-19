@@ -18,7 +18,8 @@ import mongoose from "mongoose";
 export const getAll = async (req, res) => {
   try {
     const loggedInUser = req.user;
-    const { eduYear, sessionYear } = req.query; // Add eduYear and sessionYear filter from query params
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
+    const { eduYear } = req.query; // Add eduYear filter from query params
 
     // 🔐 Branch filter logic - Super Admin and Admin see all data
     const isGlobalUser = ["Super Admin"].includes(loggedInUser.role) || loggedInUser.email === "roshaniyadav474304@gmail.com";

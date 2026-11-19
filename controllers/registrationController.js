@@ -686,6 +686,8 @@ export const getAllRegistrations = async (req, res) => {
       source, // NEW filter for panel vs direct
     } = req.query;
 
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
+
     // Build filter object
     const filter = {};
     const logdInUser = req.user;
@@ -763,6 +765,18 @@ export const getAllRegistrations = async (req, res) => {
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
         filter.createdAt.$lte = end;
+      }
+    }
+
+    // Session Year filter (e.g. 2026, 2027)
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+      const yearInt = parseInt(sessionYear, 10);
+      if (!isNaN(yearInt)) {
+        const start = new Date(`${yearInt}-01-01T00:00:00.000Z`);
+        const end = new Date(`${yearInt}-12-31T23:59:59.999Z`);
+        filter.createdAt = filter.createdAt || {};
+        if (!filter.createdAt.$gte) filter.createdAt.$gte = start;
+        if (!filter.createdAt.$lte) filter.createdAt.$lte = end;
       }
     }
 
