@@ -114,8 +114,19 @@ export const getBatches = async (req, res) => {
       limit = 10,
     } = req.query;
     const loggedInUser = req.user;
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
 
     const filter = {};
+
+    // Session Year filter
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+      const yearInt = parseInt(sessionYear, 10);
+      if (!isNaN(yearInt)) {
+        const start = new Date(`${yearInt}-01-01T00:00:00.000Z`);
+        const end = new Date(`${yearInt}-12-31T23:59:59.999Z`);
+        filter.startDate = { $gte: start, $lte: end };
+      }
+    }
 
 
     // Search filter
