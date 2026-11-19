@@ -205,9 +205,9 @@ export const getAll = async (req, res) => {
     const tranningCount = isTeacher ? 0 : await TranningModal.countDocuments({ isActive: true });
 
     // Certifications
-    const pendingCertification = await Certification.countDocuments({ status: "Pending", ...branchFilter });
-    const acceptedCertification = await Certification.countDocuments({ status: "Accepted", ...branchFilter });
-    const rejectedCertification = await Certification.countDocuments({ status: "Rejected", ...branchFilter });
+    const pendingCertification = await Certification.countDocuments({ status: "Pending", ...branchFilter, ...sessionFilter });
+    const acceptedCertification = await Certification.countDocuments({ status: "Accepted", ...branchFilter, ...sessionFilter });
+    const rejectedCertification = await Certification.countDocuments({ status: "Rejected", ...branchFilter, ...sessionFilter });
 
     // Final response object
     const counts = {

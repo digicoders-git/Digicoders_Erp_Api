@@ -9,7 +9,17 @@ import { getBatchByStudentId } from "./batchController.js";
 export const getAllAssignments = async (req, res) => {
   try {
     const loggedInUser = req.user;
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
     const filter = {};
+
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+      const yearInt = parseInt(sessionYear, 10);
+      if (!isNaN(yearInt)) {
+        const start = new Date(`${yearInt}-01-01T00:00:00.000Z`);
+        const end = new Date(`${yearInt}-12-31T23:59:59.999Z`);
+        filter.createdAt = { $gte: start, $lte: end };
+      }
+    }
 
     if (loggedInUser && loggedInUser.role === "Employee") {
       // Find if this employee is also a teacher (by phone)

@@ -110,7 +110,17 @@ export const getStudentCertifications = async (req, res) => {
 export const getAllCertifications = async (req, res) => {
   try {
     const { status, search } = req.query;
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
     let filter = {};
+
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+      const yearInt = parseInt(sessionYear, 10);
+      if (!isNaN(yearInt)) {
+        const start = new Date(`${yearInt}-01-01T00:00:00.000Z`);
+        const end = new Date(`${yearInt}-12-31T23:59:59.999Z`);
+        filter.createdAt = { $gte: start, $lte: end };
+      }
+    }
 
     if (status && status !== "All") {
       filter.status = status;
