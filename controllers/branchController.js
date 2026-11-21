@@ -120,6 +120,7 @@ export const getAllBranches = async (req, res) => {
       limit = 1000,
       eduYear // Add eduYear filter
     } = req.query;
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
 
     const filter = {};
 
@@ -168,6 +169,15 @@ export const getAllBranches = async (req, res) => {
         // Add eduYear filter if provided
         if (eduYear && eduYear !== "All" && eduYear !== "") {
           registrationQuery.eduYear = eduYear;
+        }
+
+        // Add sessionYear filter if provided
+        if (sessionYear && sessionYear !== "All" && sessionYear !== "" && !isNaN(parseInt(sessionYear, 10))) {
+          const yearInt = parseInt(sessionYear, 10);
+          registrationQuery.createdAt = {
+            $gte: new Date(`${yearInt}-01-01T00:00:00.000Z`),
+            $lte: new Date(`${yearInt}-12-31T23:59:59.999Z`)
+          };
         }
         
         const registrationCount = await Registration.countDocuments(registrationQuery);

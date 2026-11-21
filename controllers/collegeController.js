@@ -155,6 +155,7 @@ export const getAllColleges = async (req, res) => {
       limit = 10,
       eduYear // Add eduYear filter
     } = req.query;
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
 
     const filter = {};
 
@@ -226,7 +227,13 @@ export const getAllColleges = async (req, res) => {
         $match: {
           collegeName: { $in: collegeIds },
           // Add eduYear filter if provided
-          ...(eduYear && eduYear !== "All" && eduYear !== "" ? { eduYear } : {})
+          ...(eduYear && eduYear !== "All" && eduYear !== "" ? { eduYear } : {}),
+          ...(sessionYear && sessionYear !== "All" && sessionYear !== "" && !isNaN(parseInt(sessionYear, 10)) ? {
+            createdAt: {
+              $gte: new Date(`${parseInt(sessionYear, 10)}-01-01T00:00:00.000Z`),
+              $lte: new Date(`${parseInt(sessionYear, 10)}-12-31T23:59:59.999Z`)
+            }
+          } : {})
         }
       },
       {

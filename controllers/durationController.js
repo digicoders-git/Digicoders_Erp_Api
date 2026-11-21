@@ -13,6 +13,7 @@ export const getAllDurations = async (req, res) => {
             status, // For status filter
             eduYear // Add eduYear filter
         } = req.query;
+        const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
         
         // Build filter object
         const filter = {};
@@ -60,7 +61,12 @@ export const getAllDurations = async (req, res) => {
                                         // Add eduYear filter if provided
                                         ...(eduYear && eduYear !== "All" && eduYear !== "" ? 
                                             [{ $eq: ["$eduYear", eduYear] }] : []
-                                        )
+                                        ),
+                                        // Add sessionYear filter if provided
+                                        ...(sessionYear && sessionYear !== "All" && sessionYear !== "" && !isNaN(parseInt(sessionYear, 10)) ? [
+                                            { $gte: ["$createdAt", new Date(`${parseInt(sessionYear, 10)}-01-01T00:00:00.000Z`)] },
+                                            { $lte: ["$createdAt", new Date(`${parseInt(sessionYear, 10)}-12-31T23:59:59.999Z`)] }
+                                        ] : [])
                                     ]
                                 }
                             }

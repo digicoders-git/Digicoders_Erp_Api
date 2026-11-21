@@ -113,13 +113,14 @@ export const getAllEducations = async (req, res) => {
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
     const eduYear = req.query.eduYear; // Add eduYear filter
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
     
     const query = {};
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
     // Handle filters
-    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder", "eduYear"];
+    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder", "eduYear", "sessionYear"];
     const filters = { ...req.query };
     excludeFields.forEach((field) => delete filters[field]);
     // Handle boolean isActive filter explicitly if sent as string
@@ -135,6 +136,21 @@ export const getAllEducations = async (req, res) => {
        }
     });
     
+    // Build match conditions for registrations lookup
+    const regMatchConditions = [
+      { $eq: ["$education", "$$educationId"] }
+    ];
+    if (eduYear && eduYear !== "All" && eduYear !== "") {
+      regMatchConditions.push({ $eq: ["$eduYear", eduYear] });
+    }
+    if (sessionYear && sessionYear !== "All" && sessionYear !== "" && !isNaN(parseInt(sessionYear, 10))) {
+      const yearInt = parseInt(sessionYear, 10);
+      regMatchConditions.push(
+        { $gte: ["$createdAt", new Date(`${yearInt}-01-01T00:00:00.000Z`)] },
+        { $lte: ["$createdAt", new Date(`${yearInt}-12-31T23:59:59.999Z`)] }
+      );
+    }
+
     // Use aggregation to include registration count with eduYear filter
     const pipeline = [
       { $match: query },
@@ -146,13 +162,7 @@ export const getAllEducations = async (req, res) => {
             {
               $match: {
                 $expr: {
-                  $and: [
-                    { $eq: ["$education", "$$educationId"] },
-                    // Add eduYear filter if provided
-                    ...(eduYear && eduYear !== "All" && eduYear !== "" ? 
-                        [{ $eq: ["$eduYear", eduYear] }] : []
-                    )
-                  ]
+                  $and: regMatchConditions
                 }
               }
             }

@@ -121,13 +121,14 @@ const getAllTechnologies = async (req, res) => {
     const sortBy = req.query.sortBy || "createdAt";
     const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
     const eduYear = req.query.eduYear; // Add eduYear filter
+    const sessionYear = req.headers["x-session-year"] || req.query.sessionYear;
     
     const query = {};
     if (search) {
       query.name = { $regex: search, $options: "i" };
     }
     // Handle filters
-    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder", "eduYear"];
+    const excludeFields = ["page", "limit", "search", "sortBy", "sortOrder", "eduYear", "sessionYear"];
     const filters = { ...req.query };
     excludeFields.forEach((field) => delete filters[field]);
     // Example: Handle isActive boolean filter
@@ -159,6 +160,15 @@ const getAllTechnologies = async (req, res) => {
         // Add eduYear filter if provided
         if (eduYear && eduYear !== "All" && eduYear !== "") {
           registrationQuery.eduYear = eduYear;
+        }
+
+        // Add sessionYear filter if provided
+        if (sessionYear && sessionYear !== "All" && sessionYear !== "" && !isNaN(parseInt(sessionYear, 10))) {
+          const yearInt = parseInt(sessionYear, 10);
+          registrationQuery.createdAt = {
+            $gte: new Date(`${yearInt}-01-01T00:00:00.000Z`),
+            $lte: new Date(`${yearInt}-12-31T23:59:59.999Z`)
+          };
         }
         
         const registrationCount = await Registration.countDocuments(registrationQuery);
