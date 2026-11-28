@@ -139,6 +139,11 @@ const registrationSchema = new mongoose.Schema(
     },
     cv: { url: { type: String }, public_id: { type: String } },
     placeInCompany: { type: String },
+    placementPackage: { type: String },
+    placementDesignation: { type: String },
+    placedDate: { type: Date },
+    placementLocation: { type: String },
+    placementRemark: { type: String },
     interviewInCompanines: [{ type: String }],
     aadharCard: { url: { type: String }, public_id: { type: String } },
     photoSummited: {

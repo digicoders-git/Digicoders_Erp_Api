@@ -8,7 +8,11 @@ import {
   toggleJobStatus,
   assignStudentsToJob,
   removeStudentFromJob,
-  getJobStats,getJobsForStu
+  getJobStats,
+  getJobsForStu,
+  getPlacedStudents,
+  searchStudentMinimal,
+  directPlaceStudent,
 } from "../controllers/jobController.js";
 import { auth } from "../middleware/auth.js";
 
@@ -21,6 +25,11 @@ router.route("/for-student").get(getJobsForStu);
 router.route("/").get(getJobs).post(createJob);
 
 router.route("/stats/overview").get(getJobStats);
+
+// Placed Students & Direct Placement routes
+router.route("/placed-students").get(getPlacedStudents);
+router.route("/search-student-minimal").get(searchStudentMinimal);
+router.route("/direct-place-student").post(directPlaceStudent);
 
 router.route("/:id").get(getJob).put(updateJob).delete(deleteJob);
 

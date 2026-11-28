@@ -424,6 +424,178 @@ const getJobStats = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Get all placed students
+// @route   GET /api/jobs/placed-students
+// @access  Private (Admin)
+const getPlacedStudents = asyncHandler(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const search = req.query.search || "";
+  const sessionYear = req.query.sessionYear || req.headers["x-session-year"] || "";
+
+  let filter = {
+    placementStatus: true,
+    isCancelled: { $ne: true }
+  };
+
+  // Branch restriction if non Super Admin
+  if (req.user && req.user.role !== "Super Admin" && req.user.branch) {
+    filter.branch = req.user.branch;
+  }
+
+  // Session year filter
+  if (sessionYear && sessionYear !== "All" && sessionYear !== "") {
+    const yearInt = parseInt(sessionYear);
+    if (!isNaN(yearInt)) {
+      filter.createdAt = {
+        $gte: new Date(`${yearInt}-01-01T00:00:00.000Z`),
+        $lte: new Date(`${yearInt}-12-31T23:59:59.999Z`)
+      };
+    }
+  }
+
+  if (search && search.trim()) {
+    const searchRegex = new RegExp(search.trim(), "i");
+    filter.$or = [
+      { studentName: searchRegex },
+      { mobile: searchRegex },
+      { whatshapp: searchRegex },
+      { email: searchRegex },
+      { registrationId: searchRegex },
+      { placeInCompany: searchRegex },
+      { placementDesignation: searchRegex }
+    ];
+  }
+
+  const total = await Registration.countDocuments(filter);
+  const students = await Registration.find(filter)
+    .populate("branch", "name")
+    .populate("technology", "name")
+    .populate("collegeName", "name")
+    .populate("batch", "batchName")
+    .populate("education", "name")
+    .sort({ placedDate: -1, updatedAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(limit);
+
+  res.status(200).json({
+    success: true,
+    message: "Placed students fetched successfully",
+    data: students,
+    pagination: {
+      page,
+      limit,
+      total,
+      pages: Math.ceil(total / limit)
+    }
+  });
+});
+
+// @desc    Search student minimal data for quick placement
+// @route   GET /api/jobs/search-student-minimal
+// @access  Private (Admin)
+const searchStudentMinimal = asyncHandler(async (req, res) => {
+  const { query, mobile } = req.query;
+  const searchTerm = (mobile || query || "").trim();
+
+  if (!searchTerm) {
+    return res.status(400).json({
+      success: false,
+      message: "Please provide a mobile number or search term"
+    });
+  }
+
+  const searchRegex = new RegExp(searchTerm, "i");
+  const filter = {
+    isCancelled: { $ne: true },
+    $or: [
+      { mobile: searchRegex },
+      { whatshapp: searchRegex },
+      { registrationId: searchRegex },
+      { email: searchRegex }
+    ]
+  };
+
+  if (req.user && req.user.role !== "Super Admin" && req.user.branch) {
+    filter.branch = req.user.branch;
+  }
+
+  const students = await Registration.find(filter)
+    .select("studentName mobile whatshapp email registrationId profilePhoto placeInCompany placementStatus placementPackage placementDesignation placedDate placementLocation placementRemark branch collegeName technology batch education")
+    .populate("technology", "name")
+    .populate("collegeName", "name")
+    .populate("batch", "batchName")
+    .populate("education", "name")
+    .populate("branch", "name")
+    .limit(10);
+
+  res.status(200).json({
+    success: true,
+    data: students
+  });
+});
+
+// @desc    Direct place student (mark or unmark placed)
+// @route   POST /api/jobs/direct-place-student
+// @access  Private (Admin)
+const directPlaceStudent = asyncHandler(async (req, res) => {
+  const {
+    studentId,
+    placementStatus = true,
+    placeInCompany,
+    placementPackage,
+    placementDesignation,
+    placedDate,
+    placementLocation,
+    placementRemark
+  } = req.body;
+
+  if (!studentId) {
+    return res.status(400).json({
+      success: false,
+      message: "Student ID is required"
+    });
+  }
+
+  const student = await Registration.findById(studentId);
+  if (!student) {
+    return res.status(404).json({
+      success: false,
+      message: "Student not found"
+    });
+  }
+
+  // Update placement fields
+  student.placementStatus = Boolean(placementStatus);
+  if (placementStatus) {
+    student.placeInCompany = placeInCompany || student.placeInCompany || "";
+    student.placementPackage = placementPackage || student.placementPackage || "";
+    student.placementDesignation = placementDesignation || student.placementDesignation || "";
+    student.placedDate = placedDate ? new Date(placedDate) : (student.placedDate || new Date());
+    student.placementLocation = placementLocation || student.placementLocation || "";
+    student.placementRemark = placementRemark || student.placementRemark || "";
+  } else {
+    // If unplaced
+    student.placementStatus = false;
+  }
+
+  await student.save();
+
+  const populated = await Registration.findById(student._id)
+    .populate("technology", "name")
+    .populate("collegeName", "name")
+    .populate("batch", "batchName")
+    .populate("branch", "name");
+
+  res.status(200).json({
+    success: true,
+    message: student.placementStatus
+      ? `Student ${student.studentName} marked as placed in ${student.placeInCompany || 'Company'} successfully!`
+      : `Student ${student.studentName} placement status removed.`,
+    data: populated
+  });
+});
+
 export {
   getJobs,
   getJob,
@@ -435,4 +607,7 @@ export {
   assignStudentsToJob,
   removeStudentFromJob,
   getJobStats,
+  getPlacedStudents,
+  searchStudentMinimal,
+  directPlaceStudent,
 };
