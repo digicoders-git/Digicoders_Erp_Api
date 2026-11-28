@@ -481,43 +481,152 @@ export const getStuAttendance = async (req, res) => {
       .populate("attendBy", "name")
       .sort({ date: 1 });
 
-    // Process the data to extract student-specific information
+    // 1. Raw class-level records (for backward compatibility)
     const studentAttendance = [];
-    let presentCount = 0;
-    let totalClasses = 0;
+
+    // 2. Batch-wise tracking Map
+    const batchMap = new Map();
+
+    // 3. Day-wise tracking Map (Key: YYYY-MM-DD)
+    const dayMap = new Map();
 
     attendanceRecords.forEach(record => {
-      const studentRecord = record.records.find(
-        r => r.studentId.toString() === studentId
+      const studentRecord = record.records?.find(
+        r => r.studentId && r.studentId.toString() === studentId.toString()
       );
 
       if (studentRecord) {
-        totalClasses++;
-        if (studentRecord.status === "Present") {
-          presentCount++;
-        }
+        const batchName = record.batchId?.batchName || "Batch";
+        const batchIdStr = record.batchId?._id?.toString() || "default";
+        const teacherName = record.attendBy?.name || "Teacher";
+        const rawStatus = studentRecord.status || "Absent";
+        const normStatus = rawStatus.toLowerCase(); // 'present' | 'absent' | 'late'
 
+        // Raw class record
         studentAttendance.push({
           date: record.date,
-          subject: record.batchId.batchName, // Assuming batchName represents the subject
-          status: studentRecord.status.toLowerCase(),
-          remarks: "", // You can add remarks field to your schema if needed
-          takenBy: record.attendBy.name
+          subject: batchName,
+          status: normStatus,
+          remarks: studentRecord.remarks || "",
+          takenBy: teacherName
+        });
+
+        // Batch-wise aggregation
+        if (!batchMap.has(batchIdStr)) {
+          batchMap.set(batchIdStr, {
+            batchId: batchIdStr,
+            batchName: batchName,
+            totalClasses: 0,
+            present: 0,
+            absent: 0,
+            late: 0,
+            records: []
+          });
+        }
+        const bGroup = batchMap.get(batchIdStr);
+        bGroup.totalClasses++;
+        if (normStatus === "present") bGroup.present++;
+        else if (normStatus === "late") bGroup.late++;
+        else bGroup.absent++;
+
+        bGroup.records.push({
+          date: record.date,
+          status: normStatus,
+          remarks: studentRecord.remarks || "",
+          takenBy: teacherName
+        });
+
+        // Day-wise aggregation
+        const d = new Date(record.date);
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+        if (!dayMap.has(dateKey)) {
+          dayMap.set(dateKey, {
+            date: record.date,
+            dateKey: dateKey,
+            batches: [],
+            hasPresent: false,
+            hasLate: false
+          });
+        }
+        const dayEntry = dayMap.get(dateKey);
+        if (normStatus === "present") {
+          dayEntry.hasPresent = true;
+        } else if (normStatus === "late") {
+          dayEntry.hasLate = true;
+        }
+        dayEntry.batches.push({
+          batchId: batchIdStr,
+          batchName: batchName,
+          status: normStatus,
+          takenBy: teacherName
         });
       }
     });
 
-    // Calculate attendance percentage
-    const percentage = totalClasses > 0 ? Math.round((presentCount / totalClasses) * 100) : 0;
+    // Finalize Day-wise records
+    // Rule: "agar us din kisi me bhi present hai to wo present mana jayega us din me"
+    const dayRecords = [];
+    let dayPresentCount = 0;
+    let dayAbsentCount = 0;
+    let dayLateCount = 0;
+
+    const sortedDateKeys = Array.from(dayMap.keys()).sort();
+    sortedDateKeys.forEach(dateKey => {
+      const day = dayMap.get(dateKey);
+      let dayStatus = "absent";
+      if (day.hasPresent) {
+        dayStatus = "present";
+        dayPresentCount++;
+      } else if (day.hasLate) {
+        dayStatus = "late";
+        dayLateCount++;
+      } else {
+        dayAbsentCount++;
+      }
+
+      dayRecords.push({
+        date: day.date,
+        dateKey: dateKey,
+        status: dayStatus,
+        batches: day.batches
+      });
+    });
+
+    const totalDays = dayRecords.length;
+    const dayPercentage = totalDays > 0 ? Math.round((dayPresentCount / totalDays) * 100) : 0;
+
+    // Finalize Batch-wise list
+    const batchwiseList = Array.from(batchMap.values()).map(b => ({
+      ...b,
+      percentage: b.totalClasses > 0 ? Math.round((b.present / b.totalClasses) * 100) : 0
+    }));
+
+    // Raw class stats
+    const totalClasses = studentAttendance.length;
+    const classPresentCount = studentAttendance.filter(r => r.status === "present").length;
+    const classPercentage = totalClasses > 0 ? Math.round((classPresentCount / totalClasses) * 100) : 0;
 
     res.status(200).json({
       success: true,
       data: {
+        // 📅 DAY-WISE DATA
+        daywise: {
+          totalDays,
+          present: dayPresentCount,
+          absent: dayAbsentCount,
+          late: dayLateCount,
+          percentage: dayPercentage,
+          records: dayRecords
+        },
+        // 📚 BATCH-WISE DATA
+        batchwise: batchwiseList,
+        // 🔄 Class-level raw records for backward compatibility
         records: studentAttendance,
         totalClasses,
-        present: presentCount,
-        absent: totalClasses - presentCount,
-        percentage
+        present: classPresentCount,
+        absent: totalClasses - classPresentCount,
+        percentage: classPercentage
       }
     });
 
@@ -1197,7 +1306,7 @@ export const getAttendanceReports = async (req, res) => {
       batchFilter = batchId ? { batchId: new mongoose.Types.ObjectId(batchId) } : {};
     }
 
-    // Main aggregation pipeline
+    // Main aggregation pipeline (Day-wise consolidation: Present in ANY batch on a date = Present)
     const pipeline = [
       // Match attendance records
       { $match: { ...dateFilter, ...batchFilter } },
@@ -1205,18 +1314,67 @@ export const getAttendanceReports = async (req, res) => {
       // Unwind records
       { $unwind: "$records" },
 
-      // Group by student
+      // Group by student AND dateStr first (Day-wise consolidation)
       {
         $group: {
-          _id: "$records.studentId",
+          _id: {
+            studentId: "$records.studentId",
+            dateStr: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }
+          },
+          date: { $first: "$date" },
+          batchId: { $first: "$batchId" },
+          allBatchIds: { $addToSet: "$batchId" },
+          isPresent: {
+            $max: { $cond: [{ $eq: ["$records.status", "Present"] }, 1, 0] }
+          },
+          isLate: {
+            $max: { $cond: [{ $eq: ["$records.status", "Late"] }, 1, 0] }
+          }
+        }
+      },
+
+      // Determine day status for this student on this date
+      {
+        $project: {
+          studentId: "$_id.studentId",
+          dateStr: "$_id.dateStr",
+          date: "$date",
+          batchId: "$batchId",
+          allBatchIds: "$allBatchIds",
+          status: {
+            $cond: [
+              { $eq: ["$isPresent", 1] },
+              "Present",
+              {
+                $cond: [
+                  { $eq: ["$isLate", 1] },
+                  "Late",
+                  "Absent"
+                ]
+              }
+            ]
+          }
+        }
+      },
+
+      // Now group by studentId
+      {
+        $group: {
+          _id: "$studentId",
           attendanceRecords: {
             $push: {
               date: "$date",
-              status: "$records.status",
+              status: "$status",
               batchId: "$batchId"
             }
           },
-          batchIds: { $addToSet: "$batchId" }
+          batchIds: {
+            $reduce: {
+              input: "$allBatchIds",
+              initialValue: [],
+              in: { $setUnion: ["$$value", "$$this"] }
+            }
+          }
         }
       },
 
@@ -1486,44 +1644,37 @@ export const getAttendanceReports = async (req, res) => {
       ])
     ]);
 
-    // Get monthly data for calendar view
+    // Get monthly data for calendar view (Day-wise unique students per day)
     const monthlyPipeline = [
-      { $match: dateFilter },
+      { $match: { ...dateFilter, ...batchFilter } },
+      { $unwind: "$records" },
       {
         $group: {
-          _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-          totalStudents: { $sum: 1 },
-          present: {
-            $sum: {
-              $size: {
-                $filter: {
-                  input: "$records",
-                  as: "record",
-                  cond: { $eq: ["$$record.status", "Present"] }
-                }
-              }
-            }
+          _id: {
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
+            studentId: "$records.studentId"
           },
+          isPresent: {
+            $max: { $cond: [{ $eq: ["$records.status", "Present"] }, 1, 0] }
+          },
+          isLate: {
+            $max: { $cond: [{ $eq: ["$records.status", "Late"] }, 1, 0] }
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$_id.date",
+          totalStudents: { $sum: 1 },
+          present: { $sum: "$isPresent" },
+          late: { $sum: "$isLate" },
           absent: {
             $sum: {
-              $size: {
-                $filter: {
-                  input: "$records",
-                  as: "record",
-                  cond: { $eq: ["$$record.status", "Absent"] }
-                }
-              }
-            }
-          },
-          late: {
-            $sum: {
-              $size: {
-                $filter: {
-                  input: "$records",
-                  as: "record",
-                  cond: { $eq: ["$$record.status", "Late"] }
-                }
-              }
+              $cond: [
+                { $and: [{ $eq: ["$isPresent", 0] }, { $eq: ["$isLate", 0] }] },
+                1,
+                0
+              ]
             }
           }
         }
@@ -1536,9 +1687,10 @@ export const getAttendanceReports = async (req, res) => {
           absent: 1,
           late: 1,
           percentage: {
-            $multiply: [
-              { $divide: ["$present", "$totalStudents"] },
-              100
+            $cond: [
+              { $gt: ["$totalStudents", 0] },
+              { $multiply: [{ $divide: ["$present", "$totalStudents"] }, 100] },
+              0
             ]
           }
         }
@@ -1620,6 +1772,21 @@ export const getStudentDetailedReport = async (req, res) => {
     const { studentId } = req.params;
     const { month } = req.query;
 
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid student ID format"
+      });
+    }
+
+    const studentDoc = await Registration.findById(studentId);
+    if (!studentDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found"
+      });
+    }
+
     // Build date range
     let dateFilter = {};
     if (month) {
@@ -1629,239 +1796,192 @@ export const getStudentDetailedReport = async (req, res) => {
       dateFilter = { date: { $gte: start, $lte: end } };
     }
 
-    const pipeline = [
-      // Match attendance records for this student
-      {
-        $match: {
-          ...dateFilter,
-          "records.studentId": new mongoose.Types.ObjectId(studentId)
-        }
-      },
+    const attendanceRecords = await Attendance.find({
+      ...dateFilter,
+      "records.studentId": studentId
+    })
+      .populate("batchId", "batchName")
+      .populate("attendBy", "name")
+      .sort({ date: 1 });
 
-      // Unwind records
-      { $unwind: "$records" },
+    // 1. Day-wise tracking (Key: YYYY-MM-DD)
+    const dayMap = new Map();
+    // 2. Batch-wise tracking (Key: batchId)
+    const batchMap = new Map();
 
-      // Filter this student's records
-      {
-        $match: {
-          "records.studentId": new mongoose.Types.ObjectId(studentId)
-        }
-      },
+    attendanceRecords.forEach(record => {
+      const studentRecord = record.records?.find(
+        r => r.studentId && r.studentId.toString() === studentId.toString()
+      );
 
-      // Lookup batch details
-      {
-        $lookup: {
-          from: 'batches',
-          localField: 'batchId',
-          foreignField: '_id',
-          as: 'batch'
-        }
-      },
-      { $unwind: "$batch" },
+      if (studentRecord) {
+        const batchName = record.batchId?.batchName || "Batch";
+        const batchIdStr = record.batchId?._id?.toString() || "default";
+        const teacherName = record.attendBy?.name || "Teacher";
+        const rawStatus = studentRecord.status || "Absent";
 
-      // Lookup student details
-      {
-        $lookup: {
-          from: 'registrations',
-          localField: 'records.studentId',
-          foreignField: '_id',
-          as: 'student'
+        // Batch Map
+        if (!batchMap.has(batchIdStr)) {
+          batchMap.set(batchIdStr, {
+            batchId: batchIdStr,
+            batchName: batchName,
+            totalClasses: 0,
+            present: 0,
+            absent: 0,
+            late: 0,
+            records: []
+          });
         }
-      },
-      { $unwind: "$student" },
+        const bGroup = batchMap.get(batchIdStr);
+        bGroup.totalClasses++;
+        if (rawStatus === "Present") bGroup.present++;
+        else if (rawStatus === "Late") bGroup.late++;
+        else bGroup.absent++;
 
-      // Group and calculate
-      {
-        $group: {
-          _id: "$records.studentId",
-          studentName: { $first: "$student.studentName" },
-          batchName: { $first: "$batch.batchName" },
-          dailyAttendance: {
-            $push: {
-              date: "$date",
-              status: "$records.status"
-            }
-          },
-          detailedRecords: {
-            $push: {
-              date: "$date",
-              status: "$records.status",
-              time: "$records.time",
-              remarks: "$records.remarks"
-            }
-          }
-        }
-      },
+        bGroup.records.push({
+          date: record.date,
+          status: rawStatus,
+          time: studentRecord.time || "",
+          remarks: studentRecord.remarks || "",
+          takenBy: teacherName
+        });
 
-      // Calculate statistics
-      {
-        $addFields: {
-          workingDays: { $size: "$dailyAttendance" },
-          presentDays: {
-            $size: {
-              $filter: {
-                input: "$dailyAttendance",
-                as: "record",
-                cond: { $eq: ["$$record.status", "Present"] }
-              }
-            }
-          },
-          absentDays: {
-            $size: {
-              $filter: {
-                input: "$dailyAttendance",
-                as: "record",
-                cond: { $eq: ["$$record.status", "Absent"] }
-              }
-            }
-          },
-          attendancePercentage: {
-            $multiply: [
-              {
-                $divide: [
-                  {
-                    $size: {
-                      $filter: {
-                        input: "$dailyAttendance",
-                        as: "record",
-                        cond: { $eq: ["$$record.status", "Present"] }
-                      }
-                    }
-                  },
-                  { $size: "$dailyAttendance" }
-                ]
-              },
-              100
-            ]
-          },
-          // Calculate streaks
-          currentStreak: {
-            $let: {
-              vars: {
-                sorted: {
-                  $sortArray: {
-                    input: "$dailyAttendance",
-                    sortBy: { date: -1 }
-                  }
-                }
-              },
-              in: {
-                $reduce: {
-                  input: "$$sorted",
-                  initialValue: { streak: 0, broken: false },
-                  in: {
-                    streak: {
-                      $cond: [
-                        {
-                          $and: [
-                            { $eq: ["$$this.status", "Present"] },
-                            { $not: "$$value.broken" }
-                          ]
-                        },
-                        { $add: ["$$value.streak", 1] },
-                        "$$value.streak"
-                      ]
-                    },
-                    broken: {
-                      $cond: [
-                        { $eq: ["$$this.status", "Absent"] },
-                        true,
-                        "$$value.broken"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          bestStreak: {
-            $let: {
-              vars: {
-                sorted: {
-                  $sortArray: {
-                    input: "$dailyAttendance",
-                    sortBy: { date: 1 }
-                  }
-                }
-              },
-              in: {
-                $reduce: {
-                  input: "$$sorted",
-                  initialValue: { current: 0, best: 0 },
-                  in: {
-                    current: {
-                      $cond: [
-                        { $eq: ["$$this.status", "Present"] },
-                        { $add: ["$$value.current", 1] },
-                        0
-                      ]
-                    },
-                    best: {
-                      $cond: [
-                        { $gt: [{ $add: ["$$value.current", 1] }, "$$value.best"] },
-                        { $add: ["$$value.current", 1] },
-                        "$$value.best"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          },
-          lastPresentDate: {
-            $max: {
-              $cond: [
-                { $eq: ["$records.status", "Present"] },
-                "$date",
-                null
-              ]
-            }
-          },
-          lastAbsentDate: {
-            $max: {
-              $cond: [
-                { $eq: ["$records.status", "Absent"] },
-                "$date",
-                null
-              ]
-            }
-          }
-        }
-      },
+        // Day Map (Day-wise consolidation)
+        const d = new Date(record.date);
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-      // Final projection
-      {
-        $project: {
-          studentId: "$_id",
-          studentName: 1,
-          batchName: 1,
-          workingDays: 1,
-          presentDays: 1,
-          absentDays: 1,
-          attendancePercentage: 1,
-          dailyAttendance: 1,
-          detailedRecords: { $sortArray: { input: "$detailedRecords", sortBy: { date: -1 } } },
-          currentStreak: "$currentStreak.streak",
-          bestStreak: "$bestStreak.best",
-          lastPresentDate: 1,
-          lastAbsentDate: 1
+        if (!dayMap.has(dateKey)) {
+          dayMap.set(dateKey, {
+            date: record.date,
+            dateKey: dateKey,
+            batches: [],
+            hasPresent: false,
+            hasLate: false
+          });
         }
+        const dayEntry = dayMap.get(dateKey);
+        if (rawStatus === "Present") {
+          dayEntry.hasPresent = true;
+        } else if (rawStatus === "Late") {
+          dayEntry.hasLate = true;
+        }
+        dayEntry.batches.push({
+          batchId: batchIdStr,
+          batchName: batchName,
+          status: rawStatus,
+          time: studentRecord.time || "",
+          remarks: studentRecord.remarks || "",
+          takenBy: teacherName
+        });
       }
-    ];
+    });
 
-    const result = await Attendance.aggregate(pipeline);
+    // Build consolidated Day-wise arrays
+    // Rule: "agar us din kisi me bhi present hai to wo present mana jayega us din me"
+    const sortedDateKeys = Array.from(dayMap.keys()).sort();
+    const dailyAttendance = [];
+    const detailedRecords = [];
+    let presentDays = 0;
+    let absentDays = 0;
+    let lateDays = 0;
+    let lastPresentDate = null;
+    let lastAbsentDate = null;
 
-    if (result.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Student not found or no attendance records'
+    sortedDateKeys.forEach(dateKey => {
+      const day = dayMap.get(dateKey);
+      let dayStatus = "Absent";
+      if (day.hasPresent) {
+        dayStatus = "Present";
+        presentDays++;
+        lastPresentDate = day.date;
+      } else if (day.hasLate) {
+        dayStatus = "Late";
+        lateDays++;
+      } else {
+        absentDays++;
+        lastAbsentDate = day.date;
+      }
+
+      dailyAttendance.push({
+        date: day.date,
+        dateKey: day.dateKey,
+        status: dayStatus,
+        batches: day.batches
       });
+
+      detailedRecords.push({
+        date: day.date,
+        dateKey: day.dateKey,
+        status: dayStatus,
+        time: day.batches[0]?.time || "",
+        remarks: day.batches.map(b => `${b.batchName}: ${b.status}`).join(", "),
+        batches: day.batches
+      });
+    });
+
+    const workingDays = dailyAttendance.length;
+    const attendancePercentage = workingDays > 0 ? (presentDays / workingDays) * 100 : 0;
+
+    // Calculate streaks
+    let currentStreak = 0;
+    let currentBroken = false;
+    for (let i = dailyAttendance.length - 1; i >= 0; i--) {
+      if (dailyAttendance[i].status === "Present" && !currentBroken) {
+        currentStreak++;
+      } else if (dailyAttendance[i].status === "Absent") {
+        currentBroken = true;
+      }
     }
+
+    let bestStreak = 0;
+    let runningStreak = 0;
+    for (let i = 0; i < dailyAttendance.length; i++) {
+      if (dailyAttendance[i].status === "Present") {
+        runningStreak++;
+        if (runningStreak > bestStreak) bestStreak = runningStreak;
+      } else {
+        runningStreak = 0;
+      }
+    }
+
+    const batchWise = Array.from(batchMap.values()).map(b => ({
+      ...b,
+      percentage: b.totalClasses > 0 ? Math.round((b.present / b.totalClasses) * 100) : 0
+    }));
+
+    const primaryBatchName = batchWise.length > 0 ? batchWise.map(b => b.batchName).join(", ") : "N/A";
 
     res.status(200).json({
       success: true,
-      data: result[0]
+      data: {
+        studentId: studentDoc._id,
+        studentName: studentDoc.studentName,
+        fatherName: studentDoc.fatherName,
+        registrationId: studentDoc.registrationId,
+        batchName: primaryBatchName,
+        workingDays,
+        presentDays,
+        absentDays,
+        lateDays,
+        attendancePercentage,
+        currentStreak,
+        bestStreak,
+        lastPresentDate,
+        lastAbsentDate,
+        dailyAttendance,
+        detailedRecords: detailedRecords.reverse(),
+        batchWise
+      }
     });
+  } catch (error) {
+    console.error('Error fetching student detailed report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+};
 
   } catch (error) {
     console.error('Error fetching student detailed report:', error);

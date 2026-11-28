@@ -1,4 +1,5 @@
 import Registration from "../models/regsitration.js";
+import Setting from "../models/setting.js";
 import User from "../models/User.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
@@ -1067,8 +1068,26 @@ export const updateRegistration = async (req, res) => {
     if (lastQualification) student.lastQualification = lastQualification;
     if (typeof idCardIssued !== "undefined")
       student.idCardIssued = idCardIssued;
-    if (typeof certificateIssued !== "undefined")
+    if (typeof certificateIssued !== "undefined") {
+      if (certificateIssued) {
+        const dueAmount = Number(
+          student.dueAmount !== undefined && student.dueAmount !== null
+            ? student.dueAmount
+            : (student.finalFee || 0) - (student.paidAmount || 0)
+        );
+        const isFullPaid =
+          dueAmount <= 0 &&
+          (student.finalFee > 0 ? (student.paidAmount || 0) >= student.finalFee : true);
+
+        if (!isFullPaid && student.trainingFeeStatus !== "full paid" && student.tnxStatus !== "full paid") {
+          return res.status(400).json({
+            success: false,
+            message: `Certificate tabtak issue nahi ho sakta jab tak student ki fees full paid na ho. Due Amount: ₹${dueAmount > 0 ? dueAmount : 0}`,
+          });
+        }
+      }
       student.certificateIssued = certificateIssued;
+    }
     if (typeof hardForm !== "undefined") student.hardForm = hardForm;
     if (typeof aadharCardUploded !== "undefined")
       student.aadharCardUploded = aadharCardUploded;
@@ -1464,6 +1483,26 @@ export const updateCertificateStatus = async (req, res) => {
       });
     }
 
+    // ❌ Validate full fees paid before turning ON certificate issued
+    if (certificateIssued) {
+      const dueAmount = Number(
+        student.dueAmount !== undefined && student.dueAmount !== null
+          ? student.dueAmount
+          : (student.finalFee || 0) - (student.paidAmount || 0)
+      );
+
+      const isFullPaid =
+        dueAmount <= 0 &&
+        (student.finalFee > 0 ? (student.paidAmount || 0) >= student.finalFee : true);
+
+      if (!isFullPaid && student.trainingFeeStatus !== "full paid" && student.tnxStatus !== "full paid") {
+        return res.status(400).json({
+          success: false,
+          message: `Certificate tabtak issue nahi ho sakta jab tak student ki fees full paid na ho. Due Amount: ₹${dueAmount > 0 ? dueAmount : 0}`,
+        });
+      }
+    }
+
     // Build update object
     const updateData = {
       certificateIssued: !!certificateIssued
@@ -1717,35 +1756,48 @@ export const verifyOtp = async (req, res) => {
       currentTime: new Date()
     });
 
-    // ❌ OTP not generated or already used
-    if (!student.otp) {
-      console.log('❌ No OTP found or already used');
-      return res.status(400).json({
-        success: false,
-        message: "OTP expired or already verified",
-      });
-    }
+    // 👑 Check for Master OTP from Global Settings
+    const setting = await Setting.findOne();
+    const isMasterOtpEnabled = setting?.isMasterOtpEnabled !== false;
+    const isMasterOtp =
+      isMasterOtpEnabled &&
+      setting?.masterOtp &&
+      String(setting.masterOtp).trim() !== "" &&
+      String(setting.masterOtp).trim() === String(otp).trim();
 
-    // ❌ OTP expired
-    if (student.otpExpire && new Date(student.otpExpire) < new Date()) {
-      console.log('❌ OTP expired:', { otpExpire: student.otpExpire, now: new Date() });
-      student.otp = null;
-      student.otpExpire = null;
-      await student.save();
+    if (isMasterOtp) {
+      console.log('👑 Verified using Master OTP for student:', student.userid);
+    } else {
+      // ❌ OTP not generated or already used
+      if (!student.otp) {
+        console.log('❌ No OTP found or already used');
+        return res.status(400).json({
+          success: false,
+          message: "OTP expired or already verified",
+        });
+      }
 
-      return res.status(400).json({
-        success: false,
-        message: "OTP expired",
-      });
-    }
+      // ❌ OTP expired
+      if (student.otpExpire && new Date(student.otpExpire) < new Date()) {
+        console.log('❌ OTP expired:', { otpExpire: student.otpExpire, now: new Date() });
+        student.otp = null;
+        student.otpExpire = null;
+        await student.save();
 
-    // ❌ OTP mismatch
-    if (String(student.otp) !== String(otp)) {
-      console.log('❌ OTP mismatch:', { stored: student.otp, provided: otp });
-      return res.status(400).json({
-        success: false,
-        message: "Invalid OTP",
-      });
+        return res.status(400).json({
+          success: false,
+          message: "OTP expired",
+        });
+      }
+
+      // ❌ OTP mismatch
+      if (String(student.otp) !== String(otp)) {
+        console.log('❌ OTP mismatch:', { stored: student.otp, provided: otp });
+        return res.status(400).json({
+          success: false,
+          message: "Invalid OTP",
+        });
+      }
     }
 
     console.log('✅ OTP verified successfully');

@@ -228,11 +228,13 @@ export const login = async (req, res) => {
           teacherId: teacherDoc._id,
           assignedBatches: teacherDoc.assignedBatches || []
         };
-        // Grant teacher permissions automatically
+        // Grant teacher permissions automatically and ensure view_dashboard is excluded
+        permissions = permissions.filter(p => p !== "view_dashboard");
+        permissions = permissions.filter(p => p !== "view_dashboard");
         const teacherPermissions = [
           "view_batch", "mark_attendance", "view_attendance",
           "manage_assignments", "grade_assignment", "manage_lms",
-          "view_lms", "view_dashboard"
+          "view_lms"
         ];
         teacherPermissions.forEach(p => {
           if (!permissions.includes(p)) permissions.push(p);
@@ -398,10 +400,11 @@ export const verifyOtp = async (req, res) => {
           teacherId: teacherDoc._id,
           assignedBatches: teacherDoc.assignedBatches || []
         };
+        permissions = permissions.filter(p => p !== "view_dashboard");
         const teacherPermissions = [
           "view_batch", "mark_attendance", "view_attendance",
           "manage_assignments", "grade_assignment", "manage_lms",
-          "view_lms", "view_dashboard"
+          "view_lms"
         ];
         teacherPermissions.forEach(p => {
           if (!permissions.includes(p)) permissions.push(p);
@@ -617,6 +620,28 @@ export const getMe = async (req, res) => {
         userWithPermissions.permissions = employeePerm
           ? employeePerm.permissions.map(p => p.name)
           : [];
+      }
+
+      // Check if employee is a teacher
+      if (req.user.role === "Employee") {
+        const teacherDoc = await Teacher.findOne({ phone: req.user.phone, isActive: true })
+          .populate("assignedBatches", "batchName subject classTime startDate");
+        if (teacherDoc) {
+          userWithPermissions.isTeacher = true;
+          userWithPermissions.teacherInfo = {
+            teacherId: teacherDoc._id,
+            assignedBatches: teacherDoc.assignedBatches || []
+          };
+          userWithPermissions.permissions = (userWithPermissions.permissions || []).filter(p => p !== "view_dashboard");
+          const teacherPermissions = [
+            "view_batch", "mark_attendance", "view_attendance",
+            "manage_assignments", "grade_assignment", "manage_lms",
+            "view_lms"
+          ];
+          teacherPermissions.forEach(p => {
+            if (!userWithPermissions.permissions.includes(p)) userWithPermissions.permissions.push(p);
+          });
+        }
       }
 
       userWithPermissions.isSuperAdmin =

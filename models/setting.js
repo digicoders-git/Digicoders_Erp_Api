@@ -6,6 +6,15 @@ const settingSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    masterOtp: {
+      type: String,
+      default: "123456",
+      trim: true,
+    },
+    isMasterOtpEnabled: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

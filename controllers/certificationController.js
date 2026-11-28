@@ -1,4 +1,5 @@
 import Certification from "../models/certification.js";
+import Registration from "../models/regsitration.js";
 
 // Apply for certification
 export const applyCertification = async (req, res) => {
@@ -17,6 +18,32 @@ export const applyCertification = async (req, res) => {
       trainingMode,
     } = req.body;
 
+    // Check student fee status: only students with full fees paid can apply
+    const studentDoc = await Registration.findById(student);
+    if (!studentDoc) {
+      return res.status(404).json({
+        success: false,
+        message: "Student registration not found.",
+      });
+    }
+
+    const dueAmount = Number(
+      studentDoc.dueAmount !== undefined && studentDoc.dueAmount !== null
+        ? studentDoc.dueAmount
+        : (studentDoc.finalFee || 0) - (studentDoc.paidAmount || 0)
+    );
+
+    const isFullPaid =
+      dueAmount <= 0 &&
+      (studentDoc.finalFee > 0 ? (studentDoc.paidAmount || 0) >= studentDoc.finalFee : true);
+
+    if (!isFullPaid && studentDoc.trainingFeeStatus !== "full paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Certificate form sirf wahi students fill kar sakte hain jinka full fees paid ho. Please clear your fee dues to apply.",
+      });
+    }
+
     const files = req.files || {};
     let feeReceipt = null;
     let aadharFront = null;
@@ -32,10 +59,10 @@ export const applyCertification = async (req, res) => {
       aadharBack = `/uploads/${files.aadharBack[0].filename}`;
     }
 
-    if (!feeReceipt || !aadharFront || !aadharBack) {
+    if (!aadharFront || !aadharBack) {
       return res.status(400).json({
         success: false,
-        message: "Please upload fee receipt, aadhar front, and aadhar back images.",
+        message: "Please upload Aadhar front and Aadhar back images.",
       });
     }
 

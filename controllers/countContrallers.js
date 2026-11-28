@@ -69,15 +69,15 @@ export const getAll = async (req, res) => {
     // Students (Registrations) - now with year filter
     let studentsNew, studentsAccepted, studentsRejected, studentsPending, studentsAll, studentsCertificateIssued, studentsDueFees, studentsTrainingJoined, studentsCancelled;
     if (isTeacher) {
-      studentsNew = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "new", isCancelled: { $ne: true } });
-      studentsAccepted = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", certificateIssued: { $ne: true }, isCancelled: { $ne: true } });
-      studentsRejected = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "rejected", isCancelled: { $ne: true } });
-      studentsPending = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, tnxStatus: "pending", isCancelled: { $ne: true } });
-      studentsAll = await Registration.countDocuments({ _id: { $in: teacherStudentIds } }); // Keep absolute total
-      studentsCertificateIssued = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", certificateIssued: true, isCancelled: { $ne: true } });
-      studentsTrainingJoined = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", isJoin: true, certificateIssued: { $ne: true }, isCancelled: { $ne: true } });
-      studentsDueFees = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, status: "accepted", dueAmount: { $gt: 0 }, isCancelled: { $ne: true } });
-      studentsCancelled = await Registration.countDocuments({ _id: { $in: teacherStudentIds }, isCancelled: true });
+      studentsNew = 0;
+      studentsAccepted = 0;
+      studentsRejected = 0;
+      studentsPending = 0;
+      studentsAll = 0;
+      studentsCertificateIssued = 0;
+      studentsTrainingJoined = 0;
+      studentsDueFees = 0;
+      studentsCancelled = 0;
     } else {
       studentsNew = await Registration.countDocuments({ status: "new", isCancelled: { $ne: true }, ...combinedFilter });
       studentsAccepted = await Registration.countDocuments({
@@ -181,12 +181,12 @@ export const getAll = async (req, res) => {
     };
 
     // Fees (Payments) ✅ CORRECT - now with year filter
-    const feesNew = await getFeeCountByStatus("new", loggedInUser, eduYear, null, sessionYear);
-    const feesNewAdmin = await getFeeCountByStatus("new", loggedInUser, eduYear, "admin", sessionYear);
-    const feesNewStudent = await getFeeCountByStatus("new", loggedInUser, eduYear, "student", sessionYear);
-    const feesAccepted = await getFeeCountByStatus("accepted", loggedInUser, eduYear, null, sessionYear);
-    const feesRejected = await getFeeCountByStatus("rejected", loggedInUser, eduYear, null, sessionYear);
-    const feesAll = await getFeeCountByStatus("all", loggedInUser, eduYear, null, sessionYear);
+    const feesNew = isTeacher ? 0 : await getFeeCountByStatus("new", loggedInUser, eduYear, null, sessionYear);
+    const feesNewAdmin = isTeacher ? 0 : await getFeeCountByStatus("new", loggedInUser, eduYear, "admin", sessionYear);
+    const feesNewStudent = isTeacher ? 0 : await getFeeCountByStatus("new", loggedInUser, eduYear, "student", sessionYear);
+    const feesAccepted = isTeacher ? 0 : await getFeeCountByStatus("accepted", loggedInUser, eduYear, null, sessionYear);
+    const feesRejected = isTeacher ? 0 : await getFeeCountByStatus("rejected", loggedInUser, eduYear, null, sessionYear);
+    const feesAll = isTeacher ? 0 : await getFeeCountByStatus("all", loggedInUser, eduYear, null, sessionYear);
 
     //  Batch find
     let batchCount;
@@ -205,9 +205,15 @@ export const getAll = async (req, res) => {
     const tranningCount = isTeacher ? 0 : await TranningModal.countDocuments({ isActive: true });
 
     // Certifications
-    const pendingCertification = await Certification.countDocuments({ status: "Pending", ...branchFilter, ...sessionFilter });
-    const acceptedCertification = await Certification.countDocuments({ status: "Accepted", ...branchFilter, ...sessionFilter });
-    const rejectedCertification = await Certification.countDocuments({ status: "Rejected", ...branchFilter, ...sessionFilter });
+    const pendingCertification = isTeacher ? 0 : await Certification.countDocuments({ status: "Pending", ...branchFilter, ...sessionFilter });
+    const acceptedCertification = isTeacher ? 0 : await Certification.countDocuments({ status: "Accepted", ...branchFilter, ...sessionFilter });
+    const rejectedCertification = isTeacher ? 0 : await Certification.countDocuments({ status: "Rejected", ...branchFilter, ...sessionFilter });
+    const printQueueCertification = isTeacher ? 0 : await Certification.countDocuments({ status: "Send to Print", ...branchFilter, ...sessionFilter });
+    const printedCertification = isTeacher ? 0 : await Certification.countDocuments({ status: "Printed", ...branchFilter, ...sessionFilter });
+    const issuedCertification = isTeacher ? 0 : await Certification.countDocuments({ status: "Issued", ...branchFilter, ...sessionFilter });
+
+    // Job Applications
+    const jobApplicationsCount = isTeacher ? 0 : await Application.countDocuments({ ...branchFilter });
 
     // Final response object
     const counts = {
@@ -224,10 +230,13 @@ export const getAll = async (req, res) => {
       },
       fees: {
         new: feesNew,
+        newFee: feesNew,
         newAdmin: feesNewAdmin,
         newStudent: feesNewStudent,
         accepted: feesAccepted,
+        acceptedFee: feesAccepted,
         rejected: feesRejected,
+        rejectedFee: feesRejected,
         all: feesAll,
       },
       batchCount,
@@ -237,11 +246,18 @@ export const getAll = async (req, res) => {
       manageHrCount,
       technologyCount,
       tranningCount,
+      jobs: {
+        jobApplications: jobApplicationsCount,
+        all: jobApplicationsCount,
+      },
       certifications: {
         pendingCertification,
         acceptedCertification,
         rejectedCertification,
-        all: pendingCertification + acceptedCertification + rejectedCertification, // Show total on main menu
+        printQueueCertification,
+        printedCertification,
+        issuedCertification,
+        all: pendingCertification + acceptedCertification + rejectedCertification + printQueueCertification + printedCertification + issuedCertification, // Show total on main menu
       }
     };
 
@@ -260,30 +276,39 @@ export const getStudentCounts = async (req, res) => {
       return res.status(400).json({ message: "Student not identified" });
     }
 
-    // 1. Attendance Counts
-    // Aggregate attendance records where this student is present/absent
-    // The structure is Attendance -> records [{ studentId, status }]
+    // 1. Attendance Counts (Day-wise consolidation: Present in ANY batch on a date = Present)
     const attendanceStats = await Attendance.aggregate([
       { $match: { "records.studentId": studentId } },
       { $unwind: "$records" },
       { $match: { "records.studentId": studentId } },
       {
         $group: {
-          _id: "$records.status",
-          count: { $sum: 1 },
-        },
+          _id: {
+            dateStr: { $dateToString: { format: "%Y-%m-%d", date: "$date" } }
+          },
+          isPresent: {
+            $max: { $cond: [{ $eq: ["$records.status", "Present"] }, 1, 0] }
+          }
+        }
       },
+      {
+        $group: {
+          _id: null,
+          totalDays: { $sum: 1 },
+          presentDays: { $sum: "$isPresent" }
+        }
+      }
     ]);
 
     let present = 0;
     let absent = 0;
+    let totalClasses = 0;
 
-    attendanceStats.forEach((stat) => {
-      if (stat._id === "Present") present = stat.count;
-      if (stat._id === "Absent") absent = stat.count;
-    });
-
-    const totalClasses = present + absent;
+    if (attendanceStats && attendanceStats.length > 0) {
+      totalClasses = attendanceStats[0].totalDays || 0;
+      present = attendanceStats[0].presentDays || 0;
+      absent = totalClasses - present;
+    }
 
     // 2. Fee Counts
     const studentReg = await Registration.findById(studentId).select(

@@ -18,7 +18,7 @@ const certificationSchema = new mongoose.Schema(
     technology: { type: String, required: true },
     trainingMode: { type: String, required: true },
     
-    feeReceipt: { type: String, required: true },
+    feeReceipt: { type: String, default: null },
     aadharFront: { type: String, required: true },
     aadharBack: { type: String, required: true },
 
