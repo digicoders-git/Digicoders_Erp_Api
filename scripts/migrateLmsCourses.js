@@ -35,4 +35,79 @@ const migrateLmsCourses = async () => {
       courseGroups[baseTechName].technologies.push(course.technology._id);
     }
     
-    console.log(`Grouped into ${Object.keys(courseGroups).length} base technologies:`);\n    Object.keys(courseGroups).forEach(tech => {\n      console.log(`- ${tech}: ${courseGroups[tech].courses.length} courses`);\n    });\n    \n    // Migrate each group\n    for (const [baseTechName, group] of Object.entries(courseGroups)) {\n      console.log(`\\nMigrating ${baseTechName}...`);\n      \n      // Keep the first course as the main course\n      const mainCourse = group.courses[0];\n      \n      // Update main course with new structure\n      mainCourse.baseTechnology = baseTechName;\n      mainCourse.relatedTechnologies = [...new Set(group.technologies)]; // Remove duplicates\n      \n      // Remove old technology field\n      mainCourse.technology = undefined;\n      \n      await mainCourse.save();\n      console.log(`✅ Updated main course: ${mainCourse.title}`);\n      \n      // Delete duplicate courses (keep videos in main course)\n      for (let i = 1; i < group.courses.length; i++) {\n        const duplicateCourse = group.courses[i];\n        \n        // Move videos from duplicate course to main course\n        const LmsVideo = mongoose.model('LmsVideo');\n        await LmsVideo.updateMany(\n          { course: duplicateCourse._id },\n          { course: mainCourse._id }\n        );\n        \n        console.log(`📹 Moved videos from duplicate course: ${duplicateCourse.title}`);\n        \n        // Delete duplicate course\n        await LmsCourse.findByIdAndDelete(duplicateCourse._id);\n        console.log(`🗑️ Deleted duplicate course: ${duplicateCourse.title}`);\n      }\n      \n      // Update video count\n      const LmsVideo = mongoose.model('LmsVideo');\n      const videoCount = await LmsVideo.countDocuments({ \n        course: mainCourse._id, \n        isActive: true \n      });\n      \n      mainCourse.videoCount = videoCount;\n      await mainCourse.save();\n      \n      console.log(`📊 Updated video count: ${videoCount}`);\n    }\n    \n    console.log('\\n✅ Migration completed successfully!');\n    \n    // Show final results\n    const finalCourses = await LmsCourse.find({}).populate('relatedTechnologies', 'name');\n    console.log(`\\n📋 Final Results:`);\n    console.log(`Total courses after migration: ${finalCourses.length}`);\n    \n    for (const course of finalCourses) {\n      console.log(`- ${course.baseTechnology}: ${course.relatedTechnologies.length} durations, ${course.videoCount} videos`);\n    }\n    \n    // Disconnect\n    await mongoose.disconnect();\n    console.log('\\nDisconnected from database');\n    \n  } catch (error) {\n    console.error('Migration error:', error);\n    process.exit(1);\n  }\n};\n\n// Run the migration\nmigrateLmsCourses();
+    console.log(`Grouped into ${Object.keys(courseGroups).length} base technologies:`);
+    Object.keys(courseGroups).forEach(tech => {
+      console.log(`- ${tech}: ${courseGroups[tech].courses.length} courses`);
+    });
+    
+    // Migrate each group
+    for (const [baseTechName, group] of Object.entries(courseGroups)) {
+      console.log(`\nMigrating ${baseTechName}...`);
+      
+      // Keep the first course as the main course
+      const mainCourse = group.courses[0];
+      
+      // Update main course with new structure
+      mainCourse.baseTechnology = baseTechName;
+      mainCourse.relatedTechnologies = [...new Set(group.technologies)]; // Remove duplicates
+      
+      // Remove old technology field
+      mainCourse.technology = undefined;
+      
+      await mainCourse.save();
+      console.log(`✅ Updated main course: ${mainCourse.title}`);
+      
+      // Delete duplicate courses (keep videos in main course)
+      for (let i = 1; i < group.courses.length; i++) {
+        const duplicateCourse = group.courses[i];
+        
+        // Move videos from duplicate course to main course
+        const LmsVideo = mongoose.model('LmsVideo');
+        await LmsVideo.updateMany(
+          { course: duplicateCourse._id },
+          { course: mainCourse._id }
+        );
+        
+        console.log(`📹 Moved videos from duplicate course: ${duplicateCourse.title}`);
+        
+        // Delete duplicate course
+        await LmsCourse.findByIdAndDelete(duplicateCourse._id);
+        console.log(`🗑️ Deleted duplicate course: ${duplicateCourse.title}`);
+      }
+      
+      // Update video count
+      const LmsVideo = mongoose.model('LmsVideo');
+      const videoCount = await LmsVideo.countDocuments({ 
+        course: mainCourse._id, 
+        isActive: true 
+      });
+      
+      mainCourse.videoCount = videoCount;
+      await mainCourse.save();
+      
+      console.log(`📊 Updated video count: ${videoCount}`);
+    }
+    
+    console.log('\n✅ Migration completed successfully!');
+    
+    // Show final results
+    const finalCourses = await LmsCourse.find({}).populate('relatedTechnologies', 'name');
+    console.log(`\n📋 Final Results:`);
+    console.log(`Total courses after migration: ${finalCourses.length}`);
+    
+    for (const course of finalCourses) {
+      console.log(`- ${course.baseTechnology}: ${course.relatedTechnologies.length} durations, ${course.videoCount} videos`);
+    }
+    
+    // Disconnect
+    await mongoose.disconnect();
+    console.log('\nDisconnected from database');
+    
+  } catch (error) {
+    console.error('Migration error:', error);
+    process.exit(1);
+  }
+};
+
+// Run the migration
+migrateLmsCourses();

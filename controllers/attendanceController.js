@@ -1982,13 +1982,3 @@ export const getStudentDetailedReport = async (req, res) => {
     });
   }
 };
-
-  } catch (error) {
-    console.error('Error fetching student detailed report:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message
-    });
-  }
-};
